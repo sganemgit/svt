@@ -2,7 +2,7 @@ import libSvPython
 import struct
 from ctypes import *
 import threading
-#from ipacore.drivers.aq_descriptor import AqDescriptor
+from core.structs.AqDescriptor import AqDescriptor
 #from ipacore.drivers.projectsspecificdata import ProjectsSpecificData
 
 class SvDriver(object):
