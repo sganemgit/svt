@@ -7,6 +7,7 @@ class cvl:
     def __init__(self, device_number, port_number):
         self.device_number =  device_number
         self.port_number = port_number
+        self.driver = DriverFactory.create_driver()
 
     def print_info(self):
         print(F"device number: {self.device_number}")
