@@ -2,6 +2,7 @@ from core.drivers.DriverFactory import DriverFactory
 from core.structs.DeviceInfo import DeviceInfo
 from core.drivers.svdriver.SvDriverCommands import *
 from Defines import *
+from core.structs.AqDescriptor import AqDescriptor
 
 def _calculate_port_offset(offset_base, mul, port_number):
     '''This function return port offset according to port number and offset.
@@ -38,7 +39,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
 
-    def GetPTC127():
+    def GetPTC127(self):
         '''This function reads PTC127 CVL register
             Packets Transmitted [65-127 Bytes] Counter (13.2.2.24.61/62)
             GLPRT_PTC127L = 0x00380BC0
@@ -1357,7 +1358,7 @@ class cvl:
         '''
         raise RuntimeError("Reset by AQ is not implimented")
 
-    def GetPhyType(Location = "AQ"):
+    def GetPhyType(self, Location = "AQ"):
         '''This function return Phy type
             input: Location = "AQ" 
             return: phy type (str)
@@ -2442,7 +2443,7 @@ class cvl:
 
         return FEC_Counter_dict
 
-    def EnablePCSLoopback():
+    def EnablePCSLoopback(self):
         '''This function enabled phy local loopback at the PCS level.
             input: None
             return: None
@@ -2460,7 +2461,7 @@ class cvl:
             error_msg = 'Error EnablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def EnablePMDLoopback():
+    def EnablePMDLoopback(self):
         '''This function enabled phy local loopback at the PMD level.
             input: None
             return: None
@@ -2472,13 +2473,13 @@ class cvl:
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
 
-        status = SetPhyLoopback(phy_lpbk_args)
+        status = self.SetPhyLoopback(phy_lpbk_args)
         
         if status[0]: 
             error_msg = 'Error EnablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def DisablePCSLoopback():
+    def DisablePCSLoopback(self):
         '''This function disabled phy local loopback at the PCS level.
             input: None
             return: None
@@ -2496,7 +2497,7 @@ class cvl:
             error_msg = 'Error DisablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def DisablePMDLoopback():
+    def DisablePMDLoopback(self):
         '''This function disabled phy local loopback at the PMD level.
             input: None
             return: None
@@ -2508,7 +2509,7 @@ class cvl:
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
 
-        status = SetPhyLoopback(phy_lpbk_args)
+        status = self.SetPhyLoopback(phy_lpbk_args)
         
         if status[0]: 
             error_msg = 'Error DisablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -4956,8 +4957,8 @@ class cvl:
         opCodes = AqOpCodes()
         currOpCode = opCodes.set_phy_config
         aq_desc = AqDescriptor()
-        helper = LM_Validation()
-        helper._debug('SetPhyConfig Admin Command')
+        #helper = LM_Validation()
+        #helper._debug('SetPhyConfig Admin Command')
         #buffer structure
         #turn args to bytes
         buffer = []
@@ -5262,7 +5263,7 @@ class cvl:
             status = (False, data)
         return status
 
-    def GetLinkStatus(gls,debug=False):
+    def GetLinkStatus(self, gls,debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Get link status of the port.
@@ -5418,7 +5419,7 @@ class cvl:
             status = (False, data)
         return status
 
-    def SetPhyLoopback(phy_lpbk_args,debug=False):
+    def SetPhyLoopback(self,phy_lpbk_args,debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Sets various PHYs loopback modes of the link
@@ -5442,9 +5443,8 @@ class cvl:
         # addr_low = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
-        aq_desc = AqDescriptor()
-        helper._debug('SetPhyLoopback Admin Command')
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor() # helper._debug('SetPhyLoopback Admin Command')
         data_len = 0x0
         aq_desc.opcode = opCodes.set_phy_loopback
         aq_desc.datalen = data_len
@@ -5465,7 +5465,7 @@ class cvl:
             status = (False, None)
         return status
 
-    def SetPhyDebug(debug_args,debug=False):
+    def SetPhyDebug(self, debug_args,debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Resets PHYs or disables Link Management Firmware
@@ -5604,7 +5604,7 @@ class cvl:
         }
         return link_width.get(val,"Wrong")
 
-    def GetDevicePowerState():
+    def GetDevicePowerState(self):
         '''This function returns Device power state: 
             argument: None
             return: "D0" / "Reserved" / "D3hot"
@@ -5623,19 +5623,19 @@ class cvl:
     #################################         Power        ##################################################
     #########################################################################################################
 
-    def SetD3PowerState():
+    def SetD3PowerState(self):
         driver = self.driver
         driver.write_pci(0x44, 0x200b) 
         
-    def SetD0PowerState():
+    def SetD0PowerState(self):
         driver = self.driver
         driver.write_pci(0x44, 0x2008) 
 
-    def SetD3PowerStateWake():
+    def SetD3PowerStateWake(self):
         driver = self.driver
         driver.write_pci(0x44, 0x210b) 
 
-    def SetWakeUp():
+    def SetWakeUp(self):
         driver = self.driver
         ############# PFPM_APM. APME = 1 ###############################
         reg_addr1 = _calculate_port_offset(0x000b8080, 0x4, driver.port_number())
@@ -5648,7 +5648,7 @@ class cvl:
 
         driver.write_pci(0x44, 0x2108)
 
-    def SetOffWakeUp():
+    def SetOffWakeUp(self):
         driver = self.driver
         ############# PFPM_APM. APME = 1 ###############################
         reg_addr1 = _calculate_port_offset(0x000b8080, 0x4, driver.port_number())
@@ -5666,7 +5666,7 @@ class cvl:
     ######################         Stand alone debug tests      #############################################
     #########################################################################################################
 
-    def DBG_globr_test(num_of_iteration,ttl_timeout):
+    def DBG_globr_test(self, num_of_iteration,ttl_timeout):
         '''This function performs globr_test for debug
             argument:
                 num_of_iteration
@@ -5697,7 +5697,7 @@ class cvl:
                 return(0)
 
 
-    def DBG_restartAN_test_BU(num_of_iteration,ttl_timeout):#TODO add link stability check and link drop source
+    def DBG_restartAN_test_BU(self, num_of_iteration,ttl_timeout):#TODO add link stability check and link drop source
         '''This function performs  restartAN_test for debug
             argument:
                 num_of_iteration
@@ -5736,7 +5736,7 @@ class cvl:
 
         print "AVG TTL: ",avg_ttl/len(ttl_list)
 
-    def GetTimeStamp():
+    def GetTimeStamp(self):
         '''This function return date and time 
             argument:
                 None
@@ -5763,7 +5763,7 @@ class cvl:
         fullname = p + str(port) + "_" + str(round(ttl)) + "_" + str(iter) + "_" + GetTimeStamp() + ".txt"
         return fullname
 
-    def DBG_restartAN_test(num_of_iteration,ttl_timeout,enable_logger = 0,logger_low_limit_ttl = 2):#TODO add link stability check and link drop source
+    def DBG_restartAN_test(self, num_of_iteration,ttl_timeout,enable_logger = 0,logger_low_limit_ttl = 2):#TODO add link stability check and link drop source
         '''This function print AVG, MAX and MIN ttl (summary of iterations). for debug only
             argument:
                 num_of_iteration (int)

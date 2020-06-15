@@ -4,7 +4,6 @@ link_stable = True
 Return_list = [0]
 debug_mode = False
 start_logger_flag = False
-stop_polling_event = threading.Event()
 
 
 # from PRTMAC_LINKSTA 0x001E47A0
@@ -121,5 +120,7 @@ class cvl_structs:
 
 
 		
+class AqOpCodes():
+    set_phy_loopback = 0x0619
 
 
