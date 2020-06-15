@@ -3,7 +3,13 @@ from cvl import cvl
 
 
 cvl0 = cvl(0,0)
+cvl1 = cvl(0,1)
 
 cvl0.print_info()
+
+cvl1.print_info()
+
+
+
 
 
