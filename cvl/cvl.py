@@ -1,7 +1,7 @@
 from core.drivers.DriverFactory import DriverFactory
 from core.structs.DeviceInfo import DeviceInfo
 from core.drivers.svdriver.SvDriverCommands import *
-
+from Defines import *
 
 def _calculate_port_offset(offset_base, mul, port_number):
     '''This function return port offset according to port number and offset.
