@@ -8,6 +8,8 @@ else:
     import rlcompleter
     readline.parse_and_bind("tab: complete")
 
+
+print("intializing cvl objects")
 cvl0 = cvl(0,0)
 cvl1 = cvl(0,1)
 

@@ -122,5 +122,6 @@ class cvl_structs:
 		
 class AqOpCodes():
     set_phy_loopback = 0x0619
+    get_link_status = 0x0607
 
 

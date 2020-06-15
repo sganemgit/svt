@@ -3,6 +3,7 @@ from core.structs.DeviceInfo import DeviceInfo
 from core.drivers.svdriver.SvDriverCommands import *
 from Defines import *
 from core.structs.AqDescriptor import AqDescriptor
+from core.utilities.BitManipulation import *
 
 def _calculate_port_offset(offset_base, mul, port_number):
     '''This function return port offset according to port number and offset.
@@ -52,7 +53,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPTC255():
+    def GetPTC255(self):
         '''This function reads PTC255 CVL register
             Packets Transmitted [128-255 Bytes] Counter (13.2.2.24.63/64)
             GLPRT_PTC255L = 0x00380C00
@@ -65,7 +66,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPTC511():
+    def GetPTC511(self):
         '''This function reads PTC511 CVL register
             Packets Transmitted [256-511 Bytes] Counter (13.2.2.24.65/66)
             GLPRT_PTC511L = 0x00380C40
@@ -117,7 +118,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
-    def GetPTC():
+    def GetPTC(self):
         '''This function reads all PTC CVL register
             Total Packets Transmitted Counter (13.2.2.24.59 - 13.2.2.24.72)
             return: dict--
@@ -133,13 +134,13 @@ class cvl:
      
         PTC_Dict = {}
 
-        _GetPTC64   = GetPTC64()
-        _GetPTC127  = GetPTC127()
-        _GetPTC255  = GetPTC255()
-        _GetPTC511  = GetPTC511()
-        _GetPTC1023 = GetPTC1023()
-        _GetPTC1522 = GetPTC1522()
-        _GetPTC9522 = GetPTC9522()
+        _GetPTC64   = self.GetPTC64()
+        _GetPTC127  = self.GetPTC127()
+        _GetPTC255  = self.GetPTC255()
+        _GetPTC511  = self.GetPTC511()
+        _GetPTC1023 = self.GetPTC1023()
+        _GetPTC1522 = self.GetPTC1522()
+        _GetPTC9522 = self.GetPTC9522()
 
         PTC_Dict['GetPTC64']   = _GetPTC64
         PTC_Dict['GetPTC127']  = _GetPTC127
@@ -153,7 +154,7 @@ class cvl:
 
         return PTC_Dict
      
-    def GetPRC64():
+    def GetPRC64(self):
         '''This function reads PRC64 CVL register
             Packets Received [64 Bytes] Counter (13.2.2.24.45/46)
             GLPRT_PRC64L = 0x00380900
@@ -1101,40 +1102,38 @@ class cvl:
             return: None
         ''' 
         return int((end - start)*8*packet_size/sample_time)
-        
+
     ######################################################################################################  
-     
-    def GetMacLinkStatus(Location = "AQ"):
+
+    def GetMacLinkStatus(self, Location = "AQ"):
         '''This function returns the link status.
            argument: read by AQ/REG
            return: True/false
         '''
-     
         if Location == "REG":
-            LinkStatus = _GetMacLinkStatusReg()
+            LinkStatus = self._GetMacLinkStatusReg()
         elif Location == "AQ":
-            LinkStatus = _GetMacLinkStatusAq()
+            LinkStatus = self._GetMacLinkStatusAq()
         else:
             raise RuntimeError("Error GetMacLinkStatus: Error Location, please insert location REG/AQ") 
-        
         return LinkStatus
-     
-    def _GetMacLinkStatusReg():
+
+    def _GetMacLinkStatusReg(self):
         '''This function returns the link status (13.2.2.4.78).
            PRTMAC_LINKSTA 0x001E47A0
                argument: None
                return: True/false
         '''
-     
+
         driver = self.driver
-     
+
         reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         LinkStatus = _get_bit_value(reg_data,30)
-     
+
         return LinkStatus
-     
-    def _GetMacLinkStatusAq():
+
+    def _GetMacLinkStatusAq(self):
         '''This function returns the link status using Get link status AQ.
                 argument: None
                 return: True/false
@@ -1144,7 +1143,7 @@ class cvl:
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
      
-        result = GetLinkStatus(gls)
+        result = self.GetLinkStatus(gls)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -5334,9 +5333,9 @@ class cvl:
         # addr_low(bytes 28-31) = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
+#        helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('GetLinkStatus Admin Command')
+#        helper._debug('GetLinkStatus Admin Command')
         data_len = 0x1000
         aq_desc.opcode = opCodes.get_link_status
         aq_desc.datalen = data_len
@@ -5360,58 +5359,57 @@ class cvl:
                 print buffer
             data = {}
             data['lse_enabled'] = (aq_desc.param0 & 0x10000)
-            data['topo_conflict'] = ut.compose_num_from_array_slice(buffer, 0, 1) & 0x1
-            data['media_conflict'] = (ut.compose_num_from_array_slice(buffer, 0, 1) & 0x2) >> 1
-            data['lom_topo_corrupt'] = (ut.compose_num_from_array_slice(buffer, 0, 1) & 0x4) >> 2
-            data['link_sts'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x1)
-            data['link_fault'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x2) >> 1 
-            data['tx_link_fault'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x4) >> 2
-            data['rx_link_fault'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x8) >> 3
-            data['remote_fault'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x10) >> 4
-            
-            data['ext_prt_sts'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x20) >> 5
-            data['media_avail'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x40) >> 6
-            data['sig_det'] = (ut.compose_num_from_array_slice(buffer, 2, 1) & 0x80) >> 7
-            data['an_comp'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x1)
-            data['lp_an_abil'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x2) >> 1
-            data['pd_fault'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x4) >> 2
-            data['10g_kr_fec'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x8) >> 3
-            data['low_pwr_state'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x10) >> 4
-            data['tx_pause'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x20) >> 5
-            data['rx_pause'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x40) >> 6
-            data['qual_mod'] = (ut.compose_num_from_array_slice(buffer, 3, 1) & 0x80) >> 7
-            data['temp_alarm'] = ut.compose_num_from_array_slice(buffer, 4, 1) & 0x1
-            data['hi_err'] = (ut.compose_num_from_array_slice(buffer, 4, 1) & 0x2) >> 1
-            data['tx_susp'] = (ut.compose_num_from_array_slice(buffer, 4, 1) & 0xC) >> 2
-            data['lcl_lpbk'] = ut.compose_num_from_array_slice(buffer, 5, 1) & 0x1
-            data['rem_lpbk'] = (ut.compose_num_from_array_slice(buffer, 5, 1) & 0x2) >> 1
-            data['mac_lpbk'] = (ut.compose_num_from_array_slice(buffer, 5, 1) & 0x4) >> 2
-            data['max_frame'] = ut.compose_num_from_array_slice(buffer, 6, 2)
-            data['25g_kr_fec'] = ut.compose_num_from_array_slice(buffer, 8, 1) & 0x1
-            data['25g_rs_528'] = (ut.compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
-            data['rs_544'] = (ut.compose_num_from_array_slice(buffer, 8, 1) & 0x4) >> 2
-            data['pacing_type'] = (ut.compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7
-            data['pacing_rate'] = (ut.compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3
-            data['link_speed_10m'] = ut.compose_num_from_array_slice(buffer, 10, 1) & 0x1        
-            data['link_speed_100m'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1
-            data['link_speed_1000m'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2       
-            data['link_speed_2p5g'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3       
-            data['link_speed_5g'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4        
-            data['link_speed_10g'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5
-            data['link_speed_20g'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6        
-            data['link_speed_25g'] = (ut.compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7      
-            data['link_speed_40g'] = ut.compose_num_from_array_slice(buffer, 11, 1) & 0x1        
-            data['link_speed_50g'] = (ut.compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1        
-            data['link_speed_100g'] = (ut.compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2        
-            data['link_speed_200g'] = (ut.compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3              
-            data['phy_type_0'] = ut.compose_num_from_array_slice(buffer, 16, 4)
-            data['phy_type_1'] = ut.compose_num_from_array_slice(buffer, 20, 4)
-            data['phy_type_2'] = ut.compose_num_from_array_slice(buffer, 24, 4)
-            data['phy_type_3'] = ut.compose_num_from_array_slice(buffer, 28, 4)
+            data['topo_conflict'] = compose_num_from_array_slice(buffer, 0, 1) & 0x1
+            data['media_conflict'] = (compose_num_from_array_slice(buffer, 0, 1) & 0x2) >> 1
+            data['lom_topo_corrupt'] = (compose_num_from_array_slice(buffer, 0, 1) & 0x4) >> 2
+            data['link_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x1)
+            data['link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x2) >> 1
+            data['tx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x4) >> 2
+            data['rx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x8) >> 3
+            data['remote_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x10) >> 4
 
-            phy_type_list = []        
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_1'], 1))
+            data['ext_prt_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x20) >> 5
+            data['media_avail'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x40) >> 6
+            data['sig_det'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x80) >> 7
+            data['an_comp'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x1)
+            data['lp_an_abil'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x2) >> 1
+            data['pd_fault'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x4) >> 2
+            data['10g_kr_fec'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x8) >> 3
+            data['low_pwr_state'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x10) >> 4
+            data['tx_pause'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x20) >> 5
+            data['rx_pause'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x40) >> 6
+            data['qual_mod'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x80) >> 7
+            data['temp_alarm'] = compose_num_from_array_slice(buffer, 4, 1) & 0x1
+            data['hi_err'] = (compose_num_from_array_slice(buffer, 4, 1) & 0x2) >> 1
+            data['tx_susp'] = (compose_num_from_array_slice(buffer, 4, 1) & 0xC) >> 2
+            data['lcl_lpbk'] = compose_num_from_array_slice(buffer, 5, 1) & 0x1
+            data['rem_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x2) >> 1
+            data['mac_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x4) >> 2
+            data['max_frame'] = compose_num_from_array_slice(buffer, 6, 2)
+            data['25g_kr_fec'] = compose_num_from_array_slice(buffer, 8, 1) & 0x1
+            data['25g_rs_528'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
+            data['rs_544'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x4) >> 2
+            data['pacing_type'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7
+            data['pacing_rate'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3
+            data['link_speed_10m'] = compose_num_from_array_slice(buffer, 10, 1) & 0x1
+            data['link_speed_100m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1
+            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2
+            data['link_speed_2p5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3
+            data['link_speed_5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4
+            data['link_speed_10g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5
+            data['link_speed_20g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6
+            data['link_speed_25g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7
+            data['link_speed_40g'] = compose_num_from_array_slice(buffer, 11, 1) & 0x1
+            data['link_speed_50g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1
+            data['link_speed_100g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2
+            data['link_speed_200g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3
+            data['phy_type_0'] = compose_num_from_array_slice(buffer, 16, 4)
+            data['phy_type_1'] = compose_num_from_array_slice(buffer, 20, 4)
+            data['phy_type_2'] = compose_num_from_array_slice(buffer, 24, 4)
+            data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
+
+            phy_type_list = []
+            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_0'], 0)) phy_type_list.extend(helper._get_all_phy_types(data['phy_type_1'], 1))
             phy_type_list.extend(helper._get_all_phy_types(data['phy_type_2'], 2))
             phy_type_list.extend(helper._get_all_phy_types(data['phy_type_3'], 3))
             data['phy_type_list'] = phy_type_list
