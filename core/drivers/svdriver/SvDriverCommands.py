@@ -9,10 +9,9 @@ def svdt(flag):
 
 def check_device_availability(project_name, device_number, port_number):
     try:
-        output = subprocess.check_output(["svdt","-s"])
+        output = svdt("-s")
         output = output.decode(encoding = "utf-8")
         lines = output.split("\n")
-        print(output)
         for line in lines:
             if project_name in line:
                 line_components = line.split()
@@ -24,6 +23,37 @@ def check_device_availability(project_name, device_number, port_number):
         print("svdt -s failed:")
         print(str(e))
 
-    
+def get_device_id_by_name(project_name, device_number, port_number):
+    output = svdt("-s")
+    output = output.decode(encoding = "utf-8")
+    lines = output.split("\n")
+    for line in lines:
+        if project_name in line:
+            line_component = line.split()
+            if line_component[2] == str(device_number):
+                if line_component[3] == str(port_number):
+                    return line_component[5].replace("0x","")
+
+def get_device_bdf_by_name(project_name, device_number, port_number):
+    output = svdt("-s")
+    output = output.decode(encoding = "utf-8")
+    lines = output.split("\n")
+    for line in lines:
+        if project_name in line:
+            line_component = line.split()
+            if line_component[2] == str(device_number):
+                if line_component[3] == str(port_number):
+                    return line_component[4]
+def get_device_specific_id(project_name,device_number, port_number):
+    output = svdt("-s")
+    output = output.decode(encoding = "utf-8")
+    lines = output.split("\n")
+    for line in lines:
+        if project_name in line:
+            line_component = line.split()
+            if line_component[2] == str(device_number):
+                if line_component[3] == str(port_number):
+                    return line_component[1]
+
 if __name__=="__main__":
-    print(check_device_availability("cvl", 1, 2))
+    print(get_device_specific_id("cvl",0,0))

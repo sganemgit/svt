@@ -2,28 +2,55 @@ import libSvPython
 import struct
 from ctypes import *
 import threading
+from core.structs.DeviceInfo import DeviceInfo
 from core.structs.AqDescriptor import AqDescriptor
+from core.drivers.svdriver.SvDriverCommands import *
+
 #from ipacore.drivers.projectsspecificdata import ProjectsSpecificData
+DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
+           'sgvl': ['1563'],
+           'fortpond' : ['1589'],
+           'crsvl' : ['1586','1572','15ff'],
+           'elv' : ['1586','1572','15ff'],
+           'tvl' : ['1528'],
+           'cpk' : ['f0a5','1888','1889','1890','1891','1892','1893','1894','1895','1896','1897','1898','1899','189a','189b','189c','189d','189e','189f'],
+           'cvl' : ['1590','1591','1592','1593','1594','1595','1598','1599','159a','159b'],
+           'cvl_sd' : ['159a','159b','1599'],
+           'fvl25' : ['158a','158b'],
+           'lbg' : ['37d0'],
+           'nnt' : ['10fb'],
+           'mev' : ['f002']}
 
 class SvDriver(object):
     """This class wrapps 'libSvPython' module (python wrapper for SV driver)"""
 
-    def __init__(self, device_info):                
+    def __init__(self, device_info):
         self._port_number = int(device_info.port_number)
-        self._project_name = device_info.project_name      
+        self._project_name = device_info.project_name
         self._device_number = device_info.device_number
-        self._device_string = device_info.driver_specific_id
+        self._device_string = device_info.driver_specific_id.encode("utf-8")
         self._dev_id = device_info.dev_id
-        self._bdf_location = device_info.location 
+        self._bdf_location = device_info.location
 
         self._mdio_lock = None
 
-        self._mdio_cntrl, self._mdio_data = ProjectsSpecificData.get_mdios_regs(self._project_name)
-        if self._mdio_cntrl is None:
-            raise ValueError('Missing data for MDIO registers for project ' + self._project_name)
+#        self._mdio_cntrl, self._mdio_data = ProjectsSpecificData.get_mdios_regs(self._project_name)
+#        if self._mdio_cntrl is None:
+#            raise ValueError('Missing data for MDIO registers for project ' + self._project_name)
 
         #create adapter handle
-        self._create()    
+        self._create()
+
+    @classmethod
+    def create_driver_by_name(cls, project_name, device_number, port_number):
+        device_info =  DeviceInfo()
+        device_info.projet_name = project_name
+        device_info.device_number = str(device_number)
+        device_info.port_number = str(port_number)
+        device_info.dev_id = get_device_id_by_name(project_name, device_number, port_number)
+        device_info.dev_location = get_device_bdf_by_name(project_name,device_number, port_number)
+        device_info.driver_specific_id = get_device_specific_id(project_name,device_number, port_number)
+        return cls(device_info)
 
     def __del__(self):
         self._release()
@@ -35,8 +62,7 @@ class SvDriver(object):
         '''
         This method return port number of current port.            
         '''
-        return self._port_number              
- 
+        return self._port_number 
     def device_number(self):
         '''
         This method return device number to which current port belongs.
@@ -179,7 +205,7 @@ class SvDriver(object):
         '''
         with self._mdio_lock:
             #key = threading.current_thread().getName()
-            #print 'read mdio thread ' + key
+            #print( 'read mdio thread ' + key)
             value = 0        
             value = value | ((phy_add & 0x1f) << 21) # set phy address
             value = value | ((page & 0x1F) << 16) # set phy page
@@ -300,19 +326,19 @@ class SvDriver(object):
         descriptor[31] = (aq_descriptor.addr_low >> 24) & 0xff
 
         if debug_print:
-            print 'AQ descriptor sent:'
+            print("AQ descriptor sent:h")
             for i in range(0, desc_size):
-                print descriptor[i],
-            print
+                print(descriptor[i],)
+            print()
 
         ret_val = libSvPython.AllocWORD()
         status = libSvPython.send_adminqueue_command(self._device_string, descriptor, sent_aq_buffer, aq_buffer_size, ret_val)        
 
         if debug_print:
-            print 'AQ descriptor received:'
+            print("AQ descriptor received:")
             for i in range(0, desc_size):
-                print descriptor[i],
-            print
+                print(descriptor[i],)
+            print()
                   
         aq_descriptor.flags = libSvPython.get_aq_descriptor_flags(descriptor)
         aq_descriptor.opcode = libSvPython.get_aq_descriptor_opcode(descriptor)
@@ -433,20 +459,20 @@ class SvDriver(object):
         descriptor[31] = (aq_descriptor.addr_low >> 24) & 0xff
 
         if debug_print:			
-            print 'AQ descriptor sent:'
+            print( 'AQ descriptor sent:')
             for i in range(0, desc_size):
-                print descriptor[i],
-            print
-            print 'Sent buffer:', sent_aq_buffer.__repr__()
+                print(descriptor[i],)
+            print()
+            print( 'Sent buffer:', sent_aq_buffer.__repr__())
    
         status = libSvPython.receive_adminqueue_command(self._device_string, descriptor, sent_aq_buffer, aq_buffer_size)
   
         if debug_print:
-            print 'AQ descriptor received:'
+            print( 'AQ descriptor received:')
             for i in range(0, desc_size):
-                print descriptor[i],
-            print
-            print 'Received buffer:', sent_aq_buffer.__repr__()
+                print(descriptor[i],)
+            print()
+            print('Received buffer:', sent_aq_buffer.__repr__())
     
         aq_descriptor.flags = libSvPython.get_aq_descriptor_flags(descriptor)
         aq_descriptor.opcode = libSvPython.get_aq_descriptor_opcode(descriptor)
@@ -512,4 +538,4 @@ class SvDriver(object):
             raise RuntimeError("Failed to init device {} device number {} port number {}, device not found".format(self._project_name, self._device_number, self._port_number))
 
     def _release(self):
-        p
+        pass
