@@ -879,7 +879,7 @@ class cvl:
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
-    def ClearRFC():
+    def ClearRFC(self):
         '''Receive Fragments Count. This function clears the count of received frames that are shorter than
             minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (13.2.2.24.107/108))
             GLPRT_RFC   = 0x00380AC0
@@ -892,7 +892,7 @@ class cvl:
         driver.write_csr(reg_addr, 0xffffffff)
         pass
      
-    def ClearROC():
+    def ClearROC(self):
         '''Receive oversize Error. This function clears the count of received frames that are longer than
             maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
             inclusively) and have valid CRC. (13.2.2.24.109/110)
@@ -906,7 +906,7 @@ class cvl:
         driver.write_csr(reg_addr, 0xffffffff)
         pass
      
-    def ClearRJC():
+    def ClearRJC(self):
         '''Receive jabber errors. This function clears the count of received packets that passed address filtering,
             and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
             The packets length is counted from <Destination Address> through <CRC>, inclusively. (13.2.2.24.111/112)
@@ -920,7 +920,7 @@ class cvl:
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
-    def ClearMSPDC():
+    def ClearMSPDC(self):
         '''This function clears the count of MAC short Packets Discarded. This counter is only active when in 10G mode. (13.2.2.24.113/114)
             GLPRT_MSPDC   = 0x003800C0
             GLPRT_MSPDC_H = 0x003800C4
@@ -932,7 +932,7 @@ class cvl:
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
-    def ClearLDPC():
+    def ClearLDPC(self):
         '''This function clears the count of VM to VM loopback packets discarded. (12.2.2.19.70)
             GLPRT_LDPC = 0x00300620
         '''
@@ -943,60 +943,58 @@ class cvl:
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
-    def ClearMACstat():
+    def ClearMACstat(self):
         '''This function clears following MAC statistics registers. 
             clear: PTC, PRC, CRCERRS, ILLERRC, ERRBC, MLFC, MRFC, RLEC, RUC, RFC, ROC, RJC, MSPDC, LDPC.
             (12.2.2.19)
         '''
-        ClearPTC64()
-        ClearPTC127()
-        ClearPTC255()
-        ClearPTC511()
-        ClearPTC1023()
-        ClearPTC1522()
-        ClearPTC9522()
-        ClearPRC64()
-        ClearPRC127()
-        ClearPRC255()
-        ClearPRC511()
-        ClearPRC1023()
-        ClearPRC1522()
-        ClearPRC9522()
-        ClearCRCERRS()
-        ClearILLERRC()
-        ClearERRBC()
-        ClearMLFC()
-        ClearMRFC()
-        ClearRLEC()
-        ClearRUC()
-        ClearRFC()
-        ClearROC()
-        ClearRJC()
-        ClearMSPDC()
-        #ClearLDPC()
-        pass
+        self.ClearPTC64()
+        self.ClearPTC127()
+        self.ClearPTC255()
+        self.ClearPTC511()
+        self.ClearPTC1023()
+        self.ClearPTC1522()
+        self.ClearPTC9522()
+        self.ClearPRC64()
+        self.ClearPRC127()
+        self.ClearPRC255()
+        self.ClearPRC511()
+        self.ClearPRC1023()
+        self.ClearPRC1522()
+        self.ClearPRC9522()
+        self.ClearCRCERRS()
+        self.ClearILLERRC()
+        self.ClearERRBC()
+        self.ClearMLFC()
+        self.ClearMRFC()
+        self.ClearRLEC()
+        self.ClearRUC()
+        self.ClearRFC()
+        self.ClearROC()
+        self.ClearRJC()
+        self.ClearMSPDC()
 
 
-    def EthStartTraffic(packet_size = 512):
+    def EthStartTraffic(self, packet_size = 512):
         '''This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
         driver = self.driver
-     
+
         driver.start_rx(packet_size = packet_size)
         time.sleep(2)
         driver.start_tx(packet_size = packet_size)
-     
-    def EthStartRx(packet_size = 512):
+
+    def EthStartRx(self, packet_size = 512):
         '''This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
         driver = self.driver
-     
-        driver.start_rx(packet_size = packet_size)
-     
+
+        driver.start_rx(self, packet_size = packet_size)
+
     def EthStartTx(packet_size = 512):
         '''This function starts Tx and Rx.
             argument: packet size - Default is 512
