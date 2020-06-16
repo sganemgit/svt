@@ -245,7 +245,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPRC():
+    def GetPRC(self):
         '''This function reads all PRC CVL registers 
             Total Packets Received Counter (13.2.2.24.45-13.2.2.24.58)
             return: dict--
@@ -283,7 +283,7 @@ class cvl:
 
         return PRC_Dict
 
-    def ConvertPacketSizeToPRC(Packet_size):
+    def ConvertPacketSizeToPRC(self, Packet_size):
         '''This function convert packet size to specific PRC
             input: packet size (int)
             return: string - 'PRC64' / 'PRC127' / 'PRC255' / 'PRC511' / 'PRC1023' / 'PRC1522' / 'PRC9522'
@@ -3405,7 +3405,7 @@ class cvl:
         else:
             return True
 
-    def GetLinkStatusAfterParsing():
+    def GetLinkStatusAfterParsing(self):
         '''This function return dictionary that contain phy and mac link status and speed, fec mode.
             arguments: None
             return: dict--
@@ -3419,7 +3419,7 @@ class cvl:
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
      
-        result = GetLinkStatus(gls)
+        result = self.GetLinkStatus(gls)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -4695,7 +4695,7 @@ class cvl:
     ######################         Debug Print Section          #############################################
     #########################################################################################################
 
-    def DBG_print_Phy_Tuning(serdes_sel,debug = False):
+    def DBG_print_Phy_Tuning(self, serdes_sel,debug = False):
         '''This function print phy tuning info. opcode 9 from CVL-DFT-D8.*EX
             arguments:
                 serdes_sel - num of serdes
@@ -4733,7 +4733,7 @@ class cvl:
         print '%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"])
         print
 
-    def DBG_print_cvl_info(advance = False, Location = "AQ"):
+    def DBG_print_cvl_info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:
                 Advance - True/False. if true print more info.
@@ -4756,7 +4756,7 @@ class cvl:
             print
 
 
-        link_status_dict = GetLinkStatusAfterParsing()
+        link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
         print
         print "Phy Types abilities: ", GetPhyTypeAbilities(rep_mode = 0)#GetPhyAbility
@@ -5331,9 +5331,9 @@ class cvl:
         # addr_low(bytes 28-31) = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-#        helper = LM_Validation()
+        helper = LM_Validation()
         aq_desc = AqDescriptor()
-#        helper._debug('GetLinkStatus Admin Command')
+        helper._debug('GetLinkStatus Admin Command')
         data_len = 0x1000
         aq_desc.opcode = opCodes.get_link_status
         aq_desc.datalen = data_len

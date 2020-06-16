@@ -13,3 +13,10 @@ def compose_num_from_array_slice(buffer, start_index, length):
     for i in range(length-2,-1,-1):
         result = result << 8 | temp[i]
     return result
+
+def _calculate_port_offset(offset_base, mul, port_number):
+    '''This function return port offset according to port number and offset.
+    '''
+    return offset_base + mul * port_number
+
+
