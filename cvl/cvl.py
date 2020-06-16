@@ -5407,7 +5407,8 @@ class cvl:
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
 
             phy_type_list = []
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_0'], 0)) phy_type_list.extend(helper._get_all_phy_types(data['phy_type_1'], 1))
+            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_0'], 0))
+            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_1'], 1))
             phy_type_list.extend(helper._get_all_phy_types(data['phy_type_2'], 2))
             phy_type_list.extend(helper._get_all_phy_types(data['phy_type_3'], 3))
             data['phy_type_list'] = phy_type_list
