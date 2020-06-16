@@ -119,9 +119,50 @@ class cvl_structs:
 		return Massage
 
 
+class AqOpCodes:
+    def __init__(self):
+        #General Admin Commands
+        self.get_version = 0x0001
+        self.get_err_reason = 0x0005
+        #Diagnostic and Debug Admin commands
+        #Defined in CPK HAS Section 16.3
+        self.config_fw_logging = 0xFF09
+        self.get_fw_log = 0xFF11
+        #Link Configuration Admin command OpCodes
+        #Defined in CPK HAS Section 3.4.5
+        self.set_phy_config = 0x0601
+        self.set_mac_config = 0x0603
+        self.setup_link = 0x0605
+        self.get_phy_abilities = 0x0600
+        self.get_link_status = 0x0607
+        self.set_event_mask = 0x0613
+        self.set_phy_loopback = 0x0619
+        self.set_mac_loopback = 0x0620
+        self.set_phy_debug = 0x0622
+        #Link Topology Admin command OpCodes
+        #Defined in CPK HAS Section 3.5.10
+        self.get_link_topology_handle = 0x06E0
+        self.get_link_topology_pin = 0x06E1
+        self.read_i2c = 0x06E2
+        self.write_i2c = 0x06E3
+        self.read_mdio = 0x06E4
+        self.write_mdio = 0x06E5
+        self.set_gpio_by_function = 0x06E6
+        self.get_gpio_by_function = 0x06E7
+        self.set_gpio = 0x06EC
+        self.get_gpio = 0x06ED
+        self.set_led = 0x06E8
+        self.set_port_id_led = 0x06E9
+        self.get_port_options = 0x06EA
+        self.set_port_option = 0x06EB
+        #DNL Debug Admin command Opcodes
+        #Defined in CPK HAS Appendix C Section 2
+        self.dnl_get_status = 0x0680
+        self.dnl_run = 0x0681
+        self.dnl_call = 0x0682
+        self.dnl_read_sto = 0x0683
+        self.dnl_write_sto = 0x0684
+        self.dnl_set_breakpoints = 0x0686
+        self.dnl_read_log = 0x0687
 
-		
-class AqOpCodes():
-    set_phy_loopback = 0x0619
-    get_link_status = 0x0607
 

@@ -18,6 +18,6 @@ cvl0.print_info()
 cvl1.print_info()
 
 
-
+cvl0.DBG_print_cvl_info()
 
 

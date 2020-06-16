@@ -4,7 +4,7 @@ from core.drivers.svdriver.SvDriverCommands import *
 from Defines import *
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
-
+from temp import *
 def _calculate_port_offset(offset_base, mul, port_number):
     '''This function return port offset according to port number and offset.
     '''
@@ -1404,43 +1404,43 @@ class cvl:
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
 
-    def GetCurrentFECStatus(Location = "AQ"):
+    def GetCurrentFECStatus(self, Location = "AQ"):
         '''This function return the current FEC status
             argument:
                 Location = "REG" / "AQ" 
      
         '''
         if Location == "REG":
-            _GetCurrentFECStatusReg()
+            self._GetCurrentFECStatusReg()
         elif Location == "AQ":
-            FEC_Type = _GetCurrentFECStatusAq()
+            FEC_Type = self._GetCurrentFECStatusAq()
         else:
             raise RuntimeError("Err GetCurrentFECStatus: Error Location, please insert location REG/AQ")
      
         return FEC_Type
 
-    def _GetCurrentFECStatusReg():
+    def _GetCurrentFECStatusReg(self):
         '''This function returns the FEC status using register.
             for debug only because GetCurrentFecStatus by REG is not implimented.
             return: None
         '''
         raise RuntimeError("Get current FEC status by Reg is not implimented")
      
-    def _GetCurrentFECStatusAq():
+    def _GetCurrentFECStatusAq(self):
         '''This function returns the FEC status using Get link status AQ.
             return: FEC type by str
         '''
         
-        link_speed = GetPhyLinkSpeed()
+        link_speed = self.GetPhyLinkSpeed()
 
-        if GetPhyType() == 'N/A':
+        if self.GetPhyType() == 'N/A':
             return 'N/A'
 
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
      
-        result = GetLinkStatus(gls)
+        result = self.GetLinkStatus(gls)
 
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -1464,28 +1464,28 @@ class cvl:
             else:
                 return 'NO_FEC'
 
-    def GetPhyTypeAbilities(rep_mode = 0, Location = "AQ"):
+    def GetPhyTypeAbilities(self, rep_mode = 0, Location = "AQ"):
         '''This function return list of phy types
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
                 Location = "REG" / "AQ" 
         '''
         if Location == "REG":
-            _GetPhyTypeAbilitiesReg()
+            self._GetPhyTypeAbilitiesReg()
         elif Location == "AQ":
-            phy_type_list = _GetPhyTypeAbilitiesAq(rep_mode)
+            phy_type_list = self._GetPhyTypeAbilitiesAq(rep_mode)
         else:
             raise RuntimeError("Err GetPhyTypeAbilities: Error Location, please insert location REG/AQ")
         
         return phy_type_list
 
-    def _GetPhyTypeAbilitiesReg():
+    def _GetPhyTypeAbilitiesReg(self):
         '''This function return list of phy types
             for debug only because reset by AQ is not implimented.
         '''
         raise RuntimeError("Get Phy Type Abilities by Reg is not implimented")      
         
-    def _GetPhyTypeAbilitiesAq(rep_mode):
+    def _GetPhyTypeAbilitiesAq(self, rep_mode):
         ''' Description: Get various PHY type abilities supported on the port.
             input:
                 rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
@@ -1498,7 +1498,7 @@ class cvl:
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = GetPhyAbilities(get_abils)
+        result = self.GetPhyAbilities(get_abils)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -1637,7 +1637,7 @@ class cvl:
         #print FEC_list
         return FEC_list
 
-    def GetPhyLinkSpeed(Location = "REG"):
+    def GetPhyLinkSpeed(self, Location = "REG"):
         '''This function return Phy Link Speed.
             argument:
                 Location = "REG" / "AQ" 
@@ -1645,32 +1645,32 @@ class cvl:
                 link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G'
         '''
         if Location == "REG":
-            LinkSpeed = _GetPhyLinkSpeedReg() 
+            LinkSpeed = self._GetPhyLinkSpeedReg() 
         elif Location == "AQ":
-            LinkSpeed = _GetPhyLinkSpeedAq() 
+            LinkSpeed = self._GetPhyLinkSpeedAq() 
         else:
             raise RuntimeError("Err GetPhyLinkSpeed: Error Location, please insert location REG/AQ")    
             
         return LinkSpeed    
         
-    def _GetPhyLinkSpeedReg():
+    def _GetPhyLinkSpeedReg(self):
         '''This function return Phy Link Speed.
             return: 
                 link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G'
         '''
         driver = self.driver
         reg_addr = _calculate_port_offset(0x03001030, 0x100, driver.port_number())
-        value = ReadEthwRegister(reg_addr)
+        value = self.ReadEthwRegister(reg_addr)
         return Phy_link_speed_dict[int(value,16)]
         
-    def _GetPhyLinkSpeedAq():
+    def _GetPhyLinkSpeedAq(self):
         '''This function return Phy Link Speed using Get link status AQ.
             return:
                 link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G' 
         '''
         raise RuntimeError("_GetPhyLinkSpeedAq need to be done")
 
-    def GetPhyLinkStatus(Location = "AQ"):
+    def GetPhyLinkStatus(self, Location = "AQ"):
         '''This function return Phy Link status.
             argument:
                 Location = "REG" / "AQ" 
@@ -1678,43 +1678,43 @@ class cvl:
                 True/False
         '''
         if Location == "REG":
-            LinkStatus = _GetPhyLinkStatusReg() 
+            LinkStatus = self._GetPhyLinkStatusReg() 
         elif Location == "AQ":
-            LinkStatus = _GetPhyLinkStatusAq() 
+            LinkStatus = self._GetPhyLinkStatusAq() 
         else:
             raise RuntimeError("Err GetPhyLinkStatus: Error Location, please insert location REG/AQ")   
             
         return LinkStatus   
 
-    def _GetPhyLinkStatusReg():
+    def _GetPhyLinkStatusReg(self):
         '''This function return PCS Link Status
             for debug only because GetPhyLinkStatus by REG is not implimented.
         '''
         raise RuntimeError("Get link status by Reg is not implimented")
         
-    def _GetPhyLinkStatusAq():
+    def _GetPhyLinkStatusAq(self):
         '''This function return PCS Link Status .
             return: true (link up)/false (link down)
         '''
-        quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
+        quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
         
-        link_speed = GetPhyLinkSpeed()
+        link_speed = self.GetPhyLinkSpeed()
         
         if link_speed == "100M" or link_speed == "1G":
-            offset_base = _calculate_port_offset(0x03000180, 0x4, pmd_num)
-            reg_addr = _calculate_port_offset(offset_base, 0x100, quad)  
-            value = ReadEthwRegister(reg_addr)
-            link_speed_from_reg = _get_bits_slice_value(int(value,16), 2, 3)
+            offset_base = self._calculate_port_offset(0x03000180, 0x4, pmd_num)
+            reg_addr = self._calculate_port_offset(offset_base, 0x100, quad)  
+            value = self.ReadEthwRegister(reg_addr)
+            link_speed_from_reg = self._get_bits_slice_value(int(value,16), 2, 3)
             link_speed_from_reg_dict = {1:"100M",2:"1G"}
             
             if link_speed == link_speed_from_reg_dict[link_speed_from_reg]:
-                link_status = _get_bit_value(int(value,16), 0)
+                link_status = self._get_bit_value(int(value,16), 0)
             else:
                 return 0    
             
         else:
             reg_addr = _calculate_port_offset(0x03000108, 0x100, quad)
-            value = ReadEthwRegister(reg_addr)
+            value = self.ReadEthwRegister(reg_addr)
             
             if link_speed == "100G":
                 link_status = _get_bit_value(int(value,16), 8) #according PCS-Status register
@@ -2987,7 +2987,7 @@ class cvl:
         sto2 = 0   
         sto3 = 1 << 31
        
-        helper = LM_Validation()
+        #helper = LM_Validation()
         act_id = 0x000E
         status = _DnlCallActivity(act_id, 0, sto0, sto1, sto2, sto3)
         
@@ -3032,7 +3032,7 @@ class cvl:
         driver = self.driver
         driver.write_csr(offset, value)
 
-    def ReadEthwRegister(address):
+    def ReadEthwRegister(self, address):
         '''This function support read from ethw.
             supporting read/write via SBiosf to neighbor device.
             arguments: 
@@ -3040,7 +3040,7 @@ class cvl:
             return: 
                 value - return value from the neighbor device.
         ''' 
-        return_val = NeighborDeviceRead(0x2,0,1, address)
+        return_val = self.NeighborDeviceRead(0x2,0,1, address)
         return return_val
 
     def WriteEthwRegister(address,data):
@@ -3139,7 +3139,7 @@ class cvl:
         #print "return_buffer: ",return_buffer
         pass
 
-    def NeighborDeviceRead(dest,opcode,addrlen, address):
+    def NeighborDeviceRead(self, dest,opcode,addrlen, address):
         '''this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
             arguments: 
@@ -4759,22 +4759,21 @@ class cvl:
         link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
         print
-        print "Phy Types abilities: ", GetPhyTypeAbilities(rep_mode = 0)#GetPhyAbility
-        print
+        print "Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0)#GetPhyAbility print
         print "Phy Type: ", link_status_dict['PhyType']
-        print "FEC Type: ", GetCurrentFECStatus()
+        print "FEC Type: ", self.GetCurrentFECStatus()
         print "Mac Link Status: ",link_status_dict['MacLinkStatus']
         if link_up_flag:
             print "Mac Link Speed: ",link_status_dict['MacLinkSpeed']
-            print "Phy Link Status: ",'UP' if GetPhyLinkStatus()==1 else 'Down'#GetPhyLinkStatus() # ONPI 
-            print "Phy Link Speed: ",GetPhyLinkSpeed() # ONPI
+            print "Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down'#GetPhyLinkStatus() # ONPI 
+            print "Phy Link Speed: ",self.GetPhyLinkSpeed() # ONPI
             #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
             print "Enabled FEC: ",link_status_dict['EnabeldFEC']
-            print "EEE abilities: ",GetEEEAbilities(rep_mode = 0) #GetPhyAbility
+            print "EEE abilities: ",self.GetEEEAbilities(rep_mode = 0) #GetPhyAbility
             print
             
-        print "Current PCIe link speed, ",GetPCIECurrentLinkSpeed()
-        print "Current PCIe link Width, ",GetPCIECurrentLinkWidth()
+        print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
+        print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
 
         if advance:
             #link_up_flag = 0# for debug
@@ -5046,9 +5045,9 @@ class cvl:
         #Class instantiation
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
+        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('SetMacConfig Admin Command')
+        #helper._debug('SetMacConfig Admin Command')
         #lvar assignment
         data_len = 0x0
         aq_desc.opcode = opCodes.set_mac_config
@@ -5096,7 +5095,7 @@ class cvl:
         #Class instantiation
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
+        #helper = LM_Validation()
         aq_desc = AqDescriptor()
         helper._debug('SetupLink Admin Command')
         #lvar assignment
@@ -5120,7 +5119,7 @@ class cvl:
             status = (False, None)
         return status
 
-    def GetPhyAbilities(get_abils,debug=False):
+    def GetPhyAbilities(self, get_abils,debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Get various PHY abilities supported on the port.
@@ -5136,7 +5135,7 @@ class cvl:
                     'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
                     'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
                     'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type' : type(list) -- use _get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
+                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
                     'pause_abil': int[1 bit] -- 1 if capable of PAUSE advertisement, 0 if not capable
                     'asy_dir_abil' : int[1 bit] -- 1 if capable of ASY_DIR pause advertisement, 0 if not capable
                     'low_pwr_abil': int[1 bit] -- 0 for high power mode, 1 for low power mode
@@ -5182,9 +5181,9 @@ class cvl:
         # addr_low(bytes 28-31) = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
+        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('GetPhyAbilities Admin Command')
+        #helper._debug('GetPhyAbilities Admin Command')
         #lvar assignment
         data_len = 0x1000
         aq_desc.opcode = opCodes.get_phy_abilities
@@ -5206,53 +5205,53 @@ class cvl:
             #ut.compose_num_from_array_slice(input, index, width)
             data = {}
             mod_ids = []
-            data['phy_type_0'] = ut.compose_num_from_array_slice(buffer, 0, 4)
-            data['phy_type_1'] = ut.compose_num_from_array_slice(buffer, 4, 4)
-            data['phy_type_2'] = ut.compose_num_from_array_slice(buffer, 8, 4)
-            data['phy_type_3'] = ut.compose_num_from_array_slice(buffer, 12, 4)
+            data['phy_type_0'] = compose_num_from_array_slice(buffer, 0, 4)
+            data['phy_type_1'] = compose_num_from_array_slice(buffer, 4, 4)
+            data['phy_type_2'] = compose_num_from_array_slice(buffer, 8, 4)
+            data['phy_type_3'] = compose_num_from_array_slice(buffer, 12, 4)
             phy_type_list = []        
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_3'], 3))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
             data['phy_type_list'] = phy_type_list
 
-            data['pause_abil'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x1)
-            data['asy_dir_abil'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x2) >> 1
-            data['low_pwr_abil'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x4) >> 2
-            data['link_mode'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x8) >> 3
-            data['an_mode'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x10) >> 4
-            data['en_mod_qual'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x20) >> 5
-            data['lesm_en'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x40) >> 6
-            data['auto_fec_en'] = (ut.compose_num_from_array_slice(buffer, 16, 1) & 0x80) >> 7
-            lpc = ut.compose_num_from_array_slice(buffer, 17, 1)
+            data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x1)
+            data['asy_dir_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x2) >> 1
+            data['low_pwr_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x4) >> 2
+            data['link_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x8) >> 3
+            data['an_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x10) >> 4
+            data['en_mod_qual'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x20) >> 5
+            data['lesm_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x40) >> 6
+            data['auto_fec_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x80) >> 7
+            lpc = compose_num_from_array_slice(buffer, 17, 1)
             if lpc:
                 data['low_pwr_ctrl'] = 1
             else:
                 data['low_pwr_ctrl'] = 0
             #data['low_pwr_ctrl'] = ut.compose_num_from_array_slice(buffer, 17, 1) #if more bits end up being used, remove if/else above and uncomment this line
-            data['eee_cap'] = ut.compose_num_from_array_slice(buffer, 18, 2)
-            data['eeer'] = ut.compose_num_from_array_slice(buffer, 20, 2)
-            data['oui'] = ut.compose_num_from_array_slice(buffer, 22, 4)
-            data['phy_fw_ver'] = ut.compose_num_from_array_slice(buffer, 26, 8)
+            data['eee_cap'] = compose_num_from_array_slice(buffer, 18, 2)
+            data['eeer'] = compose_num_from_array_slice(buffer, 20, 2)
+            data['oui'] = compose_num_from_array_slice(buffer, 22, 4)
+            data['phy_fw_ver'] = compose_num_from_array_slice(buffer, 26, 8)
             #data['fec_opt'] = ut.compose_num_from_array_slice(buffer, 34, 1)
-            data['fec_firecode_10g_abil'] = ut.compose_num_from_array_slice(buffer, 34, 1) & 0x1
-            data['fec_firecode_10g_req'] = (ut.compose_num_from_array_slice(buffer, 34, 1) & 0x2) >> 1
-            data['fec_rs528_req'] = (ut.compose_num_from_array_slice(buffer, 34, 1) & 0x4) >> 2
-            data['fec_firecode_25g_req'] = (ut.compose_num_from_array_slice(buffer, 34, 1) & 0x8) >> 3
-            data['fec_rs544_req'] = (ut.compose_num_from_array_slice(buffer, 34, 1) & 0x10) >> 4
-            data['fec_rs528_abil'] = (ut.compose_num_from_array_slice(buffer, 34, 1) & 0x40) >> 6
-            data['fec_firecode_25g_abil'] = (ut.compose_num_from_array_slice(buffer, 34, 1) & 0x80) >> 7
-            data['mod_ext_comp_code'] = ut.compose_num_from_array_slice(buffer, 36, 1)
-            data['mod_id'] = ut.compose_num_from_array_slice(buffer, 37, 1)
-            data['mod_sfp_cu_passive'] = ut.compose_num_from_array_slice(buffer, 38, 1) & 0x1
-            data['mod_sfp_cu_active'] = (ut.compose_num_from_array_slice(buffer, 38, 1) & 0x2) >> 1
-            data['mod_10g_sr'] = (ut.compose_num_from_array_slice(buffer, 38, 1) & 0x10) >> 4     
-            data['mod_10g_lr'] = (ut.compose_num_from_array_slice(buffer, 38, 1) & 0x20) >> 5
-            data['mod_10g_lrm'] = (ut.compose_num_from_array_slice(buffer, 38, 1) & 0x40) >> 6
-            data['mod_10g_er'] = (ut.compose_num_from_array_slice(buffer, 38, 1) & 0x80) >> 7
-            data['mod_1g_comp_code'] = ut.compose_num_from_array_slice(buffer, 39, 1)
-            data['qual_mod_count'] = ut.compose_num_from_array_slice(buffer, 40, 1)
+            data['fec_firecode_10g_abil'] = compose_num_from_array_slice(buffer, 34, 1) & 0x1
+            data['fec_firecode_10g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x2) >> 1
+            data['fec_rs528_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x4) >> 2
+            data['fec_firecode_25g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x8) >> 3
+            data['fec_rs544_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x10) >> 4
+            data['fec_rs528_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x40) >> 6
+            data['fec_firecode_25g_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x80) >> 7
+            data['mod_ext_comp_code'] = compose_num_from_array_slice(buffer, 36, 1)
+            data['mod_id'] = compose_num_from_array_slice(buffer, 37, 1)
+            data['mod_sfp_cu_passive'] = compose_num_from_array_slice(buffer, 38, 1) & 0x1
+            data['mod_sfp_cu_active'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x2) >> 1
+            data['mod_10g_sr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x10) >> 4     
+            data['mod_10g_lr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x20) >> 5
+            data['mod_10g_lrm'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x40) >> 6
+            data['mod_10g_er'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x80) >> 7
+            data['mod_1g_comp_code'] = compose_num_from_array_slice(buffer, 39, 1)
+            data['qual_mod_count'] = compose_num_from_array_slice(buffer, 40, 1)
             #if data['qual_mod_count']:
                 #TODO: Implement function that slices the 32 byte sections from the buffer based on mod_count, then builds a list of dictionaries that deciphers the module info based on table in CPK HAS
             #    data['qual_mod_ids'] = mod_ids
@@ -5278,9 +5277,7 @@ class cvl:
                     'lom_topo_corrupt' : int[1 bit] -- 1 if LOM topology netlist is corrupted, 0 if not
                     'link_sts': int[1 bit] -- 1 if link is up, 0 if down
                     'link_fault': int[1 bit] -- 1 if PHY has detected a link fault condition
-                    'tx_link_fault': int[1 bit] -- 1 if a transmit link fault condition is detected
-                    'rx_link_fault': int[1 bit] -- 1 if a receive link fault condition is detected
-                    'remote_fault': int[1 bit] -- 1 if a remote fault condition is detected
+                    'tx_link_fault': int[1 bit] -- 1 if a transmit link fault condition is detected 'rx_link_fault': int[1 bit] -- 1 if a receive link fault condition is detected 'remote_fault': int[1 bit] -- 1 if a remote fault condition is detected
                     'ext_prt_sts' : int[1 bit] -- 1 if link up, 0 if down
                     'media_avail' : int[1 bit] -- 1 if media is availble, 0 if not
                     'sig_det' int[1 bit] -- 1 if signal detected, 0 if not
@@ -5320,7 +5317,7 @@ class cvl:
                     'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
                     'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
                     'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type' : type(list) -- use _get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
+                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
                 if bool is True, dict becomes int with Admin command retval
         '''
         #Generic AQ descriptor --> Get Link Status Admin command translation
@@ -5331,9 +5328,9 @@ class cvl:
         # addr_low(bytes 28-31) = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
+        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('GetLinkStatus Admin Command')
+        #helper._debug('GetLinkStatus Admin Command')
         data_len = 0x1000
         aq_desc.opcode = opCodes.get_link_status
         aq_desc.datalen = data_len
@@ -5407,10 +5404,10 @@ class cvl:
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
 
             phy_type_list = []
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(helper._get_all_phy_types(data['phy_type_3'], 3))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
             data['phy_type_list'] = phy_type_list
 
             status = (False, data)
@@ -5485,9 +5482,9 @@ class cvl:
 
         driver = self.driver
         opCodes = AqOpCodes()
-        helper = LM_Validation()
+        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('SetPhyDebug Admin Command')
+       # helper._debug('SetPhyDebug Admin Command')
         data_len = 0x0
         aq_desc.opcode = opCodes.set_phy_debug
         aq_desc.datalen = data_len
