@@ -17,7 +17,8 @@ cvl0.print_info()
 
 cvl1.print_info()
 
-
 cvl0.DBG_print_cvl_info()
+cvl0.SetPhyConfiguration('1G-SGMII','NO_FEC')
+print cvl0.GetMacLinkStatus()
 
 

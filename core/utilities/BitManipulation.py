@@ -19,4 +19,22 @@ def _calculate_port_offset(offset_base, mul, port_number):
     '''
     return offset_base + mul * port_number
 
+def get_bits_slice_value(value, bit_start_number, bit_end_number):
+        '''This function return value from slice of bits
+            arguments: value, bit_start_number, bit_end_number
+            return: slice value
+        '''
+        mask_length = bit_end_number - bit_start_number + 1
+        mask_string = '1' * mask_length
+        mask = int(mask_string, 2)
+        slice_value = (value >> bit_start_number) & mask    
+        return slice_value
+
+def get_bit_value(value, bit_number):
+    '''This function return the value from specific bit
+        argument:
+            value (hex) - value from register
+            bit_number (int) 
+    '''
+    return (value >> bit_number) & 0x1
 

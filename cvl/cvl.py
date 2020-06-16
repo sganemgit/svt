@@ -388,7 +388,7 @@ class cvl:
      
         reg_addr = _calculate_port_offset(0x001E47C0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
-        Link_drop_counter = _get_bits_slice_value(reg_data,0,15)
+        Link_drop_counter = get_bits_slice_value(reg_data,0,15)
         #print "Link_drop_counter",Link_drop_counter
         return Link_drop_counter
 
@@ -1127,7 +1127,7 @@ class cvl:
 
         reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
-        LinkStatus = _get_bit_value(reg_data,30)
+        LinkStatus = get_bit_value(reg_data,30)
 
         return LinkStatus
 
@@ -1201,7 +1201,7 @@ class cvl:
      
         reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
-        LinkSpeed = _get_bits_slice_value(reg_data,26,29)   
+        LinkSpeed = get_bits_slice_value(reg_data,26,29)   
      
         return Mac_link_speed_dict[LinkSpeed]
      
@@ -1299,7 +1299,6 @@ class cvl:
             return: None
         '''
         driver = self.driver
-        handler = get_handler()
         if reset_type ==  "globr":
             driver.device_reset("GLOBAL")
         elif reset_type ==  "pfr" : 
@@ -1361,22 +1360,22 @@ class cvl:
             return: phy type (str)
         '''
         if Location == "REG":
-            Phy_Type = _GetPhyTypeReg()
+            Phy_Type = self._GetPhyTypeReg()
         elif Location == "AQ":
-            Phy_Type = _GetPhyTypeAq()
+            Phy_Type = self._GetPhyTypeAq()
      
         else:
             raise RuntimeError("Error GetPhyType: Error Location, please insert location REG/AQ")
             
         return Phy_Type
 
-    def _GetPhyTypeReg():
+    def _GetPhyTypeReg(self):
         '''This function return Phy type.
             for debug only because GetPhyType by REG is not implimented.
         '''
         raise RuntimeError("Get Phy type by Reg is not implemented")
      
-    def _GetPhyTypeAq():
+    def _GetPhyTypeAq(self):
         '''This function return Phy type using Get link status AQ.
             return: Phy type in str
         '''
@@ -1385,7 +1384,7 @@ class cvl:
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
      
-        result = GetLinkStatus(gls)
+        result = self.GetLinkStatus(gls)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -1517,7 +1516,7 @@ class cvl:
         #print phy_type_list        
         return phy_type_list
 
-    def GetEEEAbilities(rep_mode, Location = "AQ"):
+    def GetEEEAbilities(self, rep_mode, Location = "AQ"):
         '''This function return list of EEE abilities
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
@@ -1525,21 +1524,21 @@ class cvl:
      
         '''
         if Location == "REG":
-            _GetEEEAbilitiesReg()
+            self._GetEEEAbilitiesReg()
         elif Location == "AQ":
-            EEE_list = _GetEEEAbilitiesAq(rep_mode)
+            EEE_list = self._GetEEEAbilitiesAq(rep_mode)
         else:
             raise RuntimeError("Err GetEEEAbilities: Error Location, please insert location REG/AQ")
 
         return EEE_list 
      
-    def _GetEEEAbilitiesReg():
+    def _GetEEEAbilitiesReg(self):
         '''This function return list of EEE abilities
             for debug only because FecAbilities by REG is not implimented.
         '''
         raise RuntimeError("Get EEE Abilities by Reg is not implimented")   
      
-    def _GetEEEAbilitiesAq(rep_mode):
+    def _GetEEEAbilitiesAq(self, rep_mode):
         ''' Description: Get EEE abilities supported on the port.
             input:
                 rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
@@ -1701,14 +1700,14 @@ class cvl:
         link_speed = self.GetPhyLinkSpeed()
         
         if link_speed == "100M" or link_speed == "1G":
-            offset_base = self._calculate_port_offset(0x03000180, 0x4, pmd_num)
-            reg_addr = self._calculate_port_offset(offset_base, 0x100, quad)  
+            offset_base = _calculate_port_offset(0x03000180, 0x4, pmd_num)
+            reg_addr = _calculate_port_offset(offset_base, 0x100, quad)  
             value = self.ReadEthwRegister(reg_addr)
-            link_speed_from_reg = self._get_bits_slice_value(int(value,16), 2, 3)
+            link_speed_from_reg = get_bits_slice_value(int(value,16), 2, 3)
             link_speed_from_reg_dict = {1:"100M",2:"1G"}
             
             if link_speed == link_speed_from_reg_dict[link_speed_from_reg]:
-                link_status = self._get_bit_value(int(value,16), 0)
+                link_status = get_bit_value(int(value,16), 0)
             else:
                 return 0    
             
@@ -1717,10 +1716,10 @@ class cvl:
             value = self.ReadEthwRegister(reg_addr)
             
             if link_speed == "100G":
-                link_status = _get_bit_value(int(value,16), 8) #according PCS-Status register
+                link_status = get_bit_value(int(value,16), 8) #according PCS-Status register
             else:
-                value = _get_bits_slice_value(int(value,16), 0, 3)
-                link_status = _get_bit_value(value, pmd_num)
+                value = get_bits_slice_value(int(value,16), 0, 3)
+                link_status = get_bit_value(value, pmd_num)
         
         return link_status
 
@@ -1838,10 +1837,9 @@ class cvl:
             error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
 
-    def SetPhyConfiguration(PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
+    def SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
         '''This function configures the phy and the fec
-            arguments:
-                PhyType by string 
+            arguments: PhyType by string 
                 set_fec by string
                 rep_mode = takes the values 0,1,2 (defult value is 1)
                 Location = "AQ"/"REG"
@@ -1849,19 +1847,19 @@ class cvl:
             level: L3
         '''
         if Location == "REG":
-            _SetPhyConfigurationfigReg(PhyType, set_fec, debug)
+            self._SetPhyConfigurationfigReg(PhyType, set_fec, debug)
         elif Location == "AQ":
-            _SetPhyConfigurationAQ(PhyType, set_fec, rep_mode, debug)
+            self._SetPhyConfigurationAQ(PhyType, set_fec, rep_mode, debug)
         else:
             raise RuntimeError("Error SetPhyConfiguration: Error Location, please insert location REG/AQ")
 
-    def _SetPhyConfigurationReg(PhyType,set_fec,debug):
+    def _SetPhyConfigurationReg(self, PhyType,set_fec,debug):
         '''This function configures the phy and the fec
             for debug only because SetPhyConfiguration by REG is not implimented.
         '''
         raise RuntimeError("SetPhyConfiguration by Reg is not implimented")
 
-    def _SetPhyConfigurationAQ(phy_type_list,set_fec,rep_mode,debug):
+    def _SetPhyConfigurationAQ(self, phy_type_list,set_fec,rep_mode,debug):
         '''This function configures the phy and the fec
             arguments:PhyType by string
                       set_fec by string
@@ -1879,7 +1877,7 @@ class cvl:
 
         config = {}
         phy_type = 0
-        data = GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
+        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
 
         if data[0]:
             error_msg = 'Error _SetPhyConfigurationAQ: GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -1906,10 +1904,10 @@ class cvl:
             else:
                 raise RuntimeError("Error _SetPhyConfigurationAQ: PHY_type is not exist in set_Ability_PhyType_dict") #implement a warning
 
-        config['phy_type_0'] = _get_bits_slice_value(phy_type,0,31)
-        config['phy_type_1'] = _get_bits_slice_value(phy_type,32,63)
-        config['phy_type_2'] = _get_bits_slice_value(phy_type,64,95)
-        config['phy_type_3'] = _get_bits_slice_value(phy_type,96,127)
+        config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
+        config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
+        config['phy_type_2'] = get_bits_slice_value(phy_type,64,95)
+        config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
 
 
         if set_fec == 'NO_FEC':
@@ -1962,7 +1960,7 @@ class cvl:
             raise RuntimeError(error_msg)
 
         status = ()
-        status =  SetPhyConfig(config)
+        status =  self.SetPhyConfig(config)
 
         if debug == True:
             if status[0] == 0:
@@ -1974,7 +1972,7 @@ class cvl:
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
         
-    def SetPhyType(PhyType, rep_mode = 1, Location = "AQ"):
+    def SetPhyType(self, PhyType, rep_mode = 1, Location = "AQ"):
         '''This function sets Phy type
             argument:
                 PhyType = str or list(for consortium phy type)
@@ -1984,20 +1982,20 @@ class cvl:
                 None
         '''
         if Location == "REG":
-            _SetPhyTypeReg()
+            self._SetPhyTypeReg()
         elif Location == "AQ":
-            _SetPhyTypeAq(PhyType, rep_mode)
+            self._SetPhyTypeAq(PhyType, rep_mode)
      
         else:
             raise RuntimeError("Error SetLinkSpeed: Error Location, please insert location REG/AQ")
 
-    def _SetPhyTypeReg():
+    def _SetPhyTypeReg(self):
         '''This function configures the phy type
             for debug only because SetPhyType by REG is not implimented.
         '''     
         raise RuntimeError("Set phy type by Reg is not implimented")
             
-    def _SetPhyTypeAq(phy_type_list, rep_mode = 1):
+    def _SetPhyTypeAq(self, phy_type_list, rep_mode = 1):
         '''This function configure the Phy type on link
             argument:
                 phy_type_list - list of phy types (list) bit definitions in Section 3.5.3.2.1 of CVL HAS
@@ -2022,7 +2020,7 @@ class cvl:
         args['port'] = 0 #not relevant for CVL according to CVL Spec
         args['rep_qual_mod'] = 0 # 1 will report list of qualified modules, 0 will not
         args['rep_mode'] = rep_mode
-        result = GetPhyAbilities(args) 
+        result = self.GetPhyAbilities(args) 
         
         if result[0]:
             error_msg = 'Error _SetPhyTypeAq: GetPhyAbilities Admin command was not successful, retval {}'.format(status[1])
@@ -2038,10 +2036,10 @@ class cvl:
             else:
                 raise RuntimeError("Error _SetPhyTypeAq: PHY_type is not exist in set_Ability_PhyType_dict") 
         
-        config['phy_type_0'] = _get_bits_slice_value(phy_type,0,31)
-        config['phy_type_1'] = _get_bits_slice_value(phy_type,32,63)
-        config['phy_type_2'] = _get_bits_slice_value(phy_type,64,95)
-        config['phy_type_3'] = _get_bits_slice_value(phy_type,96,127)
+        config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
+        config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
+        config['phy_type_2'] = get_bits_slice_value(phy_type,64,95)
+        config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
         
         config['tx_pause_req'] = abilities['pause_abil']
         config['rx_pause_req'] = abilities['asy_dir_abil']
@@ -2062,7 +2060,7 @@ class cvl:
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
         #print config
         status = ()
-        status =  SetPhyConfig(config)
+        status =  self.SetPhyConfig(config)
         print status
         
         if status[0]:
@@ -2186,10 +2184,8 @@ class cvl:
         Phytuning_final_dict = {}
         Phytuning_dict = {}
         driver = self.driver
-        handler = get_handler()
         port_num = driver.port_number()
         #number_of_ports = 2#TOTO add reading driver indication
-        number_of_ports_dict = handler.get_number_of_ports()# dict of device_num and number of ports for this device
         current_device_number =  driver.device_number()
         number_of_ports = number_of_ports_dict[current_device_number]
         #print "number_of_ports: ",number_of_ports
@@ -2255,10 +2251,10 @@ class cvl:
         '''
         driver = self.driver
         reg_data = driver.read_csr(0xb81e0)
-        mux_status = _get_bit_value(reg_data,2)
+        mux_status = get_bit_value(reg_data,2)
         return mux_status
 
-    def get_rsfec_corrected_codeword(quad= None):
+    def get_rsfec_corrected_codeword(self, quad= None):
         '''This function returns the rsfec corrected codeword see Section 22.3 of More than IP spec  ver 3.2
             argument:
                 quad num according the pf number
@@ -2266,9 +2262,9 @@ class cvl:
                 rsfec corrected codeword counter 32 bit
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],2),16)
-        counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],3),16)
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        counter_low  = int(self.ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],2),16)
+        counter_high = int(self.ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],3),16)
         return (counter_high << 16) | counter_low
 
     def get_rsfec_uncorrected_codeword(quad = None):
@@ -2279,7 +2275,7 @@ class cvl:
                 rsfec uncorrected codeword counter 32 bit
         '''
         if quad == None :
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
         counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],4),16)
         counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],5),16)
         return (counter_high << 16) | counter_low   
@@ -2372,7 +2368,7 @@ class cvl:
             quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
         reg_addr = _calculate_port_offset(0x0300010c, 0x100, quad)
         value = ReadEthwRegister(reg_addr)
-        return _get_bits_slice_value(int(value,16), 6, 11)  
+        return get_bits_slice_value(int(value,16), 6, 11)  
 
     def get_kr_fec_uncorrected(quad = None):
         '''This function returns the kr fec uncorrected counter see Section 13.6.2.1.119 of CVL HAS
@@ -2386,7 +2382,7 @@ class cvl:
             quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
         reg_addr = _calculate_port_offset(0x0300010c, 0x100, quad)
         value = ReadEthwRegister(reg_addr)
-        return _get_bits_slice_value(int(value,16), 12, 17)
+        return get_bits_slice_value(int(value,16), 12, 17)
 
     def GetKRFecCounters(quad = None):
         '''This function returns the kr fec corrected counter and uncorrected counter see Section 13.6.2.1.119 of CVL HAS
@@ -2523,7 +2519,6 @@ class cvl:
                        string PF (physical function) = "00-08"
         '''
         driver = self.driver
-        handler = get_handler()
         command = "svdt -r cvl:"+PF+" "+reset
         _ExecuteLinuxCommand(command)
 
@@ -3202,12 +3197,12 @@ class cvl:
         #print "DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
         #print "DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
 
-        return_buffer = _NeighborDeviceRequestAq(1,buffer)
+        return_buffer = self._NeighborDeviceRequestAq(1,buffer)
         return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
         #print "return val: ", return_val
         return return_val.replace("L","")
 
-    def _NeighborDeviceRequestAq(opcode,Massage):
+    def _NeighborDeviceRequestAq(self, opcode,Massage):
         '''this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
             arguments: 
@@ -3215,12 +3210,12 @@ class cvl:
                 opcode - 0 for write command, 1 for read command
             return:
                 buffer from AQ
-        ''' 
+        '''
         driver = self.driver
-     
+
         data_len = 16
-     
-        aq_desc = AqDescriptor()    
+
+        aq_desc = AqDescriptor()
         aq_desc.flags = 0x3400  # BUF flag - byte 1 bit 3 - for read buffer. 
         aq_desc.opcode = 0xC00
         aq_desc.datalen = data_len
@@ -3228,102 +3223,18 @@ class cvl:
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
-        
+
         #buffer = [0] * data_len
         buffer = Massage # verify how to put the massage in the buffer
         status = driver.send_aq_command(aq_desc, buffer)
         if status != 0 or aq_desc.retval != 0:
             error_msg = 'Error _NeighborDeviceRequestAq, status {} retval {}'.format(status, aq_desc.retval)
             raise RuntimeError(error_msg)
-        
+
         #print "buffer: ",buffer
         return buffer
 
-    def _FillCustomDataInMacErros(Mac_Error_Dict,bypass_flag):
-        '''This function fill custom_data dict with all mac errors.
-            arguments: 
-                Mac_Error_Dict -- type dictionary
-                bypass_flag - false if link is down
-            return: None
-        '''
-        handler = get_handler()
-     
-        GetMacErrorsCounters(Mac_Error_Dict)#return Dict   
-        
-        handler.custom_data['CRCERRS'] = Mac_Error_Dict["CRCERRS"]
-        handler.custom_data['ILLERRC'] = Mac_Error_Dict["ILLERRC"]
-        handler.custom_data['ERRBC']   = Mac_Error_Dict["ERRBC"]
-        handler.custom_data['MLFC']    = Mac_Error_Dict["MLFC"]
-        handler.custom_data['MRFC']    = Mac_Error_Dict["MRFC"]
-        handler.custom_data['RLEC']    = Mac_Error_Dict["RLEC"]
-        handler.custom_data['RUC']     = Mac_Error_Dict["RUC"]
-        handler.custom_data['RFC']     = Mac_Error_Dict["RFC"]
-        handler.custom_data['ROC']     = Mac_Error_Dict["ROC"]
-        handler.custom_data['RJC']     = Mac_Error_Dict["RJC"]
-        handler.custom_data['MSPDC']   = Mac_Error_Dict["MSPDC"]
-        if not bypass_flag:
-            handler.custom_data['GetPRC64']    = 'N/A'
-            handler.custom_data['GetPRC127']   = 'N/A'
-            handler.custom_data['GetPRC255']   = 'N/A'
-            handler.custom_data['GetPRC511']   = 'N/A'
-            handler.custom_data['GetPRC1023']  = 'N/A'
-            handler.custom_data['GetPRC1522']  = 'N/A'
-            handler.custom_data['GetPRC9522']  = 'N/A'
-            handler.custom_data['GetPTC64']    = 'N/A'
-            handler.custom_data['GetPTC127']   = 'N/A'
-            handler.custom_data['GetPTC255']   = 'N/A'
-            handler.custom_data['GetPTC511']   = 'N/A'
-            handler.custom_data['GetPTC1023']  = 'N/A'
-            handler.custom_data['GetPTC1522']  = 'N/A'
-            handler.custom_data['GetPTC9522']  = 'N/A'
-            handler.custom_data['TX Throughput'] = 'N/A'
-            handler.custom_data['RX Throughput'] = 'N/A'
-
-    def _FillCustomDataInMacStatistics(TX_Throughput,RX_Throughput,new_PTC_Dict,new_PRC_Dict):
-        '''This function fill custom_data dict with all mac statistics.
-            arguments: 
-                TX_Throughput (int)
-                RX_Throughput (int)
-                new_PTC_Dict -- dict:
-                    'GetPTC64'
-                    'GetPTC127'
-                    'GetPTC255'
-                    'GetPTC511'
-                    'GetPTC1023'
-                    'GetPTC1522'
-                    'GetPTC9522'
-                new_PRC_Dict
-                    'GetPRC64'
-                    'GetPRC127'
-                    'GetPRC255'
-                    'GetPRC511'
-                    'GetPRC1023'
-                    'GetPRC1522'
-                    'GetPRC9522'
-            return: None
-        '''
-        handler = get_handler()
-        #Get Throughput TX and RX
-
-        handler.custom_data['GetPRC64']    = new_PRC_Dict['GetPRC64'] 
-        handler.custom_data['GetPRC127']   = new_PRC_Dict['GetPRC127']
-        handler.custom_data['GetPRC255']   = new_PRC_Dict['GetPRC255']
-        handler.custom_data['GetPRC511']   = new_PRC_Dict['GetPRC511']
-        handler.custom_data['GetPRC1023']  = new_PRC_Dict['GetPRC1023']
-        handler.custom_data['GetPRC1522']  = new_PRC_Dict['GetPRC1522']
-        handler.custom_data['GetPRC9522']  = new_PRC_Dict['GetPRC9522']
-        handler.custom_data['GetPTC64']    = new_PTC_Dict['GetPTC64']
-        handler.custom_data['GetPTC127']   = new_PTC_Dict['GetPTC127']
-        handler.custom_data['GetPTC255']   = new_PTC_Dict['GetPTC255']
-        handler.custom_data['GetPTC511']   = new_PTC_Dict['GetPTC511']
-        handler.custom_data['GetPTC1023']  = new_PTC_Dict['GetPTC1023']
-        handler.custom_data['GetPTC1522']  = new_PTC_Dict['GetPTC1522']
-        handler.custom_data['GetPTC9522']  = new_PTC_Dict['GetPTC9522']
-        handler.custom_data['TX Throughput'] = TX_Throughput
-        handler.custom_data['RX Throughput'] = RX_Throughput
-
-
-    def _Average(lst):
+    def _Average(self, lst):
         '''This function return average of list
             argument: lst (list)
             return: none
@@ -3341,25 +3252,6 @@ class cvl:
         '''
         return offset_base + mul * port_number
      
-    def _get_bit_value(value, bit_number):
-        '''This function return the value from specific bit
-            argument:
-                value (hex) - value from register
-                bit_number (int) 
-        '''
-        return (value >> bit_number) & 0x1
-     
-    def _get_bits_slice_value(value, bit_start_number, bit_end_number):
-        '''This function return value from slice of bits
-            arguments: value, bit_start_number, bit_end_number
-            return: slice value
-        '''
-        mask_length = bit_end_number - bit_start_number + 1
-        mask_string = '1' * mask_length
-        mask = int(mask_string, 2)
-        slice_value = (value >> bit_start_number) & mask    
-        return slice_value
-
     def _to_unsigned(value):
         '''This function convert sign value to unsigned.
             argument: value (sign number)
@@ -3538,17 +3430,15 @@ class cvl:
                 RegToParse = RegToParse >> 1
         return tmplist
 
-    def _GetQuadAndPmdNumAccordingToPf():
+    def _GetQuadAndPmdNumAccordingToPf(self):
         '''this function return the quad num and pmd num according the pf number
             return: tuple -- (quad number, pmd number)
         '''
         # get the real PCS address according to pf number
         driver = self.driver
-        handler = get_handler()
         port_num = driver.port_number()
-        number_of_ports_dict = handler.get_number_of_ports()# dict of device_num and number of ports for this device
         current_device_number =  driver.device_number()
-        number_of_ports = number_of_ports_dict[current_device_number]
+        number_of_ports = 8 
         if number_of_ports == 1:# according pf to mac mapping in cvl spec 3.4.2.3.2
             quad = 0
             pmd_num = 0
@@ -3619,21 +3509,21 @@ class cvl:
             pcs_link_status_2_run_bit = (pcs_link_status_2 >> i) & 1
             if  pcs_link_status_2_run_bit == 1:
                 return_list.append(pcs_link_status_2_dict[i])
-        return_list.append("Receive fault: " + str(_get_bit_value(pcs_link_status_2,10)))
-        return_list.append("Transmit fault: " + str(_get_bit_value(pcs_link_status_2,11)))
+        return_list.append("Receive fault: " + str(get_bit_value(pcs_link_status_2,10)))
+        return_list.append("Transmit fault: " + str(get_bit_value(pcs_link_status_2,11)))
 
         return_list.append("")
         pcs_baser_status_1 = int(ReadMTIPRegister(pcs_offset,32),16)#PCS BaseR status 1
         return_list.append("#####  PCS BaseR status 1  #####")
-        return_list.append("Receive link status: " + str(_get_bit_value(pcs_baser_status_1,12)))
-        return_list.append("High BER: " + str(_get_bit_value(pcs_baser_status_1,1)))
-        return_list.append("Block lock: " + str(_get_bit_value(pcs_baser_status_1,0)))
+        return_list.append("Receive link status: " + str(get_bit_value(pcs_baser_status_1,12)))
+        return_list.append("High BER: " + str(get_bit_value(pcs_baser_status_1,1)))
+        return_list.append("Block lock: " + str(get_bit_value(pcs_baser_status_1,0)))
 
         return_list.append("")
         pcs_baser_status_2 = int(ReadMTIPRegister(pcs_offset,33),16)#PCS BaseR status 2
         return_list.append("#####  PCS BaseR status 2  #####")
-        return_list.append("Latched block lock. (LL): " + str(_get_bit_value(pcs_baser_status_1,15)))
-        return_list.append("Latched high BER. (LH): " + str(_get_bit_value(pcs_baser_status_1,14)))
+        return_list.append("Latched block lock. (LL): " + str(get_bit_value(pcs_baser_status_1,15)))
+        return_list.append("Latched high BER. (LH): " + str(get_bit_value(pcs_baser_status_1,14)))
 
         #print "pcs_link_status_2 ",hex(pcs_link_status_2)
         #print "pcs_baser_status_1 ",hex(pcs_baser_status_1)
@@ -4780,7 +4670,7 @@ class cvl:
 
             PRT_STATE_MACHINE = ReadDnlPstore(0x26)
             PRT_STATE_MACHINE = int(PRT_STATE_MACHINE.replace('L',''),16)
-            PRT_AN_ENABLED = _get_bit_value(PRT_STATE_MACHINE,8)
+            PRT_AN_ENABLED = get_bit_value(PRT_STATE_MACHINE,8)
             if (PRT_AN_ENABLED and link_up_flag):# check if AN link enabled and the link is up
 
                 PRT_AN_HCD_OUTPUT = ReadDnlPstore(0x21)
@@ -4804,7 +4694,7 @@ class cvl:
                 print
 
                 print '##########    HCD Output    ##########'
-                FEC_select = FEC_select_dict[_get_bits_slice_value(PRT_AN_HCD_OUTPUT,15,17)]
+                FEC_select = FEC_select_dict[get_bits_slice_value(PRT_AN_HCD_OUTPUT,15,17)]
                 for i in range(24):
                     if (PRT_AN_HCD_OUTPUT & 1) == 1:
                         if not "FEC Select" in PRT_AN_HCD_OUTPUT_dict[i]:
@@ -4880,7 +4770,7 @@ class cvl:
                 print "###########################################  "
                 print
                 print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
-                print "PRT State Machine: ",PRT_STATE_MACHINE_AN[_get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
+                print "PRT State Machine: ",PRT_STATE_MACHINE_AN[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
 
 
             elif not PRT_AN_ENABLED and not link_up_flag:# force mode and link down
@@ -4890,7 +4780,7 @@ class cvl:
                 print "###########################################  "
                 print
                 print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
-                print "PRT State Machine: ",PRT_STATE_MACHINE_FM[_get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
+                print "PRT State Machine: ",PRT_STATE_MACHINE_FM[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
 
             # print pcs advanced info
             get_pcs_advenced_info = GetPcsAdvencedInfo()
@@ -4909,7 +4799,7 @@ class cvl:
     ######################     Link Config Admin Queue Commands - from cpk_lm   #############################
     #########################################################################################################
 
-    def SetPhyConfig(config,debug=False):
+    def SetPhyConfig(self, config,debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Set various PHY configuration parameters on port. 
@@ -4949,11 +4839,9 @@ class cvl:
         # addr_high = (reserved)
         # addr_low = (reserved)
         driver = self.driver
-        hanlde = get_handler()
         opCodes = AqOpCodes()
         currOpCode = opCodes.set_phy_config
         aq_desc = AqDescriptor()
-        #helper = LM_Validation()
         #helper._debug('SetPhyConfig Admin Command')
         #buffer structure
         #turn args to bytes
@@ -5000,7 +4888,6 @@ class cvl:
 
         buffer.append(byte_22)
         buffer.append(0 & 0xFF) # FW requires buffer to be 24 bytes long, appending empty byte at the end of data structure to achieve this
-        helper._debug(len(buffer))
         aq_desc.opcode = currOpCode
         aq_desc.flags = 0x1400 #Include buffer and read flags for this command
         aq_desc.param0 = config['port']
@@ -5019,7 +4906,7 @@ class cvl:
         
         return status
 
-    def SetMacConfig(config,debug=False):
+    def SetMacConfig(self, config,debug=False):
         #Update for HAS 1.3
         '''
             Description: Set various MAC configuration parameters on the port.
@@ -5045,9 +4932,7 @@ class cvl:
         #Class instantiation
         driver = self.driver
         opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        #helper._debug('SetMacConfig Admin Command')
         #lvar assignment
         data_len = 0x0
         aq_desc.opcode = opCodes.set_mac_config
@@ -5069,7 +4954,7 @@ class cvl:
             status = (False, None)
         return status
 
-    def SetupLink(slu_args,debug=False):
+    def SetupLink(self, slu_args,debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Sets up the link and restarts link auto-negotiation. This operation could bring down the link. This
@@ -5516,7 +5401,7 @@ class cvl:
             return: status of the LOCK bit
         '''
         driver = self.driver
-        return _get_bit_value(driver.read_csr(0x0009E944), 31)
+        return get_bit_value(driver.read_csr(0x0009E944), 31)
 
     def _GetValAddrLCB(offset):
         '''This function generates an register-address from the register-offset.
@@ -5570,7 +5455,7 @@ class cvl:
             return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
         '''
         reg = (ReadLcbRegister(0x50))
-        val = _get_bits_slice_value(reg,16,19) #speed
+        val = get_bits_slice_value(reg,16,19) #speed
 
         link_speed = {
             1: "Gen1",
@@ -5586,7 +5471,7 @@ class cvl:
             return: 'x1' / 'x2' / 'x4' / 'x8' / 'x16'
         '''
         reg = (ReadLcbRegister(0x50))
-        val = _get_bits_slice_value(reg,20,24) #width
+        val = get_bits_slice_value(reg,20,24) #width
 
         link_width = {
             0: "Reserved",
@@ -5604,7 +5489,7 @@ class cvl:
             return: "D0" / "Reserved" / "D3hot"
         '''
         reg = _GetValAddrPCIE(0x44)
-        val = _get_bits_slice_value(reg,0,1)
+        val = get_bits_slice_value(reg,0,1)
 
         power_sate = {
             0: "D0",
@@ -5668,17 +5553,17 @@ class cvl:
             return:
                 None
         '''
-        print "Link speed: ",GetMacLinkSpeed()
+        print "Link speed: ",self.GetMacLinkSpeed()
         for i in range(num_of_iteration):       
             print "globr num: ",i
             Reset(1)
-            while (GetMacLinkStatus("REG")):
+            while (self.GetMacLinkStatus("REG")):
                 pass
             start_time = curr_time = time.time()
             link_flag = True
             while ((curr_time - start_time) < ttl_timeout):
                 curr_time = time.time()       
-                if GetMacLinkStatus("REG"):
+                if self.GetMacLinkStatus("REG"):
                     curr_time = time.time()
                     link_flag = False
                     print 'link up'
@@ -5780,13 +5665,13 @@ class cvl:
         
             print "Restart AN num: ",i
             RestartAn()
-            while (GetMacLinkStatus("REG")):
+            while (self.GetMacLinkStatus("REG")):
                 pass
             start_time = curr_time = time.time()
             link_flag = True
             while ((curr_time - start_time) < ttl_timeout):       
                 curr_time = time.time()
-                if GetMacLinkStatus("REG"):
+                if self.GetMacLinkStatus("REG"):
                     curr_time = time.time()
                     link_flag = False
                     print 'link up'
@@ -5907,7 +5792,7 @@ class cvl:
             link_flag_port3 = True
 
 
-            while (GetMacLinkStatus("REG")):
+            while (self.GetMacLinkStatus("REG")):
                 pass
             start_time = curr_time = time.time()
             link_flag = True
@@ -5917,7 +5802,7 @@ class cvl:
                 if link_flag_port0:
                     reg_addr0 = _calculate_port_offset(0x001E47A0, 0x4, 0)
                     reg_data0 = driver.read_csr(reg_addr0)
-                    LinkStatus0 = _get_bit_value(reg_data0,30)       
+                    LinkStatus0 = get_bit_value(reg_data0,30)       
                     if LinkStatus0:
                         curr_time_port0 = time.time()
                         print 'link up on port 0'
@@ -5927,7 +5812,7 @@ class cvl:
                 if link_flag_port1:
                     reg_addr1 = _calculate_port_offset(0x001E47A0, 0x4, 1)
                     reg_data1 = driver.read_csr(reg_addr0)
-                    LinkStatus1 = _get_bit_value(reg_data0,30)       
+                    LinkStatus1 = get_bit_value(reg_data0,30)       
                     if LinkStatus1:
                         curr_time_port1 = time.time()
                         print 'link up on port 1'
@@ -5937,7 +5822,7 @@ class cvl:
                 if link_flag_port2:
                     reg_addr2 = _calculate_port_offset(0x001E47A0, 0x4, 2)
                     reg_data2 = driver.read_csr(reg_addr2)
-                    LinkStatus2 = _get_bit_value(reg_data2,30)       
+                    LinkStatus2 = get_bit_value(reg_data2,30)       
                     if LinkStatus2:
                         curr_time_port2 = time.time()
                         print 'link up on port 2'
@@ -5947,7 +5832,7 @@ class cvl:
                 if link_flag_port3:
                     reg_addr3 = _calculate_port_offset(0x001E47A0, 0x4, 3)
                     reg_data3 = driver.read_csr(reg_addr3)
-                    LinkStatus3 = _get_bit_value(reg_data3,30)       
+                    LinkStatus3 = get_bit_value(reg_data3,30)       
                     if LinkStatus3:
                         curr_time_port3 = time.time()
                         print 'link up on port 3'
@@ -5971,7 +5856,7 @@ class cvl:
 
         #reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         #reg_data = driver.read_csr(reg_addr)
-        #LinkStatus = _get_bit_value(reg_data,30)
+        #LinkStatus = get_bit_value(reg_data,30)
 
         
     def DBG_Yaron_Reset_Print():
@@ -6030,7 +5915,7 @@ class cvl:
 
     ############################### Link Topology Admin commands WIP ##########################################
 
-    def GetLinkTopologyHandle(port, debug = False):
+    def GetLinkTopologyHandle(self, port, debug = False):
         '''This function returs node handler of a given port
             argument:
                 logical_port_number -- (int) 0:7
