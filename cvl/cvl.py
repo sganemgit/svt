@@ -3286,7 +3286,35 @@ class cvl:
             return False
         else:
             return True
+    def PrintLoopbackStatus(self):
+        gls = dict()
+        gls["port"] = 0 
+        gls["cmd_flag"] = 0
+        result = self.GetLinkStatus(gls)
+        if not result[0]: # if Admin command was successful - False
+            data = result[1]
+        else:
+            raise RuntimeError("Error GetLinkStatusAfterParsing: Admin command was not successful")  
+        
+        if data["lcl_lpbk"]:
+            print("PHY local loopback enabled")
+        else:
+            print("PHY local loopback disabled")
 
+        if data["rem_lpbk"]:
+            print("PHY remote loopback enabled")
+        else:
+            print("PHY remote loopback disabled")
+
+        if data["mac_lpbk"]:
+            print("MAC local loopback enabled")
+        else:
+            print("MAC local loopback disabled")
+
+
+        #TODO print the PHY index that performs the loopback 0 = outermost
+
+            
     def GetLinkStatusAfterParsing(self):
         '''This function return dictionary that contain phy and mac link status and speed, fec mode.
             arguments: None

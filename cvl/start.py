@@ -44,4 +44,5 @@ def MacloopbackWithLP():
                 print("LINK IS UP")
                 break
 if __name__=="__main__":
-    MacloopbackWithLP()
+    pass
+#    MacloopbackWithLP()
