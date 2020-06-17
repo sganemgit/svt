@@ -80,7 +80,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPTC1023():
+    def GetPTC1023(self):
         '''This function reads PTC1023 CVL register
             Packets Transmitted [512-1023 Bytes] Counter (13.2.2.24.67/66)
             GLPRT_PTC1023L = 0x00380C80
@@ -261,9 +261,7 @@ class cvl:
         '''
         #sum_data = GetPRC64() + GetPRC127() + GetPRC255() + GetPRC511() + GetPRC1023() + GetPRC1522() + GetPRC9522()
         #return sum_data
-
         PRC_Dict = {}
-
         _GetPRC64   = self.GetPRC64()
         _GetPRC127  = self.GetPRC127()
         _GetPRC255  = self.GetPRC255()
@@ -271,7 +269,6 @@ class cvl:
         _GetPRC1023 = self.GetPRC1023()
         _GetPRC1522 = self.GetPRC1522()
         _GetPRC9522 = self.GetPRC9522()
-
         PRC_Dict['GetPRC64']   = _GetPRC64
         PRC_Dict['GetPRC127']  = _GetPRC127
         PRC_Dict['GetPRC255']  = _GetPRC255
@@ -279,9 +276,7 @@ class cvl:
         PRC_Dict['GetPRC1023'] = _GetPRC1023
         PRC_Dict['GetPRC1522'] = _GetPRC1522
         PRC_Dict['GetPRC9522'] = _GetPRC9522
-
         PRC_Dict['TotalPRC'] = _GetPRC64 + _GetPRC127 + _GetPRC255 + _GetPRC511 + _GetPRC1023 + _GetPRC1522 + _GetPRC9522
-
         return PRC_Dict
 
     def ConvertPacketSizeToPRC(self, Packet_size):
@@ -371,9 +366,7 @@ class cvl:
                 'TotalPacketRecieve' : dict that contain all PRC CVL registers and total PRC
                 'TotalPacketTransmite' : dict that contain all PTC CVL registers and total PTC
         '''
-
         MacStatistics = {}
-
         MacStatistics['TotalPacketRecieve'] = self.GetPRC()
         MacStatistics['TotalPacketTransmite'] = self.GetPTC()
 
@@ -384,9 +377,8 @@ class cvl:
     def GetLinkDownCounter(self):
         ''' This function counts the number link drop, clear by globr (13.2.2.4.80)
             return: number of link drop
-        ''' 
+        '''
         driver = self.driver
-     
         reg_addr = _calculate_port_offset(0x001E47C0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         Link_drop_counter = get_bits_slice_value(reg_data,0,15)
@@ -406,7 +398,7 @@ class cvl:
         reg_addr = _calculate_port_offset(0x00380104, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
-        
+
     def GetILLERRC():
         ''' This function counts the number of receive packets with Illegal bytes errors. (13.2.2.24.95/96)
             GLPRT_ILLERRC   = 0x003801C0
@@ -418,7 +410,7 @@ class cvl:
         reg_addr = _calculate_port_offset(0x003801C4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
-        
+
     def GetERRBC():
         ''' This function counts the number of receive packets with Error bytes.
             This counter is only active when in 10G mode (13.2.2.24.97/98)
@@ -431,7 +423,7 @@ class cvl:
         reg_addr = _calculate_port_offset(0x00380184, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
-        
+
     def GetMLFC():
         ''' This function count the number of faults in the local MAC. (13.2.2.24.99/100)
             GLPRT_MLFC   = 0x00380040
@@ -442,8 +434,8 @@ class cvl:
         low_data = driver.read_csr(reg_addr)
         reg_addr = _calculate_port_offset(0x00380044, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)    
-        
+        return (((high_data & 0xffff) << 32) | low_data)
+
     def GetMRFC():
         ''' This function count the number of faults in the remote MAC. (13.2.2.24.101/102)
             GLPRT_MRFC   = 0x00380080
