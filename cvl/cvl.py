@@ -27,7 +27,7 @@ class cvl:
     def print_info(self):
         print("device number: {}".format(self.device_number))
         print("port number: ".format(self.port_number))
-    
+
     def GetPTC64(self):
         '''This function reads PTC64 CVL register
             Packets Transmitted [64 Bytes] Counter (13.2.2.24.59/60)
@@ -2438,7 +2438,7 @@ class cvl:
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
-        status = SetPhyLoopback(phy_lpbk_args)
+        status = self.SetPhyLoopback(phy_lpbk_args)
         
         if status[0]: 
             error_msg = 'Error EnablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -2474,7 +2474,7 @@ class cvl:
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
-        status = SetPhyLoopback(phy_lpbk_args)
+        status = self.SetPhyLoopback(phy_lpbk_args)
         
         if status[0]: 
             error_msg = 'Error DisablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -3279,13 +3279,14 @@ class cvl:
                return: True/false
         '''
         driver = self.driver
-     
+
         reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         if ( reg_data == 0xffffffff or reg_data == 0xdeadbeef):
             return False
         else:
             return True
+
     def PrintLoopbackStatus(self):
         gls = dict()
         gls["port"] = 0 
@@ -3295,7 +3296,6 @@ class cvl:
             data = result[1]
         else:
             raise RuntimeError("Error GetLinkStatusAfterParsing: Admin command was not successful")  
-        
         if data["lcl_lpbk"]:
             print("PHY local loopback enabled")
         else:
@@ -3311,10 +3311,9 @@ class cvl:
         else:
             print("MAC local loopback disabled")
 
-
         #TODO print the PHY index that performs the loopback 0 = outermost
 
-            
+
     def GetLinkStatusAfterParsing(self):
         '''This function return dictionary that contain phy and mac link status and speed, fec mode.
             arguments: None
