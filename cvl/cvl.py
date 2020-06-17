@@ -93,7 +93,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPTC1522():
+    def GetPTC1522(self):
         '''This function reads PTC1522 CVL register
             Packets Transmitted [1024-1522 Bytes] Counter (13.2.2.24.69/70)
             GLPRT_PTC1522L = 0x00380CC0
@@ -106,7 +106,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
-    def GetPTC9522():
+    def GetPTC9522(self):
         '''This function reads PTC9522 CVL register
             Packets Transmitted [1523-9522 bytes] Counter (13.2.2.24.71/72)
             GLPRT_PTC9522L = 0x00380D00
@@ -168,7 +168,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
-    def GetPRC127():
+    def GetPRC127(self):
         '''This function reads PRC127 CVL register
             Packets Received [65-127 Bytes] Counter (13.2.2.24.47/48)
             GLPRT_PRC127L = 0x00380940
@@ -181,7 +181,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
-    def GetPRC255():
+    def GetPRC255(self):
         '''This function reads PRC255 CVL register
             Packets Received [128-255 Bytes] Counter (13.2.2.24.49/48)
             GLPRT_PRC255L = 0x00380980
@@ -194,7 +194,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPRC511():
+    def GetPRC511(self):
         '''This function reads PRC511 CVL register
             Packets Received [256-511 Bytes] Counter (13.2.2.24.51/52)
             GLPRT_PRC511L = 0x003809C0
@@ -207,7 +207,7 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPRC1023():
+    def GetPRC1023(self):
         '''This function reads PRC1023 CVL register
             Packets Received [512-1023 Bytes] Counter (13.2.2.24.53/52)
             GLPRT_PRC1023L = 0x00380A00
@@ -220,20 +220,20 @@ class cvl:
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
-    def GetPRC1522():
+    def GetPRC1522(self):
         '''This function reads PRC1522 CVL register
             Packets Received [1024-1522 Bytes] Counter (13.2.2.24.55/56)
             GLPRT_PRC1522L = 0x00380A40
             GLPRT_PRC1522H = 0x00380A44
         '''
-        driver= self.driver
+        driver = self.driver
         reg_addr = _calculate_port_offset(0x00380A40, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
         reg_addr = _calculate_port_offset(0x00380A44, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
-    def GetPRC9522():
+    def GetPRC9522(self):
         '''This function reads PRC9522 CVL register
             Packets Received [1523-9522 Bytes] Counter (13.2.2.24.57/58)
             GLPRT_PRC9522L = 0x00380A80
@@ -264,13 +264,13 @@ class cvl:
 
         PRC_Dict = {}
 
-        _GetPRC64   = GetPRC64()
-        _GetPRC127  = GetPRC127()
-        _GetPRC255  = GetPRC255()
-        _GetPRC511  = GetPRC511()
-        _GetPRC1023 = GetPRC1023()
-        _GetPRC1522 = GetPRC1522()
-        _GetPRC9522 = GetPRC9522()
+        _GetPRC64   = self.GetPRC64()
+        _GetPRC127  = self.GetPRC127()
+        _GetPRC255  = self.GetPRC255()
+        _GetPRC511  = self.GetPRC511()
+        _GetPRC1023 = self.GetPRC1023()
+        _GetPRC1522 = self.GetPRC1522()
+        _GetPRC9522 = self.GetPRC9522()
 
         PRC_Dict['GetPRC64']   = _GetPRC64
         PRC_Dict['GetPRC127']  = _GetPRC127
@@ -304,7 +304,7 @@ class cvl:
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
             return 'GetPRC9522'
 
-    def ConvertPacketSizeToPTC(Packet_size):
+    def ConvertPacketSizeToPTC(self, Packet_size):
         '''This function convert packet size to specific PTC
             input: packet size (int)
             return: string - 'PTC64' / 'PTC127' / 'PTC255' / 'PTC511' / 'PTC1023' / 'PTC1522' / 'PTC9522'
@@ -324,7 +324,7 @@ class cvl:
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
             return 'GetPTC9522'
 
-    def GetPRCByPacketSize(Packet_size):
+    def GetPRCByPacketSize(self, Packet_size):
         '''This function return PRC according to packet size
             input: packet size (int)
             return: PRC (int)
@@ -344,27 +344,27 @@ class cvl:
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
             return GetPRC9522()
 
-    def GetPTCByPacketSize(Packet_size):
+    def GetPTCByPacketSize(self, Packet_size):
         '''This function return PTC according to packet size
             input: packet size (int)
             return: PTC (int)
         '''
         if Packet_size <= 64:
-            return GetPTC64()
+            return self.GetPTC64()
         elif (Packet_size >= 65) and (Packet_size <= 127):
-            return GetPTC127()
+            return self.GetPTC127()
         elif (Packet_size >= 128) and (Packet_size <= 255):
-            return GetPTC255()
+            return self.GetPTC255()
         elif (Packet_size >= 256) and (Packet_size <= 511):
-            return GetPTC511()
+            return self.GetPTC511()
         elif (Packet_size >= 512) and (Packet_size <= 1023):
-            return GetPTC1023()
+            return self.GetPTC1023()
         elif (Packet_size >= 1024) and (Packet_size <= 1522):
-            return GetPTC1522()
+            return self.GetPTC1522()
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
-            return GetPTC9522()
+            return self.GetPTC9522()
 
-    def GetMacStats():
+    def GetMacStats(self):
         '''This function returns a dictionary contains all PRC and PTC registers:
             input: none
             return: dict --
@@ -373,15 +373,15 @@ class cvl:
         '''
 
         MacStatistics = {}
-     
-        MacStatistics['TotalPacketRecieve'] = GetPRC()
-        MacStatistics['TotalPacketTransmite'] = GetPTC()
-     
+
+        MacStatistics['TotalPacketRecieve'] = self.GetPRC()
+        MacStatistics['TotalPacketTransmite'] = self.GetPTC()
+
         return MacStatistics
-        
-        
+
+
     ################################   Errors Registers   ###########################################   
-    def GetLinkDownCounter():
+    def GetLinkDownCounter(self):
         ''' This function counts the number link drop, clear by globr (13.2.2.4.80)
             return: number of link drop
         ''' 
@@ -1012,7 +1012,7 @@ class cvl:
         '''
         driver = self.driver
         driver.stop_rx()
-     
+
     def EthStopTx(self):
         '''This function stops Tx and Rx.
             argument: None
@@ -1020,7 +1020,7 @@ class cvl:
         '''
         driver = self.driver
         driver.stop_tx()
-     
+
     def EthStopTraffic(self):
         '''This function stops Tx and Rx.
             argument: None
@@ -1031,7 +1031,6 @@ class cvl:
         time.sleep(3)
         driver.stop_rx()
 
-     
     def EthGetTrafficStatistics(self):
         '''This function reads traffic statistic and saves results to list and returns it.
             argument: None
@@ -1039,9 +1038,8 @@ class cvl:
         '''
         result = []
         result.append(ut.get_current_date_string())
-        result.append(GetPTC1522())
-        result.append(GetPRC1522())
-     
+        result.append(self.GetPTC1522())
+        result.append(self.GetPRC1522())
         return result
 
     def GetCurrentThroughput(self, packet_size = 512):

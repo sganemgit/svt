@@ -10,21 +10,24 @@ else:
     readline.parse_and_bind("tab: complete")
 
 
+
+#TODO: dynammically detect devices and instantiant object accordingly
+
 print("intializing cvl objects")
-cvl0 = cvl(0,0)
-cvl1 = cvl(0,1)
 
-cvl0.print_info()
+for i in range(2):
+    globals()["cvl" + str(i)] = cvl(0,i)
 
-cvl1.print_info()
+
 
 cvl0.DBG_print_cvl_info()
+cvl1.DBG_print_cvl_info()
 cvl0.EthStartTraffic()
 
 time.sleep(5)
 cvl0.EthStopTraffic()
-cvl0.DBG_print_cvl_info()
-
-print cvl0.GetMacLinkStatus()
 
 
+cvl0.GetTPR()
+
+cvl0.GetTPT()
