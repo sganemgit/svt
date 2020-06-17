@@ -5,6 +5,7 @@ from Defines import *
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
 from temp import *
+import time
 def _calculate_port_offset(offset_base, mul, port_number):
     '''This function return port offset according to port number and offset.
     '''
@@ -995,7 +996,7 @@ class cvl:
 
         driver.start_rx(self, packet_size = packet_size)
 
-    def EthStartTx(packet_size = 512):
+    def EthStartTx(self, packet_size = 512):
         '''This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
@@ -1004,7 +1005,7 @@ class cvl:
      
         driver.start_tx(packet_size = packet_size)
      
-    def EthStopRx():
+    def EthStopRx(self):
         '''This function stops Tx and Rx.
             argument: None
             return: None
@@ -1012,7 +1013,7 @@ class cvl:
         driver = self.driver
         driver.stop_rx()
      
-    def EthStopTx():
+    def EthStopTx(self):
         '''This function stops Tx and Rx.
             argument: None
             return: None
@@ -1020,7 +1021,7 @@ class cvl:
         driver = self.driver
         driver.stop_tx()
      
-    def EthStopTraffic():
+    def EthStopTraffic(self):
         '''This function stops Tx and Rx.
             argument: None
             return: None
@@ -1031,7 +1032,7 @@ class cvl:
         driver.stop_rx()
 
      
-    def EthGetTrafficStatistics():
+    def EthGetTrafficStatistics(self):
         '''This function reads traffic statistic and saves results to list and returns it.
             argument: None
             return: list of traffic statistics
@@ -1043,7 +1044,7 @@ class cvl:
      
         return result
 
-    def GetCurrentThroughput(packet_size = 512):
+    def GetCurrentThroughput(self, packet_size = 512):
         '''This function returns current Throughput 
             argument: packet size - Default is 512
             return: Transmit throughput 
@@ -1058,7 +1059,7 @@ class cvl:
         end_PTC = GetPTC()['TotalPTC']
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
         
-    def GetRXThroughput(packet_size = 512, samp_time = 3):
+    def GetRXThroughput(self, packet_size = 512, samp_time = 3):
         '''This function returns current RX Throughput 
             input: 
                 packet_size (int) - Default packet size is 512
@@ -1067,14 +1068,14 @@ class cvl:
                 RX throughput (int)
         ''' 
         driver = self.driver
-        start_PRC = GetPRC()[ConvertPacketSizeToPRC(packet_size)]
+        start_PRC = self.GetPRC()[ConvertPacketSizeToPRC(packet_size)]
         start_time = curr_time = time.time()
         while ((curr_time - start_time) < samp_time):
             curr_time = time.time()
-        end_PRC = GetPRC()[ConvertPacketSizeToPRC(packet_size)]
+        end_PRC = self.GetPRC()[ConvertPacketSizeToPRC(packet_size)]
         return int((end_PRC - start_PRC)*8*packet_size/(curr_time - start_time))
 
-    def GetTXThroughput(packet_size = 512, samp_time = 3):
+    def GetTXThroughput(self, packet_size = 512, samp_time = 3):
         '''This function returns current TX Throughput 
             input: 
                 packet_size (int) - Default packet size is 512
@@ -1083,14 +1084,14 @@ class cvl:
                 TX throughput (int)
         ''' 
         driver = self.driver
-        start_PTC = GetPTC()[ConvertPacketSizeToPTC(packet_size)]
+        start_PTC = self.GetPTC()[ConvertPacketSizeToPTC(packet_size)]
         start_time = curr_time = time.time()
         while ((curr_time - start_time) < samp_time):
             curr_time = time.time()
-        end_PTC = GetPTC()[ConvertPacketSizeToPTC(packet_size)]
+        end_PTC = self.GetPTC()[ConvertPacketSizeToPTC(packet_size)]
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
 
-    def _GetThroughput(start,end,sample_time,packet_size = 512):
+    def _GetThroughput(self, start,end,sample_time,packet_size = 512):
         '''This function returns current Throughput 
             argument: 
                 start - previus PRC/PTC
@@ -1551,8 +1552,7 @@ class cvl:
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = GetPhyAbilities(get_abils)
-        
+        result = self.GetPhyAbilities(get_abils) 
         if not result[0]: # if Admin command was successful - False
             data = result[1]
         else:
@@ -4897,7 +4897,7 @@ class cvl:
         aq_desc.datalen = len(buffer)
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            hanlde.serial_print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,aq_desc.retval))
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -5394,7 +5394,7 @@ class cvl:
     ##########################                  PCIe sections                   ##########################
     ######################################################################################################
 
-    def GetLcbPortLockStatus():
+    def GetLcbPortLockStatus(self):
         '''This function returns the status of the LOCK bit in the REG GLPCI_LCBADD(offset 0x0009E944 ) PCIe LCB Address Port
             If returned value is 0b, proceed. Else, read data and try again. Section 13.2.2.3.130 
             argument: None
@@ -5403,7 +5403,7 @@ class cvl:
         driver = self.driver
         return get_bit_value(driver.read_csr(0x0009E944), 31)
 
-    def _GetValAddrLCB(offset):
+    def _GetValAddrLCB(self, offset):
         '''This function generates an register-address from the register-offset.
             Section 13.2.2.3.130, An ID of a sub-unit in the PCIe unit. Supported values for Bits 20-30 are:
             126: LCB?s internal config space registers --> 0x07e00000
@@ -5413,7 +5413,7 @@ class cvl:
         '''
         return offset|0x07e00000
 
-    def ReadLcbRegister(offset):
+    def ReadLcbRegister(self, offset):
         '''This function returns a LCB register-data by register-offset
             Section 13.2.2.3.130  PCIe LCB Address Port - GLPCI_LCBADD(0x0009E944)
             Section 13.2.2.3.131  PCIe LCB Data Port - GLPCI_LCBDATA (0x0009E940)
@@ -5421,17 +5421,17 @@ class cvl:
             return: LCB register-data
         '''
         driver = self.driver
-        if GetLcbPortLockStatus() == 1:
+        if self.GetLcbPortLockStatus() == 1:
             print " lock was on 1 at the beginning"
-            driver.write_csr(0x0009E944, _GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port 
+            driver.write_csr(0x0009E944, self._GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port 
             driver.read_csr(0x0009E940) #read the reg data from the PCIe LCB Data Port
-        driver.write_csr(0x0009E944, _GetValAddrLCB(offset))# write the LCB reg address to the PCIe LCB Address Port 
+        driver.write_csr(0x0009E944, self._GetValAddrLCB(offset))# write the LCB reg address to the PCIe LCB Address Port 
         val = driver.read_csr(0x0009E940)#read the reg data from the PCIe LCB Data Port
         #print hex(val)
         return val
 
 
-    def WriteLcbRegister(offset,data):
+    def WriteLcbRegister(self, offset,data):
         '''This function writes a data to LCB register by register-offset
             Section 13.2.2.3.130  PCIe LCB Address Port - GLPCI_LCBADD(0x0009E944)
             Section 13.2.2.3.131  PCIe LCB Data Port - GLPCI_LCBDATA (0x0009E940)
@@ -5441,7 +5441,7 @@ class cvl:
             return: LCB register-data
         '''
         driver = self.driver
-        if GetLcbPortLockStatus() == 1:
+        if self.GetLcbPortLockStatus() == 1:
             print " lock was on 1 at the beginning"
             driver.write_csr(0x0009E944, _GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port 
             driver.read_csr(0x0009E940) #read the reg data from the PCIe LCB Data Port
@@ -5449,12 +5449,12 @@ class cvl:
         driver.write_csr(0x0009E944, _GetValAddrLCB(offset)) # write the LCB reg address to the PCIe LCB Address Port   
         driver.write_csr(0x0009E940, data) #write the reg data to the PCIe LCB Data Port
 
-    def GetPCIECurrentLinkSpeed():
+    def GetPCIECurrentLinkSpeed(self):
         '''This function returns PCIE link speed: 
             argument: None
             return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
         '''
-        reg = (ReadLcbRegister(0x50))
+        reg = (self.ReadLcbRegister(0x50))
         val = get_bits_slice_value(reg,16,19) #speed
 
         link_speed = {
@@ -5465,12 +5465,12 @@ class cvl:
         }
         return link_speed.get(val,"Wrong")
 
-    def GetPCIECurrentLinkWidth():
+    def GetPCIECurrentLinkWidth(self):
         '''This function returns PCIE link width: 
             argument: None
             return: 'x1' / 'x2' / 'x4' / 'x8' / 'x16'
         '''
-        reg = (ReadLcbRegister(0x50))
+        reg = (self.ReadLcbRegister(0x50))
         val = get_bits_slice_value(reg,20,24) #width
 
         link_width = {
@@ -5727,7 +5727,7 @@ class cvl:
             print "PRC: ", new_PRC_Dict['TotalPRC']   
 
             print "Start TXRX"
-            EthStartTraffic(packet_size)
+            self.EthStartTraffic(packet_size)
             start_time = sampling_time_counter = time.time()
             while (curr_time < ber_timeout):
                 curr_time = time.time() - start_time
@@ -5740,15 +5740,15 @@ class cvl:
                 #time.sleep(0.005)
             
             print "Stop TXRX"
-            EthStopTraffic()
+            self.EthStopTraffic()
             #phy_tuning_paraps_dict = GetPhytuningParams()
-            new_PTC_Dict = GetPTC()
-            new_PRC_Dict = GetPRC()
+            new_PTC_Dict = self.GetPTC()
+            new_PRC_Dict = self.GetPRC()
             print "Iteration: ",iter_num
             print "PTC: " ,new_PTC_Dict['TotalPTC']
             print "PRC: ", new_PRC_Dict['TotalPRC'] 
 
-            ErrorStatistics = GetMacErrorsCounters(ErrorStatistics)
+            ErrorStatistics = self.GetMacErrorsCounters(ErrorStatistics)
             print
             print "######  Mac Error Statistics  #######"
             print

@@ -1,4 +1,5 @@
 from cvl import cvl 
+import time
 
 try:
     import readline
@@ -18,7 +19,12 @@ cvl0.print_info()
 cvl1.print_info()
 
 cvl0.DBG_print_cvl_info()
-cvl0.SetPhyConfiguration('1G-SGMII','NO_FEC')
+cvl0.EthStartTraffic()
+
+time.sleep(5)
+cvl0.EthStopTraffic()
+cvl0.DBG_print_cvl_info()
+
 print cvl0.GetMacLinkStatus()
 
 
