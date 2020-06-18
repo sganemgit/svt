@@ -23,9 +23,146 @@ class cvl:
             if self.driver is None:
                 raise RuntimeError("driver not intialized")
 
-    def PrintInfo(self):
-        print("device number: {}".format(self.device_number))
-        print("port number: ".format(self.port_number))
+    def info(self, advance = False, Location = "AQ"):
+        '''This function print cvl info
+            argument:
+                Advance - True/False. if true print more info.
+                Location - AQ/REG
+            return:
+                None
+        '''
+
+        driver = self.driver
+        port = driver.port_number()
+        device_number = driver.device_number()
+        print "######################################"
+        print "CVL port ",port
+        print "CVL device",device_number
+        print "######################################"
+        if advance:
+            phy_info_list = DnlGetPhyInfo()
+            keylist = phy_info_list.keys()
+            keylist.sort()
+            for key in keylist:
+                print key,": " + phy_info_list[key] + " || ",
+            print
+
+
+        link_status_dict = self.GetLinkStatusAfterParsing()
+        link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
+        print
+        print "Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0)#GetPhyAbility print
+        print "Phy Type: ", link_status_dict['PhyType']
+        print "FEC Type: ", self.GetCurrentFECStatus()
+        print "Mac Link Status: ",link_status_dict['MacLinkStatus']
+        if link_up_flag:
+            print "Mac Link Speed: ",link_status_dict['MacLinkSpeed']
+            print "Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down'#GetPhyLinkStatus() # ONPI 
+            print "Phy Link Speed: ",self.GetPhyLinkSpeed() # ONPI
+            #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
+            print "Enabled FEC: ",link_status_dict['EnabeldFEC']
+            print "EEE abilities: ",self.GetEEEAbilities(rep_mode = 0) #GetPhyAbility
+            print
+
+        print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
+        print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
+
+        if advance:
+            #link_up_flag = 0# for debug
+
+            PRT_STATE_MACHINE = ReadDnlPstore(0x26)
+            PRT_STATE_MACHINE = int(PRT_STATE_MACHINE.replace('L',''),16)
+            PRT_AN_ENABLED = get_bit_value(PRT_STATE_MACHINE,8)
+            if (PRT_AN_ENABLED and link_up_flag):# check if AN link enabled and the link is up
+
+                PRT_AN_HCD_OUTPUT = ReadDnlPstore(0x21)
+                PRT_AN_LOCAL_BP = ReadDnlPstore(0x25)
+                PRT_AN_LOCAL_NP = ReadDnlPstore(0x24)
+                PRT_AN_LP_BP = ReadDnlPstore(0x23)
+                PRT_AN_LP_NP = ReadDnlPstore(0x22)
+
+                PRT_AN_HCD_OUTPUT =  int(PRT_AN_HCD_OUTPUT.replace('L',''),16)
+                PRT_AN_LP_NP =  int(PRT_AN_LP_NP.replace('L',''),16)
+                PRT_AN_LP_BP =  int(PRT_AN_LP_BP.replace('L',''),16)
+                PRT_AN_LOCAL_NP =  int(PRT_AN_LOCAL_NP.replace('L',''),16)
+                PRT_AN_LOCAL_BP =  int(PRT_AN_LOCAL_BP.replace('L',''),16)
+
+
+
+                print
+                print "###########################################  " + "   ##########################################"
+                print "---------------  DUT  --------------------   " + "   -------------  LP  -----------------------"
+                print "###########################################  " + "   ##########################################"
+                print
+
+                print '##########    HCD Output    ##########'
+                FEC_select = FEC_select_dict[get_bits_slice_value(PRT_AN_HCD_OUTPUT,15,17)]
+                for i in range(24):
+                    if (PRT_AN_HCD_OUTPUT & 1) == 1:
+                        if not "FEC Select" in PRT_AN_HCD_OUTPUT_dict[i]:
+                            print PRT_AN_HCD_OUTPUT_dict[i]
+                    PRT_AN_HCD_OUTPUT = PRT_AN_HCD_OUTPUT >> 1
+                print 'FEC select: ',FEC_select
+                print "Phy Type: ", Get_Phy_Type_Status_dict[PRT_AN_HCD_OUTPUT]
+                print
+
+
+                # '##########  LOCAL Base Page  ##########'
+                PRT_AN_LOCAL_BP_list = []
+                PRT_AN_LOCAL_BP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LOCAL_BP_list,PRT_AN_LOCAL_BP,PRT_AN_LOCAL_BP_dict)
+
+                # '##########   LP Base Page   ##########'
+                PRT_AN_LP_BP_list = []
+                PRT_AN_LP_BP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LP_BP_list,PRT_AN_LP_BP,PRT_AN_LP_BP_dict)
+
+                #print "PRT_AN_LOCAL_BP_list ",PRT_AN_LOCAL_BP_list
+                #print "PRT_AN_LP_BP_list ",PRT_AN_LP_BP_list
+                # for print the lists in zip mode the list should to be equal
+                AN_LOCAL_BP_list_len = len(PRT_AN_LOCAL_BP_list)
+                AN_LP_BP_list_len =  len(PRT_AN_LP_BP_list)
+                if AN_LOCAL_BP_list_len > AN_LP_BP_list_len:
+                    num = AN_LOCAL_BP_list_len - AN_LP_BP_list_len
+                    for i in range(num):
+                        PRT_AN_LP_BP_list.append("")
+                elif AN_LP_BP_list_len > AN_LOCAL_BP_list_len:
+                    num = AN_LP_BP_list_len - AN_LOCAL_BP_list_len
+                    for i in range(num):
+                        PRT_AN_LOCAL_BP_list.append("")
+
+
+                print "###########   LOCAL Base Page  ############  " + "   ###########    LP Base Page    ############"
+                for DUT,LP in zip(PRT_AN_LOCAL_BP_list,PRT_AN_LP_BP_list):
+                    print ('{0:<47} {1:<40}').format(DUT,LP)
+                print
+
+
+                # '##########   LOCAL NP   ##########'
+                PRT_AN_LOCAL_NP_list = []
+                PRT_AN_LOCAL_NP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LOCAL_NP_list,PRT_AN_LOCAL_NP,PRT_AN_LOCAL_NP_dict)
+
+                # '##########     AN LP NP     ##########'
+                PRT_AN_LP_NP_list = []
+                PRT_AN_LP_NP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LP_NP_list,PRT_AN_LP_NP,PRT_AN_LP_NP_dict)
+
+
+                # for print the lists in zip mode the list should to be equal
+                AN_LOCAL_NP_list_len = len(PRT_AN_LOCAL_NP_list)
+                AN_LP_NP_list_len =  len(PRT_AN_LP_NP_list)
+                if AN_LOCAL_NP_list_len > AN_LP_NP_list_len:
+                    num = AN_LOCAL_NP_list_len - AN_LP_NP_list_len
+                    for i in range(num):
+                        PRT_AN_LP_NP_list.append("")
+                elif AN_LP_NP_list_len > AN_LOCAL_NP_list_len:
+                    num = AN_LP_NP_list_len - AN_LOCAL_NP_list_len
+                    for i in range(num):
+                        PRT_AN_LOCAL_NP_list.append("")
+                print "###########   LOCAL Next Page  ############  " + "   ###########    LP Next Page    ############"
+                for DUT,LP in zip(PRT_AN_LOCAL_NP_list,PRT_AN_LP_NP_list):
+                    print ('{0:<47} {1:<40}').format(DUT,LP) 
+                print
+
+                if link_up_flag:
+                    pass
 
 ###############################################################################
 #                        Register reading section                             #
@@ -3779,145 +3916,6 @@ class cvl:
         print "Eye height_thle |Eye height_thme |Eye height_thue |Eye height_thlo |Eye height_thmo |Eye height_thuo "
         print '%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"])
         print
-
-    def DBG_print_cvl_info(self, advance = False, Location = "AQ"):
-        '''This function print cvl info
-            argument:
-                Advance - True/False. if true print more info.
-                Location - AQ/REG
-            return:
-                None
-        '''
-
-        driver = self.driver
-        port = driver.port_number()
-        print "######################################"
-        print "CVL port ",port
-        print "######################################"
-        if advance:
-            phy_info_list = DnlGetPhyInfo()
-            keylist = phy_info_list.keys()
-            keylist.sort()
-            for key in keylist:
-                print key,": " + phy_info_list[key] + " || ",
-            print
-
-
-        link_status_dict = self.GetLinkStatusAfterParsing()
-        link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
-        print
-        print "Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0)#GetPhyAbility print
-        print "Phy Type: ", link_status_dict['PhyType']
-        print "FEC Type: ", self.GetCurrentFECStatus()
-        print "Mac Link Status: ",link_status_dict['MacLinkStatus']
-        if link_up_flag:
-            print "Mac Link Speed: ",link_status_dict['MacLinkSpeed']
-            print "Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down'#GetPhyLinkStatus() # ONPI 
-            print "Phy Link Speed: ",self.GetPhyLinkSpeed() # ONPI
-            #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
-            print "Enabled FEC: ",link_status_dict['EnabeldFEC']
-            print "EEE abilities: ",self.GetEEEAbilities(rep_mode = 0) #GetPhyAbility
-            print
-            
-        print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
-        print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
-
-        if advance:
-            #link_up_flag = 0# for debug
-
-            PRT_STATE_MACHINE = ReadDnlPstore(0x26)
-            PRT_STATE_MACHINE = int(PRT_STATE_MACHINE.replace('L',''),16)
-            PRT_AN_ENABLED = get_bit_value(PRT_STATE_MACHINE,8)
-            if (PRT_AN_ENABLED and link_up_flag):# check if AN link enabled and the link is up
-
-                PRT_AN_HCD_OUTPUT = ReadDnlPstore(0x21)
-                PRT_AN_LOCAL_BP = ReadDnlPstore(0x25)
-                PRT_AN_LOCAL_NP = ReadDnlPstore(0x24)
-                PRT_AN_LP_BP = ReadDnlPstore(0x23)
-                PRT_AN_LP_NP = ReadDnlPstore(0x22)
-
-                PRT_AN_HCD_OUTPUT =  int(PRT_AN_HCD_OUTPUT.replace('L',''),16)
-                PRT_AN_LP_NP =  int(PRT_AN_LP_NP.replace('L',''),16)
-                PRT_AN_LP_BP =  int(PRT_AN_LP_BP.replace('L',''),16)
-                PRT_AN_LOCAL_NP =  int(PRT_AN_LOCAL_NP.replace('L',''),16)
-                PRT_AN_LOCAL_BP =  int(PRT_AN_LOCAL_BP.replace('L',''),16)
-
-
-
-                print
-                print "###########################################  " + "   ##########################################"
-                print "---------------  DUT  --------------------   " + "   -------------  LP  -----------------------"
-                print "###########################################  " + "   ##########################################"
-                print
-
-                print '##########    HCD Output    ##########'
-                FEC_select = FEC_select_dict[get_bits_slice_value(PRT_AN_HCD_OUTPUT,15,17)]
-                for i in range(24):
-                    if (PRT_AN_HCD_OUTPUT & 1) == 1:
-                        if not "FEC Select" in PRT_AN_HCD_OUTPUT_dict[i]:
-                            print PRT_AN_HCD_OUTPUT_dict[i]
-                    PRT_AN_HCD_OUTPUT = PRT_AN_HCD_OUTPUT >> 1
-                print 'FEC select: ',FEC_select
-                print "Phy Type: ", Get_Phy_Type_Status_dict[PRT_AN_HCD_OUTPUT]
-                print 
-
-
-                # '##########  LOCAL Base Page  ##########'
-                PRT_AN_LOCAL_BP_list = []
-                PRT_AN_LOCAL_BP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LOCAL_BP_list,PRT_AN_LOCAL_BP,PRT_AN_LOCAL_BP_dict)
-
-                # '##########   LP Base Page   ##########'
-                PRT_AN_LP_BP_list = []
-                PRT_AN_LP_BP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LP_BP_list,PRT_AN_LP_BP,PRT_AN_LP_BP_dict)
-
-                #print "PRT_AN_LOCAL_BP_list ",PRT_AN_LOCAL_BP_list
-                #print "PRT_AN_LP_BP_list ",PRT_AN_LP_BP_list
-                # for print the lists in zip mode the list should to be equal
-                AN_LOCAL_BP_list_len = len(PRT_AN_LOCAL_BP_list)
-                AN_LP_BP_list_len =  len(PRT_AN_LP_BP_list)
-                if AN_LOCAL_BP_list_len > AN_LP_BP_list_len:
-                    num = AN_LOCAL_BP_list_len - AN_LP_BP_list_len
-                    for i in range(num):
-                        PRT_AN_LP_BP_list.append("")
-                elif AN_LP_BP_list_len > AN_LOCAL_BP_list_len:
-                    num = AN_LP_BP_list_len - AN_LOCAL_BP_list_len
-                    for i in range(num):
-                        PRT_AN_LOCAL_BP_list.append("")
-
-
-                print "###########   LOCAL Base Page  ############  " + "   ###########    LP Base Page    ############"
-                for DUT,LP in zip(PRT_AN_LOCAL_BP_list,PRT_AN_LP_BP_list):
-                    print ('{0:<47} {1:<40}').format(DUT,LP)
-                print
-
-
-                # '##########   LOCAL NP   ##########'
-                PRT_AN_LOCAL_NP_list = []
-                PRT_AN_LOCAL_NP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LOCAL_NP_list,PRT_AN_LOCAL_NP,PRT_AN_LOCAL_NP_dict)
-
-                # '##########     AN LP NP     ##########'
-                PRT_AN_LP_NP_list = []
-                PRT_AN_LP_NP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LP_NP_list,PRT_AN_LP_NP,PRT_AN_LP_NP_dict)
-
-
-                # for print the lists in zip mode the list should to be equal
-                AN_LOCAL_NP_list_len = len(PRT_AN_LOCAL_NP_list)
-                AN_LP_NP_list_len =  len(PRT_AN_LP_NP_list)
-                if AN_LOCAL_NP_list_len > AN_LP_NP_list_len:
-                    num = AN_LOCAL_NP_list_len - AN_LP_NP_list_len
-                    for i in range(num):
-                        PRT_AN_LP_NP_list.append("")
-                elif AN_LP_NP_list_len > AN_LOCAL_NP_list_len:
-                    num = AN_LP_NP_list_len - AN_LOCAL_NP_list_len
-                    for i in range(num):
-                        PRT_AN_LOCAL_NP_list.append("")
-                print "###########   LOCAL Next Page  ############  " + "   ###########    LP Next Page    ############"
-                for DUT,LP in zip(PRT_AN_LOCAL_NP_list,PRT_AN_LP_NP_list):
-                    print ('{0:<47} {1:<40}').format(DUT,LP) 
-                print
-
-                if link_up_flag:
-                    pass
 
 
             elif PRT_AN_ENABLED and not link_up_flag:
