@@ -3046,13 +3046,13 @@ class cvl:
         '''
         return sum(lst) / len(lst)
 
-    def _GetValAddrPCIE(address):
+    def _GetValAddrPCIE(self, address):
         ''' This function returns PCIE value by input address
         '''
         driver = self.driver
         return driver.read_pci(address) 
 
-    def _to_unsigned(value):
+    def _to_unsigned(self, value):
         '''This function convert sign value to unsigned.
             argument: value (sign number)
             return: unsigned value
@@ -3063,7 +3063,7 @@ class cvl:
             return value + 2**8
         
      
-    def SetMdioBit(Page,Register,BitNum):
+    def SetMdioBit(self, Page,Register,BitNum):
         '''This function set MDIO bit.
         '''
         driver = self.driver
@@ -4631,8 +4631,8 @@ class cvl:
             argument: None
             return: "D0" / "Reserved" / "D3hot"
         '''
-        reg = _GetValAddrPCIE(0x44)
-        val = get_bits_slice_value(reg,0,1)
+        reg = self._GetValAddrPCIE(0x44)
+        val = get_bits_slice_value(reg[1],0,1)
 
         power_sate = {
             0: "D0",
