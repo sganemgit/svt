@@ -11,7 +11,6 @@ else:
     readline.parse_and_bind("tab: complete")
 
 devices = get_detected_devices("cvl")
-print devices
 if devices:
     for device,info in devices.iteritems():
         globals()[device] = cvl(info['device_number'],info['port_number'])

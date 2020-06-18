@@ -3899,43 +3899,43 @@ class cvl:
             for key in keylist:
                print key,Phytuning_dict[key]
 
-        print '#############################################################################'
-        print "RxFFE_pre2  |RxFFE_pre1  |RxFFE_post1 |RxFFE_Bflf  |RxFFE_Bfhf  |RxFFE_Drate "
-        #print '{0:9s} | {1:9s} | {2:10s} | {3:9s} | {4:9s} | {5:9s}'.format(Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
-        print '%-12s|%-12s|%-12s|%-12s|%-12s|%-12s'% (Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
-        print
-        print '#######################################################'
-        print "CTLE_HF |CTLE_LF |CTLE_DC |CTLE_BW |CTLE_gs1|CTLE_gs2"
-        print '%-8s|%-8s|%-8s|%-8s|%-8s|%-8s'%(Phytuning_dict["CTLE_HF"], Phytuning_dict["CTLE_LF"], Phytuning_dict["CTLE_DC"],Phytuning_dict["CTLE_BW"], Phytuning_dict["CTLE_gs1"], Phytuning_dict["CTLE_gs2"])
-        print
-        print '############################################################################################################################################'
-        print "DFE_GAIN |DFE_GAIN2|DFE_2    |DFE_3    |DFE_4    |DFE_5    |DFE_6    |DFE_7    |DFE_8    |DFE_9    |DFE_A    |DFE_B    |DFE_C    |CTLE_gs2 "
-        print '%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s'%(Phytuning_dict["DFE_GAIN"], Phytuning_dict["DFE_GAIN2"], Phytuning_dict["DFE_2"],Phytuning_dict["DFE_3"], Phytuning_dict["DFE_4"], Phytuning_dict["DFE_5"], Phytuning_dict["DFE_6"], Phytuning_dict["DFE_7"], Phytuning_dict["DFE_8"], Phytuning_dict["DFE_9"], Phytuning_dict["DFE_A"], Phytuning_dict["DFE_B"], Phytuning_dict["DFE_C"], Phytuning_dict["CTLE_gs2"])
-        print 
-        print '#####################################################################################################'
-        print "Eye height_thle |Eye height_thme |Eye height_thue |Eye height_thlo |Eye height_thmo |Eye height_thuo "
-        print '%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"])
-        print
+            print '#############################################################################'
+            print "RxFFE_pre2  |RxFFE_pre1  |RxFFE_post1 |RxFFE_Bflf  |RxFFE_Bfhf  |RxFFE_Drate "
+            #print '{0:9s} | {1:9s} | {2:10s} | {3:9s} | {4:9s} | {5:9s}'.format(Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
+            print '%-12s|%-12s|%-12s|%-12s|%-12s|%-12s'% (Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
+            print
+            print '#######################################################'
+            print "CTLE_HF |CTLE_LF |CTLE_DC |CTLE_BW |CTLE_gs1|CTLE_gs2"
+            print '%-8s|%-8s|%-8s|%-8s|%-8s|%-8s'%(Phytuning_dict["CTLE_HF"], Phytuning_dict["CTLE_LF"], Phytuning_dict["CTLE_DC"],Phytuning_dict["CTLE_BW"], Phytuning_dict["CTLE_gs1"], Phytuning_dict["CTLE_gs2"])
+            print
+            print '############################################################################################################################################'
+            print "DFE_GAIN |DFE_GAIN2|DFE_2    |DFE_3    |DFE_4    |DFE_5    |DFE_6    |DFE_7    |DFE_8    |DFE_9    |DFE_A    |DFE_B    |DFE_C    |CTLE_gs2 "
+            print '%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s'%(Phytuning_dict["DFE_GAIN"], Phytuning_dict["DFE_GAIN2"], Phytuning_dict["DFE_2"],Phytuning_dict["DFE_3"], Phytuning_dict["DFE_4"], Phytuning_dict["DFE_5"], Phytuning_dict["DFE_6"], Phytuning_dict["DFE_7"], Phytuning_dict["DFE_8"], Phytuning_dict["DFE_9"], Phytuning_dict["DFE_A"], Phytuning_dict["DFE_B"], Phytuning_dict["DFE_C"], Phytuning_dict["CTLE_gs2"])
+            print 
+            print '#####################################################################################################'
+            print "Eye height_thle |Eye height_thme |Eye height_thue |Eye height_thlo |Eye height_thmo |Eye height_thuo "
+            print '%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"])
+            print
 
 
-            elif PRT_AN_ENABLED and not link_up_flag:
-                print
-                print "###########################################  "
-                print "---------------  DUT  --------------------   "
-                print "###########################################  "
-                print
-                print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
-                print "PRT State Machine: ",PRT_STATE_MACHINE_AN[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
+        elif PRT_AN_ENABLED and not link_up_flag:
+            print
+            print "###########################################  "
+            print "---------------  DUT  --------------------   "
+            print "###########################################  "
+            print
+            print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
+            print "PRT State Machine: ",PRT_STATE_MACHINE_AN[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
 
 
-            elif not PRT_AN_ENABLED and not link_up_flag:# force mode and link down
-                print
-                print "###########################################  "
-                print "---------------  DUT  --------------------   "
-                print "###########################################  "
-                print
-                print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
-                print "PRT State Machine: ",PRT_STATE_MACHINE_FM[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
+        elif not PRT_AN_ENABLED and not link_up_flag:# force mode and link down
+            print
+            print "###########################################  "
+            print "---------------  DUT  --------------------   "
+            print "###########################################  "
+            print
+            print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
+            print "PRT State Machine: ",PRT_STATE_MACHINE_FM[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
 
             # print pcs advanced info
             get_pcs_advenced_info = GetPcsAdvencedInfo()
