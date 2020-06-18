@@ -5042,62 +5042,7 @@ class cvl:
         #reg_data = driver.read_csr(reg_addr)
         #LinkStatus = get_bit_value(reg_data,30)
 
-        
-    def DBG_Yaron_Reset_Print():
-
-        Reset(1)
-        time.sleep(1)
-
-        Reg_Port_Link_State_0_2 = ReadEthwRegister(0x03000108)
-        print   "PCS Status (0) =" , Reg_Port_Link_State_0_2
-        Reg_Port_Link_State_1_3 = ReadEthwRegister(0x03000208)
-        print   "PCS Status (1) =" , Reg_Port_Link_State_1_3
-        
-        time.sleep(1)
-
-        while Reg_Port_Link_State_0_2 != "0x3" or Reg_Port_Link_State_1_3 != "0x3" :
-            Reg_value = ReadEthwRegister(0x03000170)
-            print   "AN Status (0) =" , Reg_value
-            Reg_value = ReadEthwRegister(0x03000270)
-            print   "AN Status (1) =" , Reg_value
-            Reg_value = ReadEthwRegister(0x03000174)
-            print   "AN Status (2) =" , Reg_value
-            Reg_value = ReadEthwRegister(0x03000274)
-            print   "AN Status (3) =" , Reg_value
-            Reg_Port_Link_State_0_2 = ReadEthwRegister(0x03000108)
-            print   "PCS Status (0) =" , Reg_Port_Link_State_0_2
-            Reg_Port_Link_State_1_3 = ReadEthwRegister(0x03000208)
-            print   "PCS Status (1) =" , Reg_Port_Link_State_1_3
-        print "aaaa"
-
-
-    def DBG_Yaron_Print():
-
-        Reg_Port_Link_State_0_2 = ReadEthwRegister(0x03000108)
-        print   "PCS Status (0) =" , Reg_Port_Link_State_0_2
-        Reg_Port_Link_State_1_3 = ReadEthwRegister(0x03000208)
-        print   "PCS Status (1) =" , Reg_Port_Link_State_1_3
-
-        #Reg_value = ReadEthwRegister(0x03000090)
-        #print  "ETH_Interrupt_status (0) =" , Reg_value
-        #Reg_value = ReadEthwRegister(0x03000098)
-        #print  "ETH_Interrupt_status (1) =" , Reg_value
-        #Reg_value = ReadEthwRegister(0x03000094)   
-        #print  "ETH_Interrupt_status (2) =" , Reg_value
-        #Reg_value = ReadEthwRegister(0x0300009c)
-        #print  "ETH_Interrupt_status (3) =" , Reg_value
-
-        Reg_value = ReadEthwRegister(0x03000170)
-        print   "AN Status (0) =" , Reg_value
-        Reg_value = ReadEthwRegister(0x03000270)
-        print   "AN Status (1) =" , Reg_value
-        Reg_value = ReadEthwRegister(0x03000174)
-        print   "AN Status (2) =" , Reg_value
-        Reg_value = ReadEthwRegister(0x03000274)
-        print   "AN Status (3) =" , Reg_value
-
-
-    ############################### Link Topology Admin commands WIP ##########################################
+           ############################### Link Topology Admin commands WIP ##########################################
 
     def GetLinkTopologyHandle(self, port, debug = False):
         '''This function returs node handler of a given port
@@ -5146,7 +5091,7 @@ class cvl:
         return  [status,aq_desc.retval,data]
         
 
-    def ReadI2C(port,node_handle,memory_offset,debug = False):
+    def ReadI2C(self, port,node_handle,memory_offset,debug = False):
         '''this function reads 16 bytes of I2C data of a cage in a port context. see HAS Table 3-135. Read I2C admin command (Opcode: 0x06E2)
             arguments: 
                 port -- (int) logical port 
@@ -5191,7 +5136,7 @@ class cvl:
         data += intgerTo4ByteList(aq_desc.addr_low)
         return [status,aq_desc.retval,data]
         
-    def WriteI2C(port,node_handle,memory_offset,data):
+    def WriteI2C(self, port,node_handle,memory_offset,data):
         '''this function write 1 bytes of I2C data. see HAS Table 3-135. write  I2C admin command (Opcode: 0x06E3)
             arguments: 
                 port -- (int) logical port number : 0-8
@@ -5219,19 +5164,7 @@ class cvl:
         status  = driver.send_aq_command(aq_desc)
         return [status,aq_desc.retval]
 
-    def intgerTo4ByteList(I):
-        '''this is a Level 0 function that convert a 4-byte integer to an array of length 4 that contans the 4 bytes
-            argument: I = integer
-            return: list of length 4
-        '''
-        data = [0]*4
-        data[0] = I&0xFF
-        data[1] = (I&0xff00)>>8
-        data[2] = (I&0xff0000)>>16
-        data[3] = (I&0xff000000)>>24
-        return data
-
-    def ReadEEPROM():
+        def ReadEEPROM(self):
         '''this function reads the eeprom of the cable via I2C
             arguments:None
         '''
@@ -5241,7 +5174,7 @@ class cvl:
         while(True):
             if P > 10:#just in case something goes wrong
                 break
-            topology_list = GetLinkTopologyHandle(P)
+            topology_list = self.GetLinkTopologyHandle(P)
             status = topology_list[0]
             retval = topology_list[1]
             if retval == 18:
@@ -5267,9 +5200,9 @@ class cvl:
 
 
 
-    #########################################################################################################
-    ######################         debug prints auto complete     ###########################################
-    #########################################################################################################
+###############################################################################
+######################         debug prints auto complete     #############
+###########################################################################
 
 
 
