@@ -2457,9 +2457,22 @@ class cvl:
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
 
         status = self.SetPhyLoopback(phy_lpbk_args)
-        
-        if status[0]: 
+
+        if status[0]:
             error_msg = 'Error EnablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
+            raise RuntimeError(error_msg)
+
+    def EnableMACLoopback(self):
+        '''This function enables MAC loopback localy
+            input: None 
+            returnt: None
+        '''
+        AQ_args = dict()
+        AQ_args["loopback mode"] = 1
+        status = self.SetMacLoopback(AQ_args)
+
+        if status[0]:
+            error_msg = "Error EnableMACLoopback: Admin command was not successful, retval {}".format(status[1])
             raise RuntimeError(error_msg)
 
     def DisablePCSLoopback(self):
@@ -2475,7 +2488,6 @@ class cvl:
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
         status = self.SetPhyLoopback(phy_lpbk_args)
-        
         if status[0]: 
             error_msg = 'Error DisablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
@@ -2491,11 +2503,23 @@ class cvl:
         phy_lpbk_args['enable'] = 0 #loopback disabled
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
-
         status = self.SetPhyLoopback(phy_lpbk_args)
-        
+
         if status[0]: 
             error_msg = 'Error DisablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
+            raise RuntimeError(error_msg)
+
+    def DisableMACLoopback(self):
+        ''' This method diables MAC loopback 
+            input: None
+            return: None
+        '''
+        AQ_args = dict()
+        AQ_args["loopback mode"] = 0
+        status = self.SetMacLoopback(AQ_args)
+
+        if status[0]:
+            error_msg = "Error DisableMACLoopback: Admin command was not successful, retval{}".format(status[1])
             raise RuntimeError(error_msg)
 
 
@@ -5396,7 +5420,7 @@ class cvl:
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x0
-        
+
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print 'Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
@@ -5406,6 +5430,34 @@ class cvl:
         else:
             status = (False, None)
         return status
+
+    def SetMacLoopback(self, args, debug = False):
+        '''
+            This method sends a Set MAC Loopback addmin command
+        '''
+        driver = self.driver
+        opCodes = AqOpCodes()
+        aq_desc = AqDescriptor()
+        data_len = 0x0
+        aq_desc.opcode = opCodes.set_mac_loopback
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = args["loopback mode"]
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print 'Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
 
     ######################################################################################################
     ##########################                  PCIe sections                   ##########################
