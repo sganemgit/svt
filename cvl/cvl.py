@@ -6,10 +6,6 @@ from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
 from temp import *
 import time
-def _calculate_port_offset(offset_base, mul, port_number):
-    '''This function return port offset according to port number and offset.
-    '''
-    return offset_base + mul * port_number
 
 class cvl:
     'This class contains all the methods to interface with a cvl pf'
@@ -35,9 +31,9 @@ class cvl:
             GLPRT_PTC64H = 0x00380B84
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380B80, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B80, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380B84, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B84, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
 
@@ -48,9 +44,9 @@ class cvl:
             GLPRT_PTC127H = 0x00380BC4
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380BC0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380BC0, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380BC4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380BC4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -61,9 +57,9 @@ class cvl:
             GLPRT_PTC255H = 0x00380C04
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380C00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C00, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380C04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C04, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -74,9 +70,9 @@ class cvl:
             GLPRT_PTC511H = 0x00380C44
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380C40, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C40, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380C44, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C44, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -87,9 +83,9 @@ class cvl:
             GLPRT_PTC1023H = 0x00380C84
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380C80, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C80, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380C84, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C84, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -100,9 +96,9 @@ class cvl:
             GLPRT_PTC1522H = 0x00380CC4
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380CC0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380CC0, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380CC4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380CC4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
@@ -113,9 +109,9 @@ class cvl:
             GLPRT_PTC9522H = 0x00380D04
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380D00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380D00, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380D04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380D04, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
@@ -162,9 +158,9 @@ class cvl:
             GLPRT_PRC64H = 0x00380904
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380900, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380900, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380904, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380904, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
@@ -175,9 +171,9 @@ class cvl:
             GLPRT_PRC127H = 0x00380944
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380940, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380940, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380944, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380944, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
@@ -188,9 +184,9 @@ class cvl:
             GLPRT_PRC255H = 0x00380984
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380980, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380980, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380984, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380984, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -201,9 +197,9 @@ class cvl:
             GLPRT_PRC511H = 0x003809C4
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x003809C0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003809C0, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x003809C4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003809C4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -214,9 +210,9 @@ class cvl:
             GLPRT_PRC1023H = 0x00380A04
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380A00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380A00, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380A04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380A04, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
      
@@ -227,9 +223,9 @@ class cvl:
             GLPRT_PRC1522H = 0x00380A44
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380A40, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380A40, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380A44, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380A44, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -240,9 +236,9 @@ class cvl:
             GLPRT_PRC9522H = 0x00380A84
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380A80, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380A80, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380A84, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380A84, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xff) << 32) | low_data)
         
@@ -379,7 +375,7 @@ class cvl:
             return: number of link drop
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x001E47C0, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x001E47C0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         Link_drop_counter = get_bits_slice_value(reg_data,0,15)
         #print "Link_drop_counter",Link_drop_counter
@@ -393,9 +389,9 @@ class cvl:
             GLPRT_CRCERRS_H = 0x00380104
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380100, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380100, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380104, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380104, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
 
@@ -405,9 +401,9 @@ class cvl:
             GLPRT_ILLERRC_H = 0x003801C4
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x003801C0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003801C0, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x003801C4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003801C4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
 
@@ -418,9 +414,9 @@ class cvl:
             GLPRT_ERRBC_H = 0x00380184
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380180, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380180, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380184, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380184, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
 
@@ -430,9 +426,9 @@ class cvl:
             GLPRT_MLFC_H = 0x00380044
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380040, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380040, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380044, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380044, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
 
@@ -442,9 +438,9 @@ class cvl:
             GLPRT_MRFC_H = 0x00380084
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380080, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380080, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380084, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380084, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)    
      
@@ -455,9 +451,9 @@ class cvl:
             GLPRT_RLEC_H = 0x00380144
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380140, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380140, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380144, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380144, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
         
@@ -468,9 +464,9 @@ class cvl:
             GLPRT_RUC_H = 0x00380204 
         ''' 
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380200, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380200, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380204, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380204, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
         
@@ -481,9 +477,9 @@ class cvl:
             GLPRT_RFC_H = 0x00380AC4
         '''  
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380AC0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380AC0, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380AC4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380AC4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
         
@@ -495,9 +491,9 @@ class cvl:
             GLPRT_ROC_H = 0x00380244
         ''' 
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380240, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380240, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380244, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380244, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
         
@@ -509,9 +505,9 @@ class cvl:
             GLPRT_RJC_H = 0x00380B04
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380B00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B00, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x00380B04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B04, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)    
         
@@ -521,9 +517,9 @@ class cvl:
             GLPRT_MSPDC_H = 0x003800C4
         ''' 
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x003800C0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003800C0, 0x8, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x003800C4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003800C4, 0x8, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
         
@@ -532,9 +528,9 @@ class cvl:
             GLPRT_LDPC = 0x000AC280
         ''' 
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x000AC280, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x000AC280, 0x4, driver.port_number())
         low_data = driver.read_csr(reg_addr)
-        reg_addr = _calculate_port_offset(0x000AC260, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x000AC260, 0x4, driver.port_number())
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
      
@@ -606,9 +602,9 @@ class cvl:
             GLPRT_PTC64H = 0x00380B84
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380B80, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B80, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380B84, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B84, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -619,9 +615,9 @@ class cvl:
             GLPRT_PTC127H = 0x00380BC4
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380BC0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380BC0, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380BC4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380BC4, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
      
@@ -632,9 +628,9 @@ class cvl:
             GLPRT_PTC255H = 0x00380C04
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380C00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C00, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380C04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C04, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -645,9 +641,9 @@ class cvl:
             GLPRT_PTC511H = 0x00380C44
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380C40, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C40, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380C44, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C44, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -658,9 +654,9 @@ class cvl:
             GLPRT_PTC1023H = 0x00380C84
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380C80, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C80, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380C84, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380C84, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -671,9 +667,9 @@ class cvl:
             GLPRT_PTC1522H = 0x00380CC4
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380CC0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380CC0, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380CC4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380CC4, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -684,9 +680,9 @@ class cvl:
             GLPRT_PTC9522H = 0x00380D04
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380D00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380D00, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380D04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380D04, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -697,9 +693,9 @@ class cvl:
             GLPRT_PRC64H = 0x00380904
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x00380900, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380900, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x00380904, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380904, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -710,9 +706,9 @@ class cvl:
             GLPRT_PRC127H = 0x00380944
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x00380940, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380940, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x00380944, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380944, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -723,9 +719,9 @@ class cvl:
             GLPRT_PRC255H = 0x00380984
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x00380980, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380980, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x00380984, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380984, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -736,9 +732,9 @@ class cvl:
             GLPRT_PRC511H = 0x003809C4
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x003809C0, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x003809C0, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x003809C4, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x003809C4, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -749,9 +745,9 @@ class cvl:
             GLPRT_PRC1023H = 0x00380A04
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x00380A00, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380A00, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x00380A04, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380A04, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -762,9 +758,9 @@ class cvl:
             GLPRT_PRC1522H = 0x00380A44
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x00380A40, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380A40, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x00380A44, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380A44, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -775,9 +771,9 @@ class cvl:
             GLPRT_PRC9522H = 0x00380A84
         '''
         driver= self.driver
-        reg_addr= _calculate_port_offset(0x00380A80, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380A80, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= _calculate_port_offset(0x00380A84, 0x8, driver.port_number())
+        reg_addr= calculate_port_offset(0x00380A84, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -791,9 +787,9 @@ class cvl:
      
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380100, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380100, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380104, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380104, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -803,9 +799,9 @@ class cvl:
             GLPRT_ILLERRC_H = 0x003801C4
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x003801C0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003801C0, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x003801C4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003801C4, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -816,9 +812,9 @@ class cvl:
             GLPRT_ERRBC_H = 0x00380184
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380180, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380180, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380184, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380184, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -828,9 +824,9 @@ class cvl:
             GLPRT_MLFC_H = 0x00380044
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380040, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380040, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380044, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380044, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -840,9 +836,9 @@ class cvl:
             GLPRT_MRFC_H = 0x00380084
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380080, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380080, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380084, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380084, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -853,9 +849,9 @@ class cvl:
             GLPRT_RLEC_H = 0x00380144
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x00380140, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380140, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380144, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380144, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -866,9 +862,9 @@ class cvl:
             GLPRT_RUC_H = 0x00380204 
         ''' 
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380200, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380200, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380204, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380204, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -879,9 +875,9 @@ class cvl:
             GLPRT_RFC_H = 0x00380AC4
         ''' 
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380AC0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380AC0, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380AC4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380AC4, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
      
@@ -893,9 +889,9 @@ class cvl:
             GLPRT_ROC_H = 0x00380244
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380240, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380240, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380244, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380244, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
      
@@ -907,9 +903,9 @@ class cvl:
             GLPRT_RJC_H = 0x00380B04
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x00380B00, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B00, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x00380B04, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x00380B04, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -919,9 +915,9 @@ class cvl:
             GLPRT_MSPDC_H = 0x003800C4
         ''' 
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x003800C0, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003800C0, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x003800C4, 0x8, driver.port_number())
+        reg_addr = calculate_port_offset(0x003800C4, 0x8, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -930,9 +926,9 @@ class cvl:
             GLPRT_LDPC = 0x00300620
         '''
         driver= self.driver
-        reg_addr = _calculate_port_offset(0x000AC280, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x000AC280, 0x4, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = _calculate_port_offset(0x000AC260, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x000AC260, 0x4, driver.port_number())
         driver.write_csr(reg_addr, 0xffffffff)
         pass
         
@@ -1116,7 +1112,7 @@ class cvl:
 
         driver = self.driver
 
-        reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         LinkStatus = get_bit_value(reg_data,30)
 
@@ -1190,7 +1186,7 @@ class cvl:
         '''
         driver = self.driver
      
-        reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         LinkSpeed = get_bits_slice_value(reg_data,26,29)   
      
@@ -1648,7 +1644,7 @@ class cvl:
                 link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G'
         '''
         driver = self.driver
-        reg_addr = _calculate_port_offset(0x03001030, 0x100, driver.port_number())
+        reg_addr = calculate_port_offset(0x03001030, 0x100, driver.port_number())
         value = self.ReadEthwRegister(reg_addr)
         return Phy_link_speed_dict[int(value,16)]
         
@@ -1690,8 +1686,8 @@ class cvl:
         link_speed = self.GetPhyLinkSpeed()
         
         if link_speed == "100M" or link_speed == "1G":
-            offset_base = _calculate_port_offset(0x03000180, 0x4, pmd_num)
-            reg_addr = _calculate_port_offset(offset_base, 0x100, quad)  
+            offset_base = calculate_port_offset(0x03000180, 0x4, pmd_num)
+            reg_addr = calculate_port_offset(offset_base, 0x100, quad)  
             value = self.ReadEthwRegister(reg_addr)
             link_speed_from_reg = get_bits_slice_value(int(value,16), 2, 3)
             link_speed_from_reg_dict = {1:"100M",2:"1G"}
@@ -1702,7 +1698,7 @@ class cvl:
                 return 0    
             
         else:
-            reg_addr = _calculate_port_offset(0x03000108, 0x100, quad)
+            reg_addr = calculate_port_offset(0x03000108, 0x100, quad)
             value = self.ReadEthwRegister(reg_addr)
             
             if link_speed == "100G":
@@ -2356,7 +2352,7 @@ class cvl:
         '''
         if quad == None:
             quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        reg_addr = _calculate_port_offset(0x0300010c, 0x100, quad)
+        reg_addr = calculate_port_offset(0x0300010c, 0x100, quad)
         value = ReadEthwRegister(reg_addr)
         return get_bits_slice_value(int(value,16), 6, 11)  
 
@@ -2370,7 +2366,7 @@ class cvl:
         '''
         if quad == None:
             quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        reg_addr = _calculate_port_offset(0x0300010c, 0x100, quad)
+        reg_addr = calculate_port_offset(0x0300010c, 0x100, quad)
         value = ReadEthwRegister(reg_addr)
         return get_bits_slice_value(int(value,16), 12, 17)
 
@@ -3265,11 +3261,6 @@ class cvl:
         driver = self.driver
         return driver.read_pci(address) 
 
-    def _calculate_port_offset(offset_base, mul, port_number):
-        '''This function return port offset according to port number and offset.
-        '''
-        return offset_base + mul * port_number
-     
     def _to_unsigned(value):
         '''This function convert sign value to unsigned.
             argument: value (sign number)
@@ -3308,7 +3299,7 @@ class cvl:
         '''
         driver = self.driver
 
-        reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
+        reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         if ( reg_data == 0xffffffff or reg_data == 0xdeadbeef):
             return False
@@ -4878,10 +4869,10 @@ class cvl:
     def SetWakeUp(self):
         driver = self.driver
         ############# PFPM_APM. APME = 1 ###############################
-        reg_addr1 = _calculate_port_offset(0x000b8080, 0x4, driver.port_number())
+        reg_addr1 = calculate_port_offset(0x000b8080, 0x4, driver.port_number())
         driver.write_csr(reg_addr1, 0x1)
         ############# PFPM_WUFC.MAG = 1 ###############################
-        reg_addr2 = _calculate_port_offset(0x0009dc00, 0x4, driver.port_number())
+        reg_addr2 = calculate_port_offset(0x0009dc00, 0x4, driver.port_number())
         val2 = driver.read_csr(reg_addr2)
         val2 = (val2 & 0x3f) | (1 << 1)
         driver.write_csr(reg_addr2, val2)
@@ -4891,10 +4882,10 @@ class cvl:
     def SetOffWakeUp(self):
         driver = self.driver
         ############# PFPM_APM. APME = 1 ###############################
-        reg_addr1 = _calculate_port_offset(0x000b8080, 0x4, driver.port_number())
+        reg_addr1 = calculate_port_offset(0x000b8080, 0x4, driver.port_number())
         driver.write_csr(reg_addr1, 0x0)
         ############# PFPM_WUFC.MAG = 1 ###############################
-        reg_addr2 = _calculate_port_offset(0x0009dc00, 0x4, driver.port_number())
+        reg_addr2 = calculate_port_offset(0x0009dc00, 0x4, driver.port_number())
         val2 = driver.read_csr(reg_addr2)
         val2 = (val2 & 0x3d)
         driver.write_csr(reg_addr2, val2)
@@ -5161,7 +5152,7 @@ class cvl:
                 curr_time = time.time()
 
                 if link_flag_port0:
-                    reg_addr0 = _calculate_port_offset(0x001E47A0, 0x4, 0)
+                    reg_addr0 = calculate_port_offset(0x001E47A0, 0x4, 0)
                     reg_data0 = driver.read_csr(reg_addr0)
                     LinkStatus0 = get_bit_value(reg_data0,30)       
                     if LinkStatus0:
@@ -5171,7 +5162,7 @@ class cvl:
                         link_flag_port0 = False
 
                 if link_flag_port1:
-                    reg_addr1 = _calculate_port_offset(0x001E47A0, 0x4, 1)
+                    reg_addr1 = calculate_port_offset(0x001E47A0, 0x4, 1)
                     reg_data1 = driver.read_csr(reg_addr0)
                     LinkStatus1 = get_bit_value(reg_data0,30)       
                     if LinkStatus1:
@@ -5181,7 +5172,7 @@ class cvl:
                         link_flag_port1 = False
 
                 if link_flag_port2:
-                    reg_addr2 = _calculate_port_offset(0x001E47A0, 0x4, 2)
+                    reg_addr2 = calculate_port_offset(0x001E47A0, 0x4, 2)
                     reg_data2 = driver.read_csr(reg_addr2)
                     LinkStatus2 = get_bit_value(reg_data2,30)       
                     if LinkStatus2:
@@ -5191,7 +5182,7 @@ class cvl:
                         link_flag_port2 = False
 
                 if link_flag_port3:
-                    reg_addr3 = _calculate_port_offset(0x001E47A0, 0x4, 3)
+                    reg_addr3 = calculate_port_offset(0x001E47A0, 0x4, 3)
                     reg_data3 = driver.read_csr(reg_addr3)
                     LinkStatus3 = get_bit_value(reg_data3,30)       
                     if LinkStatus3:
@@ -5215,7 +5206,7 @@ class cvl:
                 input("link is down in port 3, Press enter to exit")
                 #return(0)
 
-        #reg_addr = _calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
+        #reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         #reg_data = driver.read_csr(reg_addr)
         #LinkStatus = get_bit_value(reg_data,30)
 
