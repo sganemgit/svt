@@ -38,3 +38,14 @@ def get_bit_value(value, bit_number):
     '''
     return (value >> bit_number) & 0x1
 
+def intgerTo4ByteList(I):
+        '''this is a Level 0 function that convert a 4-byte integer to an array of length 4 that contans the 4 bytes
+            argument: I = integer
+            return: list of length 4
+        '''
+        data = [0]*4
+        data[0] = I&0xFF
+        data[1] = (I&0xff00)>>8
+        data[2] = (I&0xff0000)>>16
+        data[3] = (I&0xff000000)>>24
+        return data
