@@ -1,7 +1,7 @@
 from cvl import cvl 
 import sys
 import time
-
+from core.drivers.svdriver.SvDriverCommands import *
 try:
     import readline
 except ImportError:
@@ -10,39 +10,12 @@ else:
     import rlcompleter
     readline.parse_and_bind("tab: complete")
 
+devices = get_detected_devices("cvl")
+print devices
+if devices:
+    for device,info in devices.iteritems():
+        globals()[device] = cvl(info['device_number'],info['port_number'])
 
-
-#TODO: dynammically detect devices and instantiant object accordingly
-
-print("intializing cvl objects")
-
-for i in range(2):
-    globals()["cvl" + str(i)] = cvl(0,i)
-
-
-
-cvl0.DBG_print_cvl_info()
-cvl1.DBG_print_cvl_info()
-
-def MacloopbackWithLP():
-    print "teseting for 1000SGMII"
-    print "FECs are NoFec"
-    reset_list = ["pfr","globr","empr"]
-
-
-    for reset in reset_list:
-        cvl0.SetPhyConfiguration("1G-SGMII","NO_FEC")
-        time.sleep(10)
-        timer = time.time() + 20 #20 seconds timer 
-        while True:
-            macLinkStatus = cvl0.GetMacLinkStatus()
-            print macLinkStatus
-            if time.time() > timer and macLinkStatus == 0:
-                print("link is Down")
-                sys.exit()
-            elif macLinkStatus == 1:
-                print("LINK IS UP")
-                break
 if __name__=="__main__":
     pass
 #    MacloopbackWithLP()

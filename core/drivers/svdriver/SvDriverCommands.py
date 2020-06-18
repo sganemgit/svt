@@ -55,5 +55,19 @@ def get_device_specific_id(project_name,device_number, port_number):
                 if line_component[3] == str(port_number):
                     return line_component[1]
 
+def get_detected_devices(project_name):
+    output = svdt("-s")
+    output = output.decode(encoding = "utf-8")
+    lines = output.split("\n")
+    devices = dict()
+    for line in lines:
+        if project_name in line:
+            line_component = line.split()
+            info = dict()
+            info['device_number'] = line_component[2]
+            info['port_number'] = line_component[3]
+            devices[line_component[0]] = info
+    return devices
+
 if __name__=="__main__":
     print(get_device_specific_id("cvl",0,0))

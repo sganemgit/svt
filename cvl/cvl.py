@@ -5164,7 +5164,7 @@ class cvl:
         status  = driver.send_aq_command(aq_desc)
         return [status,aq_desc.retval]
 
-        def ReadEEPROM(self):
+    def ReadEEPROM(self):
         '''this function reads the eeprom of the cable via I2C
             arguments:None
         '''
