@@ -897,24 +897,12 @@ class cvl:
         time.sleep(3)
         driver.stop_rx()
 
-    def EthGetTrafficStatistics(self):
-        '''This function reads traffic statistic and saves results to list and returns it.
-            argument: None
-            return: list of traffic statistics
-        '''
-        result = []
-        result.append(ut.get_current_date_string())
-        result.append(self.GetPTC1522())
-        result.append(self.GetPRC1522())
-        return result
-
     def GetCurrentThroughput(self, packet_size = 512):
-        '''This function returns current Throughput 
+        '''This function returns current Throughput
             argument: packet size - Default is 512
-            return: Transmit throughput 
-        ''' 
+            return: Transmit throughput
+        '''
         driver = self.driver
-
         samp_time = 3
         start_PTC = GetPTC()['TotalPTC']
         start_time = curr_time = time.time()
@@ -922,15 +910,15 @@ class cvl:
             curr_time = time.time()
         end_PTC = GetPTC()['TotalPTC']
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
-        
+
     def GetRXThroughput(self, packet_size = 512, samp_time = 3):
-        '''This function returns current RX Throughput 
-            input: 
+        '''This function returns current RX Throughput
+            input:
                 packet_size (int) - Default packet size is 512
                 samp_time (int) - Defult sample time is 3 sec
-            return: 
+            return:
                 RX throughput (int)
-        ''' 
+        '''
         driver = self.driver
         start_PRC = self.GetPRC()[ConvertPacketSizeToPRC(packet_size)]
         start_time = curr_time = time.time()
@@ -940,13 +928,13 @@ class cvl:
         return int((end_PRC - start_PRC)*8*packet_size/(curr_time - start_time))
 
     def GetTXThroughput(self, packet_size = 512, samp_time = 3):
-        '''This function returns current TX Throughput 
-            input: 
+        '''This function returns current TX Throughput
+            input:
                 packet_size (int) - Default packet size is 512
                 samp_time (int) - Defult sample time is 3 sec
-            return: 
+            return:
                 TX throughput (int)
-        ''' 
+        '''
         driver = self.driver
         start_PTC = self.GetPTC()[ConvertPacketSizeToPTC(packet_size)]
         start_time = curr_time = time.time()
@@ -954,19 +942,6 @@ class cvl:
             curr_time = time.time()
         end_PTC = self.GetPTC()[ConvertPacketSizeToPTC(packet_size)]
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
-
-    def _GetThroughput(self, start,end,sample_time,packet_size = 512):
-        '''This function returns current Throughput 
-            argument: 
-                start - previus PRC/PTC
-                end - current PRC/PTC
-                sample_time - time of traffic
-                packet size - Default is 512
-            return: None
-        ''' 
-        return int((end - start)*8*packet_size/sample_time)
-
-    ######################################################################################################  
 
     def GetMacLinkStatus(self, Location = "AQ"):
         '''This function returns the link status.
@@ -987,13 +962,10 @@ class cvl:
                argument: None
                return: True/false
         '''
-
         driver = self.driver
-
         reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         LinkStatus = get_bit_value(reg_data,30)
-
         return LinkStatus
 
     def _GetMacLinkStatusAq(self):
@@ -1001,164 +973,120 @@ class cvl:
                 argument: None
                 return: True/false
         '''
-        
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-     
         result = self.GetLinkStatus(gls)
-        
+
         if not result[0]: # if Admin command was successful - False
             data = result[1]
         else:
             raise RuntimeError("Error _GetMacLinkStatusAQ: Admin command was not successful")
-            
+
         status = data['link_sts']
         return status
 
-    def IsMacLinkUp(ttl_timeout,Location = "AQ"):
-        '''This function returns the if Mac Link UP.
-            argument: ttl_timeout
-            return: True if link is up else False
-        '''
-        if Location == "AQ":
-            start_time = curr_time = time.time()
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()
-                LinkStatus = _GetMacLinkStatusAq()
-                if LinkStatus:
-                    return True
-            return False
-        elif Location == "REG":
-            start_time = curr_time = time.time()
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()
-                LinkStatus = _GetMacLinkStatusReg()
-                if LinkStatus:
-                    return True
-            return False    
-        else:
-            raise RuntimeError("Error IsMacLinkUp: Error Location, please insert location REG/AQ")
-
-    def GetMacLinkSpeed(Location = "AQ"):
+    def GetMacLinkSpeed(self, Location = "AQ"):
         '''This function return Mac Link Speed.
             argument: "REG" / "AQ"
             return: 
                 '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G'
         '''
-      
         if Location == "REG":
-            LinkSpeed = _GetMacLinkSpeedReg()
+            LinkSpeed = self._GetMacLinkSpeedReg()
         elif Location == "AQ":
-            LinkSpeed = _GetMacLinkSpeedAq()
+            LinkSpeed = self._GetMacLinkSpeedAq()
         else:
             raise RuntimeError("Error GetMacLinkSpeed: Error Location, please insert location REG/AQ")  
-     
         return LinkSpeed
-     
-    def _GetMacLinkSpeedReg():
+
+    def _GetMacLinkSpeedReg(self):
         '''This function returns the link speed (13.2.2.4.78).
            PRTMAC_LINKSTA 0x001E47A0
                argument: none
                return: link speed in str, for exmp: "40G"
         '''
         driver = self.driver
-     
         reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
-        LinkSpeed = get_bits_slice_value(reg_data,26,29)   
-     
+        LinkSpeed = get_bits_slice_value(reg_data,26,29)
         return Mac_link_speed_dict[LinkSpeed]
-     
-    def _GetMacLinkSpeedAq():
+
+    def _GetMacLinkSpeedAq(self):
         '''This function return Mac Link Speed using Get link status AQ.
             return:
                 '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G' 
         '''
-        
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-     
-        result = GetLinkStatus(gls)
-        
+        result = self.GetLinkStatus(gls)
+
         if not result[0]: # if Admin command was successful - False
             data = result[1]
         else:
             raise RuntimeError("Error _GetMacLinkSpeedAq: Admin command was not successful")
-        
+
         if Get_Speed_Status_dict:
             if data['link_speed_10m']:
                 return Get_Speed_Status_dict[0]
-                
             elif data['link_speed_100m']:
                 return Get_Speed_Status_dict[1]
-                
             elif data['link_speed_1000m']:
                 return Get_Speed_Status_dict[2]
-                
             elif data['link_speed_2p5g']:
                 return Get_Speed_Status_dict[3]
-                
             elif data['link_speed_5g']:
                 return Get_Speed_Status_dict[4]
-                
             elif data['link_speed_10g']:
                 return Get_Speed_Status_dict[5]
-                
             elif data['link_speed_20g']:
                 return Get_Speed_Status_dict[6]
-                
             elif data['link_speed_25g']:
                 return Get_Speed_Status_dict[7]
-                
             elif data['link_speed_40g']:
                 return Get_Speed_Status_dict[8]
-                
             elif data['link_speed_50g']:
                 return Get_Speed_Status_dict[9]
-                
             elif data['link_speed_100g']:
                 return Get_Speed_Status_dict[10]
-                
             elif data['link_speed_200g']:
                 return Get_Speed_Status_dict[11]
         else:
             raise RuntimeError("Error _GetMacLinkSpeedAq_D: Get_Speed_Status_dict is not defined")
 
-    def RestartAn(Location = "AQ"): 
+    def RestartAn(self, Location = "AQ"):
         '''This function performs restart autoneg
             argument: "REG" / "AQ"
             return: None
         '''
         if Location == "REG":
-            _RestartAnReg()
+            self._RestartAnReg()
         elif Location == "AQ":
-            _RestartAnAq()
+            self._RestartAnAq()
         else:
-            raise RuntimeError("Error RestartAn: Error Location, please insert location REG/AQ")    
-     
-    def _RestartAnReg():
+            raise RuntimeError("Error RestartAn: Error Location, please insert location REG/AQ")
+
+    def _RestartAnReg(self):
         '''This function performs restart autoneg
             This function is for debug only because Restart AN by REG is not implimented
         '''
-        raise RuntimeError("Restart AN by REG is not implimented")          
-     
-    def _RestartAnAq():
+        raise RuntimeError("Restart AN by REG is not implimented")
+
+    def _RestartAnAq(self):
         '''This function performs restart autoneg by AQ
         '''
         args = {}
         args['port'] = 0 #not relevant for CVL according to CVL Spec
         args['restart'] = 1 #to restart the link
         args['enable'] = 1 #to enable the link
-        
         status = SetupLink(args)
-        
-        if status[0]: 
+
+        if status[0]:
             error_msg = 'Error _RestartAnAq: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def Reset(reset_type = 'pfr'):
+    def Reset(self, reset_type = 'pfr'):
         '''This function performs resets
             argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
             return: None
@@ -1166,7 +1094,7 @@ class cvl:
         driver = self.driver
         if reset_type ==  "globr":
             driver.device_reset("GLOBAL")
-        elif reset_type ==  "pfr" : 
+        elif reset_type ==  "pfr" :
             driver.device_reset("PF")
         elif reset_type == "corer" :
             driver.device_reset("CORE")
@@ -1188,7 +1116,7 @@ class cvl:
     def Reset2(Reset, Location = "REG"):
         '''This function performs reset to CVL
             argument:
-                Location = "REG" / "AQ" 
+                Location = "REG" / "AQ"
                 Reset = 0 - for core reset
                         1 - for global reset
                         2 - for EMP reset
@@ -1199,7 +1127,7 @@ class cvl:
             _ResetAq(Reset)
         else:
             raise RuntimeError("Err Reset: Error Location, please insert location REG/AQ")
-     
+
     def _ResetReg(Reset):
         ''' RESET GLGEN_RTRIG (0x000B8190)
             argument:
@@ -1212,8 +1140,8 @@ class cvl:
         reg_value = driver.read_csr(reg_addr)   
         reg_value = reg_value | (1 << Reset)
         driver.write_csr(reg_addr, reg_value)
-     
-    def _ResetAq():
+
+    def _ResetAq(self):
         '''This function performs reset to CVL by admin command. 
             for debug only because reset by AQ is not implimented.
         '''
@@ -1221,17 +1149,15 @@ class cvl:
 
     def GetPhyType(self, Location = "AQ"):
         '''This function return Phy type
-            input: Location = "AQ" 
+            input: Location = "AQ"
             return: phy type (str)
         '''
         if Location == "REG":
             Phy_Type = self._GetPhyTypeReg()
         elif Location == "AQ":
             Phy_Type = self._GetPhyTypeAq()
-     
         else:
             raise RuntimeError("Error GetPhyType: Error Location, please insert location REG/AQ")
-            
         return Phy_Type
 
     def _GetPhyTypeReg(self):
@@ -1239,40 +1165,33 @@ class cvl:
             for debug only because GetPhyType by REG is not implimented.
         '''
         raise RuntimeError("Get Phy type by Reg is not implemented")
-     
+
     def _GetPhyTypeAq(self):
         '''This function return Phy type using Get link status AQ.
             return: Phy type in str
         '''
-        
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-     
         result = self.GetLinkStatus(gls)
-        
         if not result[0]: # if Admin command was successful - False
             data = result[1]
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
-                
         phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0']
-     
         if Get_Phy_Type_Status_dict:
             for i in range(len(Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
                         break
-     
             return Get_Phy_Type_Status_dict[i]
-            
+
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
 
     def GetCurrentFECStatus(self, Location = "AQ"):
         '''This function return the current FEC status
             argument:
-                Location = "REG" / "AQ" 
-     
+                Location = "REG" / "AQ"
         '''
         if Location == "REG":
             self._GetCurrentFECStatusReg()
@@ -1280,7 +1199,6 @@ class cvl:
             FEC_Type = self._GetCurrentFECStatusAq()
         else:
             raise RuntimeError("Err GetCurrentFECStatus: Error Location, please insert location REG/AQ")
-     
         return FEC_Type
 
     def _GetCurrentFECStatusReg(self):
@@ -1289,42 +1207,38 @@ class cvl:
             return: None
         '''
         raise RuntimeError("Get current FEC status by Reg is not implimented")
-     
+
     def _GetCurrentFECStatusAq(self):
         '''This function returns the FEC status using Get link status AQ.
             return: FEC type by str
         '''
-        
         link_speed = self.GetPhyLinkSpeed()
 
         if self.GetPhyType() == 'N/A':
             return 'N/A'
-
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-     
         result = self.GetLinkStatus(gls)
 
         if not result[0]: # if Admin command was successful - False
             data = result[1]
-            
         else:
             raise RuntimeError("Error _GetCurrentFECStatusAq: Admin command was not successful")
-        
+
+        FEC_list = ['10G_KR_FEC','25G_KR_FEC','25G_RS_528_FEC','25G_RS_544_FEC']
         if link_speed == '10G':
             if data['10g_kr_fec']:
-                return get_FEC_Status_dict[0]
+                return FEC_list[0]
             else:
                 return 'NO_FEC'
-            
-        else:   
+        else:
             if data['25g_kr_fec']:
-                return get_FEC_Status_dict[1]
+                return FEC_list[1]
             elif data['25g_rs_528']:
-                return get_FEC_Status_dict[2]
+                return FEC_list[2]
             elif data['rs_544']:
-                return get_FEC_Status_dict[3]
+                return FEC_list[3]
             else:
                 return 'NO_FEC'
 
@@ -1332,7 +1246,7 @@ class cvl:
         '''This function return list of phy types
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ" 
+                Location = "REG" / "AQ"
         '''
         if Location == "REG":
             self._GetPhyTypeAbilitiesReg()
@@ -1340,7 +1254,6 @@ class cvl:
             phy_type_list = self._GetPhyTypeAbilitiesAq(rep_mode)
         else:
             raise RuntimeError("Err GetPhyTypeAbilities: Error Location, please insert location REG/AQ")
-        
         return phy_type_list
 
     def _GetPhyTypeAbilitiesReg(self):
@@ -1348,7 +1261,7 @@ class cvl:
             for debug only because reset by AQ is not implimented.
         '''
         raise RuntimeError("Get Phy Type Abilities by Reg is not implimented")      
-        
+
     def _GetPhyTypeAbilitiesAq(self, rep_mode):
         ''' Description: Get various PHY type abilities supported on the port.
             input:
