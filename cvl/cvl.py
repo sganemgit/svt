@@ -146,7 +146,7 @@ class cvl:
 
         PTC_Dict['GetPTC64']   = _GetPTC64
         PTC_Dict['GetPTC127']  = _GetPTC127
-        PTC_Dict['GetPTC255']  = _GetPTC255
+
         PTC_Dict['GetPTC511']  = _GetPTC511
         PTC_Dict['GetPTC1023'] = _GetPTC1023
         PTC_Dict['GetPTC1522'] = _GetPTC1522
@@ -1500,25 +1500,25 @@ class cvl:
         
         return link_status
 
-    def DisableFECRequests(rep_mode = 1, Location = "AQ"):
+    def DisableFECRequests(self, rep_mode = 1, Location = "AQ"):
         '''This function diables all feq requests by the device while keeping all other abillities intact 
             argument:
                 Location = "REG" / "AQ" 
         '''
         if Location == "REG":
-            _DisableFECRequestsReg() 
+            self._DisableFECRequestsReg() 
         elif Location == "AQ":
-            _DisableFECRequestsAq(rep_mode) 
+            self._DisableFECRequestsAq(rep_mode) 
         else:
             raise RuntimeError("Err DisableFECRequests: Error Location, please insert location REG/AQ") 
 
-    def _DisableFECRequestsReg():
+    def _DisableFECRequestsReg(self):
         '''This function diables all feq requests by the device while keeping all other abillities intact 
             for debug only because DisableFECRequests by REG is not implimented.
         '''
         raise RuntimeError("Disable fec requests by Reg is not implimented")
 
-    def _DisableFECRequestsAq(rep_mode):
+    def _DisableFECRequestsAq(self, rep_mode):
         '''this function diables all feq requests by the device while keeping all other abillities intact 
             arguments: none
             return: none 
@@ -1526,7 +1526,7 @@ class cvl:
         '''
         config = {}
         phy_type = 0
-        data = GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
 
         if data[0]:
             error_msg = 'Error DisableFECRequests: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -1559,14 +1559,14 @@ class cvl:
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
 
         status = ()
-        status =  SetPhyConfig(config)
+        status =  self.SetPhyConfig(config)
         print status
         
         if status[0]:
             error_msg = 'Error DisableFECRequests: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
 
-    def DisableLESM(rep_mode = 1):
+    def DisableLESM(self, rep_mode = 1):
         '''this function diable LESM while keeping all other abillities intact 
             arguments: rep_mode
             return: none 
@@ -1597,7 +1597,6 @@ class cvl:
         config['eee_cap_en'] = abilities['eee_cap']
         config['eeer'] = abilities['eeer']
         config['auto_fec_en'] = 1
-        
         config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
         config['fec_firecode_10g_req'] = abilities['fec_firecode_10g_req']
         config['fec_rs528_req'] = abilities['fec_rs528_req']
@@ -1608,6 +1607,48 @@ class cvl:
 
         status = ()
         status =  SetPhyConfig(config)
+        print status
+
+        if status[0]:
+            error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
+            raise RuntimeError(error_msg)
+
+    def DisableAN37(self, rep_mode = 0):
+        config = {}
+        phy_type = 0
+        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode})
+
+        if data[0]:
+            error_msg = 'Error DisableAN37: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
+            raise RuntimeError(error_msg)
+
+        abilities = data[1]
+        config['phy_type_0'] = abilities['phy_type_0']
+        config['phy_type_1'] = abilities['phy_type_1']
+        config['phy_type_2'] = abilities['phy_type_2']
+        config['phy_type_3'] = abilities['phy_type_3']
+
+        config['port'] = 0 #not relevant for CVL according to CVL Spec
+        config['tx_pause_req'] = abilities['pause_abil']
+        config['rx_pause_req'] = abilities['asy_dir_abil']
+        config['low_pwr_abil'] = abilities['low_pwr_abil']
+        config['en_link'] = 1
+        config['en_auto_update'] = 1
+        config['lesm_en'] = abilities['lesm_en']
+        config['low_pwr_ctrl'] = abilities['low_pwr_ctrl']
+        config['eee_cap_en'] = abilities['eee_cap']
+        config['eeer'] = abilities['eeer']
+        config['auto_fec_en'] = 1
+        config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+        config['fec_firecode_10g_req'] = abilities['fec_firecode_10g_req']
+        config['fec_rs528_req'] = abilities['fec_rs528_req']
+        config['fec_firecode_25g_req'] = abilities['fec_firecode_25g_req']
+        config['fec_rs544_req'] = abilities['fec_rs544_req']
+        config['fec_rs528_abil'] = abilities['fec_rs528_abil']
+        config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+        config['an_mode'] = 0
+        status = ()
+        status =  self.SetPhyConfig(config)
         print status
         
         if status[0]:
@@ -1946,7 +1987,7 @@ class cvl:
             raise RuntimeError(error_msg)
         #print config
         status = ()
-        status =  SetPhyConfig(config)
+        status =  self.SetPhyConfig(config)
         
         if status[0]:
             error_msg = 'Error _SetFecSetting: Admin command was not successful, retval {}'.format(status[1])
@@ -3979,7 +4020,7 @@ class cvl:
             buffer.append(temp_inp & 0xFF)
             temp_inp = temp_inp >> 8
         #Add misc to buffer
-        byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | (config['rx_pause_req'] << 1) | config['tx_pause_req']
+        byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (config.get('an_mode', 0) << 4) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | (config['rx_pause_req'] << 1) | config['tx_pause_req']
         buffer.append(byte_16)
         #Add low_pwr_ctrl to buffer, as of HAS 1.3, Enable = set bit 1 to 1, Disable = Set bit 0 to 1
         if config['low_pwr_ctrl']:
