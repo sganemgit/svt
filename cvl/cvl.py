@@ -998,7 +998,7 @@ class cvl:
             return: None
         '''
         driver = self.driver
-        driver.start_rx(self, packet_size = packet_size)
+        driver.start_rx(packet_size = packet_size)
 
     def EthStartTx(self, packet_size = 512):
         '''This function starts Tx and Rx.
