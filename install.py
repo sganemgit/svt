@@ -11,4 +11,5 @@ with open(bashrc_path ,'a+') as bashrc:
             found = True
     if not found:
          bashrc.write("\nexport PYTHONPATH=$PYTHONPATH:{}".format(cwd))
-         os.system("export PYTHONPATH=$PYTHONPATH:{}".format(cwd))
+         print("need to open a new terimnal for the changes to take place")
+
