@@ -1637,6 +1637,52 @@ class cvl:
         
         return link_status
 
+    def DisableLldp(self,shutdown = 0 , persistent = 0, debug = 0):
+        driver = self.driver
+        aq_desc = AqDescriptor()
+        data_len = 0x0
+        aq_desc.opcode = 0x0a05 
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (persistent << 1 | shutdown) 
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print 'Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+
+    def EnableLldp(self,persistent = 0, debug = 0):
+        driver = self.driver
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor()
+       # helper._debug('SetPhyDebug Admin Command')
+        data_len = 0x0
+        aq_desc.opcode = 0x0a06 
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (persistent << 1 | 1) 
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print 'Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+
     def DisableFECRequests(self, rep_mode = 1, Location = "AQ"):
         '''This function diables all feq requests by the device while keeping all other abillities intact 
             argument:
