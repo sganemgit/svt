@@ -1,28 +1,14 @@
 import sys
-from core.drivers.DriverFactory import DriverFactory
-from core.structs.DeviceInfo import DeviceInfo
-from core.drivers.svdriver.SvDriverCommands import *
 from Defines import *
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
 from temp import *
 import time
 
-class cvl:
+from cvlBase import cvlBase
+class cvl(cvlBase):
     'This class contains all the methods to interface with a cvl pf'
-    def __init__(self, device_number, port_number):
-        self.project_name = "cvl"
-        self.driver_type = "sv"
-        self.device_number = device_number
-        self.port_number = port_number
-        if not check_device_availability(self.project_name, device_number, port_number):
-            print("cvl device {} port {} could not be found".format(device_number,port_number))
-            sys.exit()
-        else:
-            self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number)
-            if self.driver is None:
-                raise RuntimeError("driver not intialized")
-
+    
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:
