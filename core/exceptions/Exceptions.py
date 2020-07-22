@@ -1,0 +1,3 @@
+class SvDriverError(Exception):
+    pass
+
