@@ -15,6 +15,9 @@ class DriverFactory():
         if driver_type == 'sv':
             from core.drivers.svdriver import SvDriver
             return SvDriver(device_info)  
+        else if driver_type == "svcp":
+            from core.drivers.svcpdriver import SvCpDriver
+            return SvCpDriver SvCpDriver(device_info)
 
         error = "Failed to create driver of type {}, Unsupported dirver type".format(deriver_type)
         raise RuntimeError(error)
