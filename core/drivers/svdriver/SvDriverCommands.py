@@ -1,6 +1,10 @@
 import subprocess
 
 
+def port_discovery():
+    output = subprocess.check_output(["port_discovery"])
+    return output
+
 def svdt(flag):
     if flag == "-s":
         output = subprocess.check_output(["svdt","-s"])
@@ -44,6 +48,7 @@ def get_device_bdf_by_name(project_name, device_number, port_number):
             if line_component[2] == str(device_number):
                 if line_component[3] == str(port_number):
                     return line_component[4]
+
 def get_device_specific_id(project_name,device_number, port_number):
     output = svdt("-s")
     output = output.decode(encoding = "utf-8")
@@ -69,5 +74,20 @@ def get_detected_devices(project_name):
             devices[line_component[0]] = info
     return devices
 
+def detect_connected_devices():
+    output = port_discovery()
+    output = output.decode(encoding = "utf-8")
+    lines = output.split("\n")
+    pairs = list()
+    for line in lines:
+        if "connected" in line:
+            line_components = line.split()
+            pair = dict()
+            pair["first"] = line_components[0]
+            pair["second"] = line_components[-1]
+            pairs.append(pair)
+    return pairs
+
+
 if __name__=="__main__":
-    print(get_device_specific_id("cvl",0,0))
+    print(detect_connected_devices())
