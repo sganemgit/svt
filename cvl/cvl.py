@@ -12,19 +12,71 @@ class cvl(cvlBase):
                 '10GBase-LR': ['NO_FEC'],
                 '10GBase-KR': ['10G_KR_FEC','NO_FEC'],
                 '10G-SFI-AOC-ACC': ['NO_FEC'],
-                '25GBase-CR': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC']}
+                '25GBase-CR': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '25GBase-CR-S': ['25G_KR_FEC','NO_FEC'],
+                '25GBase-CR1': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '25GBase-SR': ['25G_RS_528','NO_FEC']'
+                '25GBase-LR': ['25G_RS_528','NO_FEC'],
+                '25GBase-KR': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '25GBase-KR-S': ['25G_KR_FEC','NO_FEC'],
+                '25GBase-KR1': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '25G-AUI-C2C': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '25G-AUI-AOC-ACC': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '40GBase-CR4': ['10G_KR_FEC','NO_FEC'],
+                '40GBase-SR4': ['NO_FEC'],
+                '40GBase-LR4': ['NO_FEC'],
+                '40GBase-KR4': ['10G_KR_FEC','NO_FEC'],
+                '40G-XLAUI': ['NO_FEC'],
+                '40G-XLAUI-AOC-ACC': ['NO_FEC'],
+                '50GBase-CR2': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                '50GBase-KR2': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
+                #this protocl supports also RS 272 FEC
+                '50GBase-CP': ['25G_RS_544_FEC'],
+                '50GBase-SR': ['25G_RS_544_FEC'],
+                '50GBase-FR': ['25G_RS_544_FEC'],
+                '50GBase-LR': ['25G_RS_544_FEC'],
+                '50GBase-KP': ['25G_RS_544_FEC'],
+                '50G-AUI1': ['25G_RS_544_FEC'],
+                '50G-AUI1-AOC-ACC': ['25G_RS_544_FEC'],
+                '100GBase-CR4': ['25G_RS_528_FEC'],
+                '100GBase-SR4': ['25G_RS_528_FEC'],
+                '100GBase-KR4': ['25G_RS_528_FEC'],
+                '100GBase-LR4': ['NO_FEC'],
+                '100G-CAUI4-AOC-ACC': ['25G_RS_544_FEC','NO_FEC'],
+                '100G-CAUI4': ['25G_RS_544_FEC','NO_FEC'],
+                '100GBase-CP2': ['25G_RS_544_FEC'],
+                '100GBase-SR2': ['25G_RS_544_FEC']}
 
+    force_phy_types_list = ['10GBase-SR',
+                            '10GBase-LR',
+                            '10G-SFI-AOC-ACC',
+                            '10G-SFI-C2C',
+                            '10G-SFI-DA',
+                            '25G-AUI-AOC-ACC',
+                            '25G-AUI-C2C',
+                            '25GBase-SR',
+                            '25GBase-LR',
+                            '50G-AUI2',
+                            '50G-AUI2-AOC-ACC',
+                            '50G-LAUI2',
+                            '50G-LAUI2-AOC-ACC',
+                            '50GBase-SR',
+                            '50GBase-LR',
+                            '50GBase-FR',
+                            '50G-AUI1',
+                            '50G-AUI1-AOC-ACC',
+                            '50GBase-CP',
+                            '100GBase-CP2',
+                            '100GBase-LR4',
+                            '100GBase-SR4',
+                            '100G-AUI4',
+                            '100G-AUI4-AOC-ACC',
+                            '100G-CAUI4',
+                            '100G-CAUI4-AOC-ACC',
+                            '100GBase-SR2',
+                            '100G-AUI2',
+                            '100G-AUI2-AOC-ACC']
 
-
-
-
-
-
-
-
-
-
-    force_phy_types_list = ['10GBase-SR','10GBase-LR','10G-SFI-AOC-ACC','10G-SFI-C2C', '10G-SFI-DA', '25G-AUI-AOC-ACC', '25G-AUI-C2C','25GBase-SR','25GBase-LR','50G-AUI2','50G-AUI2-AOC-ACC','50G-LAUI2','50G-LAUI2-AOC-ACC','50GBase-SR','50GBase-LR','50GBase-FR','50G-AUI1','50G-AUI1-AOC-ACC','50GBase-CP','100GBase-CP2','100GBase-LR4','100GBase-SR4','100G-AUI4','100G-AUI4-AOC-ACC','100G-CAUI4','100G-CAUI4-AOC-ACC','100GBase-SR2','100G-AUI2','100G-AUI2-AOC-ACC']
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:
