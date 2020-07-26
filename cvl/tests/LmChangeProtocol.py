@@ -1,8 +1,10 @@
 from core.drivers.svdriver.SvDriverCommands import *
+from core.utilities.colors import colors
 from cvl.cvl import cvl
 import time
 
 def run_traffic(dut, lp, traffic_time):
+    print
     print "running traffic for {} seconds".format(traffic_time)
     dut.EthStartRx()
     lp.EthStartTx()
@@ -13,6 +15,7 @@ def run_traffic(dut, lp, traffic_time):
     lp.EthStopTx()
     dut.EthStopRx()
     lp.EthStopRx()
+    print
 
 def poll_for_link(dut, lp, timeout):
     end_time = time.time() + timeout
@@ -68,16 +71,19 @@ def run():
             print protocol
         print
         for protocol in common_protocol_list:
-            print "attemting to set protocol {}".format(protocol)
+            print '------------------------------------------------------------'
+            print "                      {}".format(colors.Green(protocol))
             if protocol in cvl.fec_dict:
                 for fec in cvl.fec_dict[protocol]:
+                    print "{}:".format(colors.Orange(fec))
                     if protocol in cvl.force_phy_types_list:
-                        print "setting dut to {} with fec {}".format(protocol, fec)
+                        print "{} does no support AN".format(colors.Green(protocol))
+                        print "setting dut to {} with fec {}".format(colors.Green(protocol), colors.Orange(fec))
                         dut.SetPhyConfiguration(protocol,fec)
-                        print "setting lp to {} with fec {}".format(protocol, fec)
+                        print "setting lp to {} with fec {}".format(colors.Green(protocol), colors.Orange(fec))
                         lp.SetPhyConfiguration(protocol,fec)
                     else:
-                        print "setting dut to {} with fec {}".format(protocol, fec)
+                        print "setting dut to {} with fec {}".format(colors.Green(protocol), colors.Orange(fec))
                         dut.SetPhyConfiguration(protocol,fec)
                     time.sleep(3)
                     if poll_for_link(dut,lp,15):
@@ -87,9 +93,6 @@ def run():
             reset_both_sides(dut,lp,'globr')
             print '------------------------------------------------------------'
             print
-
-
-
 
 
 if __name__=="__main__":
