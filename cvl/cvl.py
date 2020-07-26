@@ -8,7 +8,23 @@ import time
 from cvlBase import cvlBase
 class cvl(cvlBase):
     'This class contains all the methods to interface with a cvl pf'
-    
+    fec_dict = {'10GBase-SR': ['NO_FEC'],
+                '10GBase-LR': ['NO_FEC'],
+                '10GBase-KR': ['10G_KR_FEC','NO_FEC'],
+                '10G-SFI-AOC-ACC': ['NO_FEC'],
+                '25GBase-CR': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC']}
+
+
+
+
+
+
+
+
+
+
+
+    force_phy_types_list = ['10GBase-SR','10GBase-LR','10G-SFI-AOC-ACC','10G-SFI-C2C', '10G-SFI-DA', '25G-AUI-AOC-ACC', '25G-AUI-C2C','25GBase-SR','25GBase-LR','50G-AUI2','50G-AUI2-AOC-ACC','50G-LAUI2','50G-LAUI2-AOC-ACC','50GBase-SR','50GBase-LR','50GBase-FR','50G-AUI1','50G-AUI1-AOC-ACC','50GBase-CP','100GBase-CP2','100GBase-LR4','100GBase-SR4','100G-AUI4','100G-AUI4-AOC-ACC','100G-CAUI4','100G-CAUI4-AOC-ACC','100GBase-SR2','100G-AUI2','100G-AUI2-AOC-ACC']
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:
