@@ -15,7 +15,7 @@ class cvl(cvlBase):
                 '25GBase-CR': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
                 '25GBase-CR-S': ['25G_KR_FEC','NO_FEC'],
                 '25GBase-CR1': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
-                '25GBase-SR': ['25G_RS_528','NO_FEC']'
+                '25GBase-SR': ['25G_RS_528','NO_FEC'],
                 '25GBase-LR': ['25G_RS_528','NO_FEC'],
                 '25GBase-KR': ['25G_RS_528_FEC','25G_KR_FEC','NO_FEC'],
                 '25GBase-KR-S': ['25G_KR_FEC','NO_FEC'],
@@ -93,15 +93,6 @@ class cvl(cvlBase):
         print "CVL port ",port
         print "CVL device",device_number
         print "######################################"
-        if advance:
-            phy_info_list = DnlGetPhyInfo()
-            keylist = phy_info_list.keys()
-            keylist.sort()
-            for key in keylist:
-                print key,": " + phy_info_list[key] + " || ",
-            print
-
-
         link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
         print
@@ -120,103 +111,6 @@ class cvl(cvlBase):
 
         print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
         print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
-
-        if advance:
-            #link_up_flag = 0# for debug
-
-            PRT_STATE_MACHINE = ReadDnlPstore(0x26)
-            PRT_STATE_MACHINE = int(PRT_STATE_MACHINE.replace('L',''),16)
-            PRT_AN_ENABLED = get_bit_value(PRT_STATE_MACHINE,8)
-            if (PRT_AN_ENABLED and link_up_flag):# check if AN link enabled and the link is up
-
-                PRT_AN_HCD_OUTPUT = ReadDnlPstore(0x21)
-                PRT_AN_LOCAL_BP = ReadDnlPstore(0x25)
-                PRT_AN_LOCAL_NP = ReadDnlPstore(0x24)
-                PRT_AN_LP_BP = ReadDnlPstore(0x23)
-                PRT_AN_LP_NP = ReadDnlPstore(0x22)
-
-                PRT_AN_HCD_OUTPUT =  int(PRT_AN_HCD_OUTPUT.replace('L',''),16)
-                PRT_AN_LP_NP =  int(PRT_AN_LP_NP.replace('L',''),16)
-                PRT_AN_LP_BP =  int(PRT_AN_LP_BP.replace('L',''),16)
-                PRT_AN_LOCAL_NP =  int(PRT_AN_LOCAL_NP.replace('L',''),16)
-                PRT_AN_LOCAL_BP =  int(PRT_AN_LOCAL_BP.replace('L',''),16)
-
-
-
-                print
-                print "###########################################  " + "   ##########################################"
-                print "---------------  DUT  --------------------   " + "   -------------  LP  -----------------------"
-                print "###########################################  " + "   ##########################################"
-                print
-
-                print '##########    HCD Output    ##########'
-                FEC_select = FEC_select_dict[get_bits_slice_value(PRT_AN_HCD_OUTPUT,15,17)]
-                for i in range(24):
-                    if (PRT_AN_HCD_OUTPUT & 1) == 1:
-                        if not "FEC Select" in PRT_AN_HCD_OUTPUT_dict[i]:
-                            print PRT_AN_HCD_OUTPUT_dict[i]
-                    PRT_AN_HCD_OUTPUT = PRT_AN_HCD_OUTPUT >> 1
-                print 'FEC select: ',FEC_select
-                print "Phy Type: ", Get_Phy_Type_Status_dict[PRT_AN_HCD_OUTPUT]
-                print
-
-
-                # '##########  LOCAL Base Page  ##########'
-                PRT_AN_LOCAL_BP_list = []
-                PRT_AN_LOCAL_BP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LOCAL_BP_list,PRT_AN_LOCAL_BP,PRT_AN_LOCAL_BP_dict)
-
-                # '##########   LP Base Page   ##########'
-                PRT_AN_LP_BP_list = []
-                PRT_AN_LP_BP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LP_BP_list,PRT_AN_LP_BP,PRT_AN_LP_BP_dict)
-
-                #print "PRT_AN_LOCAL_BP_list ",PRT_AN_LOCAL_BP_list
-                #print "PRT_AN_LP_BP_list ",PRT_AN_LP_BP_list
-                # for print the lists in zip mode the list should to be equal
-                AN_LOCAL_BP_list_len = len(PRT_AN_LOCAL_BP_list)
-                AN_LP_BP_list_len =  len(PRT_AN_LP_BP_list)
-                if AN_LOCAL_BP_list_len > AN_LP_BP_list_len:
-                    num = AN_LOCAL_BP_list_len - AN_LP_BP_list_len
-                    for i in range(num):
-                        PRT_AN_LP_BP_list.append("")
-                elif AN_LP_BP_list_len > AN_LOCAL_BP_list_len:
-                    num = AN_LP_BP_list_len - AN_LOCAL_BP_list_len
-                    for i in range(num):
-                        PRT_AN_LOCAL_BP_list.append("")
-
-
-                print "###########   LOCAL Base Page  ############  " + "   ###########    LP Base Page    ############"
-                for DUT,LP in zip(PRT_AN_LOCAL_BP_list,PRT_AN_LP_BP_list):
-                    print ('{0:<47} {1:<40}').format(DUT,LP)
-                print
-
-
-                # '##########   LOCAL NP   ##########'
-                PRT_AN_LOCAL_NP_list = []
-                PRT_AN_LOCAL_NP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LOCAL_NP_list,PRT_AN_LOCAL_NP,PRT_AN_LOCAL_NP_dict)
-
-                # '##########     AN LP NP     ##########'
-                PRT_AN_LP_NP_list = []
-                PRT_AN_LP_NP_list = _ReturnAbilitiesListForDebugPrint(PRT_AN_LP_NP_list,PRT_AN_LP_NP,PRT_AN_LP_NP_dict)
-
-
-                # for print the lists in zip mode the list should to be equal
-                AN_LOCAL_NP_list_len = len(PRT_AN_LOCAL_NP_list)
-                AN_LP_NP_list_len =  len(PRT_AN_LP_NP_list)
-                if AN_LOCAL_NP_list_len > AN_LP_NP_list_len:
-                    num = AN_LOCAL_NP_list_len - AN_LP_NP_list_len
-                    for i in range(num):
-                        PRT_AN_LP_NP_list.append("")
-                elif AN_LP_NP_list_len > AN_LOCAL_NP_list_len:
-                    num = AN_LP_NP_list_len - AN_LOCAL_NP_list_len
-                    for i in range(num):
-                        PRT_AN_LOCAL_NP_list.append("")
-                print "###########   LOCAL Next Page  ############  " + "   ###########    LP Next Page    ############"
-                for DUT,LP in zip(PRT_AN_LOCAL_NP_list,PRT_AN_LP_NP_list):
-                    print ('{0:<47} {1:<40}').format(DUT,LP) 
-                print
-
-                if link_up_flag:
-                    pass
 
 ###############################################################################
 #                        Register reading section                             #
@@ -1176,6 +1070,26 @@ class cvl(cvlBase):
 
         status = data['link_sts']
         return status
+
+    def GetLinkStatusFields(self):
+        gls = dict()
+        gls['port'] = 0 
+        gls['cmd_flag'] = 1
+        result = self.GetLinkStatus(gls)
+        if not result[0]:
+            data = result[1]
+        else:
+            raise RuntimeError("Error {}: Admin command was not successful".format(GetLinkStatusFields.__name__))
+        print
+        print data
+        print
+
+        print "link status {}".format(data['link_sts'])
+        print "media available {}".format(data['media_avail'])
+
+        print "PHY Type list  {}" .format(data['phy_type_list'])
+        print
+
 
     def GetMacLinkSpeed(self, Location = "AQ"):
         '''This function return Mac Link Speed.
@@ -3657,7 +3571,7 @@ class cvl(cvlBase):
 
 
 
-    def GetBERMacStatistics():
+    def GetBERMacStatistics(self):
         '''This function return dictinary with mac link statistics for BER test.
             argument: None
             return: 
@@ -3670,18 +3584,18 @@ class cvl(cvlBase):
 
         MacStatistics = {}
         
-        MacStatistics['TotalPacketRecieve'] = GetPRC()['TotalPRC']
-        MacStatistics['TotalPacketTransmite'] = GetPTC()['TotalPTC']
+        MacStatistics['TotalPacketRecieve'] = self.GetPRC()['TotalPRC']
+        MacStatistics['TotalPacketTransmite'] = self.GetPTC()['TotalPTC']
         
         #return Mac link status
-        MacStatistics['Mac_link_status'] = GetMacLinkStatus()
+        MacStatistics['Mac_link_status'] = self.GetMacLinkStatus()
         
         #return link speed
-        MacStatistics['Mac_link_speed'] = GetMacLinkSpeed()
+        MacStatistics['Mac_link_speed'] = self.GetMacLinkSpeed()
 
         return MacStatistics
 
-    def GetMacStatistics(Advance_mac_statistics,Location = "AQ",GlobReset = 0):
+    def GetMacStatistics(self, Location = "AQ",GlobReset = 0):
         '''This function return dictinary with mac link statistics
             argument:
                 Advance_mac_statistics - Flag for more statistic
@@ -3694,7 +3608,7 @@ class cvl(cvlBase):
         Mac_link_statistic_dict = {}
         
         #return Mac link status
-        Mac_link_statistic_dict['Mac_link_status'] = GetMacLinkStatus(Location)
+        Mac_link_statistic_dict['Mac_link_status'] = self.GetMacLinkStatus(Location)
         
         #return  Mac link speed
         Mac_link_statistic_dict['Mac_link_speed'] = GetMacLinkSpeed(Location)

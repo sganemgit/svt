@@ -16,6 +16,10 @@ def run_traffic(dut, lp, traffic_time):
     dut.EthStopRx()
     lp.EthStopRx()
     print
+    check_traffic(dut, lp)
+
+def check_traffic(dut, lp):
+    pass
 
 def poll_for_link(dut, lp, timeout):
     end_time = time.time() + timeout
@@ -43,9 +47,46 @@ def reset_both_sides(dut,lp,reset):
     print "performing {} reset on dut".format(reset)
     dut.Reset(reset)
 
+def configure_link(dut,lp,PhyType,FecType):
+    link_configuratio_status_flag = True
+    if PhyType in cvl.force_phy_types_list:
+        print colors.Red("{} does not support AN".format(colors.Green(PhyType)))
+        print "setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType))
+        dut.SetPhyConfiguration(PhyType,FecType)
+        print "setting lp to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType))
+        lp.SetPhyConfiguration(PhyType,FecType)
+    else:
+        print "setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType))
+        dut.SetPhyConfiguration(PhyType,FecType)
+    time.sleep(3)
+
+    current_dut_phy_type = dut.GetPhyType()
+    current_lp_phy_type = lp.GetPhyType()
+
+    if current_dut_phy_type != PhyType:
+        print colors.Red("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType))
+        link_configuratio_status_flag = False
+    if current_lp_phy_type != PhyType:
+        print colors.Red("LP Phy Type is {} Expected to be {}".format(current_lp_phy_type, PhyType))
+        link_configuratio_status_flag = False
+
+    current_dut_fec = dut.GetCurrentFECStatus()
+    current_lp_fec = lp.GetCurrentFECStatus()
+
+    if current_dut_fec != FecType:
+        print colors.Red("DUT FEC is {} Expected to be {}".format(current_dut_fec,FecType))
+        link_configuratio_status_flag = False
+    if current_lp_fec != FecType:
+        print colors.Red("LP FEC is {} Expected to be {}".format(current_lp_fec, FecType))
+        link_configuratio_status_flag = False
+
+    return link_configuratio_status_flag
+
 def run():
     print svdt('-s')
-    devices = get_detected_devices("cvl") 
+    print svdt('-v')
+    print svdt('-f')
+    devices = get_detected_devices("cvl")
     connected_pairs = detect_connected_devices()
     pairs = list()
     for pair in connected_pairs:
@@ -76,20 +117,12 @@ def run():
             if protocol in cvl.fec_dict:
                 for fec in cvl.fec_dict[protocol]:
                     print "{}:".format(colors.Orange(fec))
-                    if protocol in cvl.force_phy_types_list:
-                        print "{} does no support AN".format(colors.Green(protocol))
-                        print "setting dut to {} with fec {}".format(colors.Green(protocol), colors.Orange(fec))
-                        dut.SetPhyConfiguration(protocol,fec)
-                        print "setting lp to {} with fec {}".format(colors.Green(protocol), colors.Orange(fec))
-                        lp.SetPhyConfiguration(protocol,fec)
-                    else:
-                        print "setting dut to {} with fec {}".format(colors.Green(protocol), colors.Orange(fec))
-                        dut.SetPhyConfiguration(protocol,fec)
-                    time.sleep(3)
-                    if poll_for_link(dut,lp,15):
+                    config_status = configure_link(dut, lp, protocol, fec)
+                    if config_status and poll_for_link(dut,lp,15):
                         run_traffic(dut,lp,10)
                     else:
-                        print "link is down"
+                        print "link is not configured"
+
             reset_both_sides(dut,lp,'globr')
             print '------------------------------------------------------------'
             print

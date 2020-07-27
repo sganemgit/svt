@@ -6,9 +6,8 @@ def port_discovery():
     return output
 
 def svdt(flag):
-    if flag == "-s":
-        output = subprocess.check_output(["svdt","-s"])
-        return output    
+    output = subprocess.check_output(["svdt",flag])
+    return output    
 
 
 def check_device_availability(project_name, device_number, port_number):
@@ -80,7 +79,7 @@ def detect_connected_devices():
     lines = output.split("\n")
     pairs = list()
     for line in lines:
-        if "connected" in line:
+        if "is connected to" in line:
             line_components = line.split()
             pair = dict()
             pair["first"] = line_components[0]
