@@ -82,7 +82,7 @@ def configure_link(dut,lp,PhyType,FecType):
 
     return link_configuratio_status_flag
 
-def run():
+def run(arg):
     print svdt('-s')
     print svdt('-v')
     print svdt('-f')
@@ -129,4 +129,9 @@ def run():
 
 
 if __name__=="__main__":
-    run()
+    arg = dict()
+    run(arg)
+
+
+
+
