@@ -19,7 +19,30 @@ def run_traffic(dut, lp, traffic_time):
     check_traffic(dut, lp)
 
 def check_traffic(dut, lp):
-    pass
+    dut_PTC = dut.GetPTC()
+    print "DUT MAC transmitted packets counters"
+    for key, value in dut_PTC.iteritems():
+        print "{} = {}".format(key,value)
+    print "LP MAC received packets counters"
+    lp_PRC = lp.GetPRC()
+    for key, value in lp_PRC.iteritems():
+        print "{} = {}".format(key,value)
+    print "LP MAC transmitted packet counters"
+    lp_PTC = lp.GetPTC()
+    for key,value in lp_PTC.iteritems():
+        print "{} = {}".format(key, value)
+    print "DUT MAC received packets counters"
+    dut_PRC = dut.GetPRC()
+    for key,value in dut_PRC.iteritems():
+        print "{} = {}".format(key, value)
+
+    if dut_PTC['TotalPTC'] != lp_PRC['TotalPRC']:
+        print colors.Red("missed packets on LP")
+
+    if lp_PTC['TotalPTC'] != dut_PRC['TotalPRC']:
+        print colors.Red("missed packets on DUT")
+
+
 
 def poll_for_link(dut, lp, timeout):
     end_time = time.time() + timeout
@@ -101,37 +124,41 @@ def run(arg):
         print "perfoming globar on pair {}".format(index)
         reset_both_sides(pair['dut'],pair['lp'],'globr')
 
+    target_protocol = arg['protocol']
+    target_fec = arg['fec']
     for index , pair in enumerate(pairs):
         dut = pair['dut']
         lp = pair['lp']
         if poll_for_link(dut,lp,15):
             run_traffic(dut,lp,10)
-        common_protocol_list = get_common_protocols(dut,lp) 
+        common_protocol_list = get_common_protocols(dut,lp)
         print "the common protocols are:"
         for protocol in common_protocol_list:
             print protocol
         print
-        for protocol in common_protocol_list:
-            print '------------------------------------------------------------'
-            print "                      {}".format(colors.Green(protocol))
-            if protocol in cvl.fec_dict:
-                for fec in cvl.fec_dict[protocol]:
-                    print "{}:".format(colors.Orange(fec))
-                    config_status = configure_link(dut, lp, protocol, fec)
-                    if config_status and poll_for_link(dut,lp,15):
-                        run_traffic(dut,lp,10)
-                    else:
-                        print "link is not configured"
-
-            reset_both_sides(dut,lp,'globr')
-            print '------------------------------------------------------------'
-            print
-
+        if target_protocol in common_protocol_list:
+            for protocol in common_protocol_list:
+                print '------------------------------------------------------------'
+                print "                      {}".format(colors.Green(protocol))
+                if protocol in cvl.fec_dict:
+                    for fec in cvl.fec_dict[protocol]:
+                        print "configuting Phy to {}".format(colors.Green(target_protocol))
+                        config_status = confugre(dut,lp,target_protocol,target_fec)
+                        if config_status and poll_for_link(dut, lp, 15):
+                            print "{}:".format(colors.Orange(fec))
+                            config_status = configure_link(dut, lp, protocol, fec)
+                        if config_status and poll_for_link(dut,lp,15):
+                            run_traffic(dut,lp,10)
+                        else:
+                                print "link is not configured"
+                reset_both_sides(dut,lp,'globr')
+                print '------------------------------------------------------------'
+                print
+        else:
+            print colors.Red("protocol {} is not a common protocol between the DUT and LP".format(target_protocol)
 
 if __name__=="__main__":
     arg = dict()
+    arg['protocol'] = '25GBase-CR'
+    arg['fec'] = '25G_RS_544_FEC'
     run(arg)
-
-
-
-

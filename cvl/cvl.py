@@ -1,12 +1,11 @@
 import sys
-from Defines import *
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
 from temp import *
 import time
 
 from cvlBase import cvlBase
-from cvlDefines import cvlDefines
+from cvlDefines import *
 class cvl(cvlDefines):
     'This class contains all the methods to interface with a cvl pf'
     def info(self, advance = False, Location = "AQ"):
@@ -300,19 +299,19 @@ class cvl(cvlDefines):
             return: PRC (int)
         '''
         if Packet_size <= 64:
-            return GetPRC64()
+            return self.GetPRC64()
         elif (Packet_size >= 65) and (Packet_size <= 127):
-            return GetPRC127()
+            return self.GetPRC127()
         elif (Packet_size >= 128) and (Packet_size <= 255):
-            return GetPRC255()
+            return self.GetPRC255()
         elif (Packet_size >= 256) and (Packet_size <= 511):
-            return GetPRC511()
+            return self.GetPRC511()
         elif (Packet_size >= 512) and (Packet_size <= 1023):
-            return GetPRC1023()
+            return self.GetPRC1023()
         elif (Packet_size >= 1024) and (Packet_size <= 1522):
-            return GetPRC1522()
+            return self.GetPRC1522()
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
-            return GetPRC9522()
+            return self.GetPRC9522()
 
     def GetPTCByPacketSize(self, Packet_size):
         '''This function return PTC according to packet size
@@ -1215,11 +1214,11 @@ class cvl(cvlDefines):
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
         phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0']
-        if Get_Phy_Type_Status_dict:
-            for i in range(len(Get_Phy_Type_Status_dict)):
+        if self.Get_Phy_Type_Status_dict:
+            for i in range(len(self.Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
                         break
-            return Get_Phy_Type_Status_dict[i]
+            return self.Get_Phy_Type_Status_dict[i]
 
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
@@ -1473,7 +1472,7 @@ class cvl(cvlDefines):
         driver = self.driver
         reg_addr = calculate_port_offset(0x03001030, 0x100, driver.port_number())
         value = self.ReadEthwRegister(reg_addr)
-        return Phy_link_speed_dict[int(value,16)]
+        return self.Phy_link_speed_dict[int(value,16)]
         
     def _GetPhyLinkSpeedAq(self):
         '''This function return Phy Link Speed using Get link status AQ.
@@ -1799,8 +1798,8 @@ class cvl(cvlDefines):
 
         
         for recieved_phy_type in phy_type_list:
-            if recieved_phy_type in set_Ability_PhyType_dict:
-                phy_type = phy_type | (1 << set_Ability_PhyType_dict[recieved_phy_type])
+            if recieved_phy_type in self.set_Ability_PhyType_dict:
+                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
             else:
                 raise RuntimeError("Error _SetPhyConfigurationAQ: PHY_type is not exist in set_Ability_PhyType_dict") #implement a warning
 
@@ -1931,8 +1930,8 @@ class cvl(cvlDefines):
         config['port'] = 0 #not relevant for CVL according to CVL Spec
 
         for recieved_phy_type in phy_type_list:
-            if recieved_phy_type in set_Ability_PhyType_dict:
-                phy_type = phy_type | (1 << set_Ability_PhyType_dict[recieved_phy_type])
+            if recieved_phy_type in self.set_Ability_PhyType_dict:
+                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
             else:
                 raise RuntimeError("Error _SetPhyTypeAq: PHY_type is not exist in set_Ability_PhyType_dict") 
         
@@ -3276,12 +3275,12 @@ class cvl(cvlDefines):
         ####### get current phy type  ###############################################
         phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0']
      
-        if Get_Phy_Type_Status_dict:
-            for i in range(len(Get_Phy_Type_Status_dict)):
+        if self.Get_Phy_Type_Status_dict:
+            for i in range(len(self.Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
                         break
         #print "phy type : ",Get_Phy_Type_Status_dict[i]
-        return_dict["PhyType"] = Get_Phy_Type_Status_dict[i]
+        return_dict["PhyType"] = self.Get_Phy_Type_Status_dict[i]
 
 
 
@@ -3529,7 +3528,6 @@ class cvl(cvlDefines):
     def GetMacStatistics(self, Location = "AQ",GlobReset = 0):
         '''This function return dictinary with mac link statistics
             argument:
-                Advance_mac_statistics - Flag for more statistic
             return: 
                 dictionary -- contain the statistics indications    
                     'Mac_link_status'
@@ -3537,43 +3535,27 @@ class cvl(cvlDefines):
                     'Phy_Type'
         '''
         Mac_link_statistic_dict = {}
-        
         #return Mac link status
         Mac_link_statistic_dict['Mac_link_status'] = self.GetMacLinkStatus(Location)
-        
         #return  Mac link speed
-        Mac_link_statistic_dict['Mac_link_speed'] = GetMacLinkSpeed(Location)
+        Mac_link_statistic_dict['Mac_link_speed'] = self.GetMacLinkSpeed(Location)
         if GlobReset == 0:
-            Mac_link_statistic_dict['Phy_Type'] = GetPhyType()
-            Mac_link_statistic_dict['Current_FEC'] = GetCurrentFECStatus()
-        
-        if (Advance_mac_statistics):
-            pass
-        
+            Mac_link_statistic_dict['Phy_Type'] = self.GetPhyType()
+            Mac_link_statistic_dict['Current_FEC'] = self.GetCurrentFECStatus()
         return Mac_link_statistic_dict
 
-    def GetPhyStatistics(Advance_phy_statistics):
+    def GetPhyStatistics(self):
         '''This function return dictinary with phy link statistics
             argument:
                 Advance_phy_statistics - Flag for more statistic
-            return: 
-                dictionary -- contain the statistics indications        
+            return:
+                dictionary -- contain the statistics indications
                     'Phy_link_status'
                     'Phy_link_speed'
         '''
         Phy_link_statistic_dict = {}
-        
-        #return Phy link status
-        Phy_link_statistic_dict['Phy_link_status'] = GetPhyLinkStatus()
-
-        Phy_link_statistic_dict['Phy_link_speed'] = GetPhyLinkSpeed()
-        
-        #print hex(LinkFault)
-        
-        if (Advance_phy_statistics):
-            pass
-        
-        #print Phy_link_statistic_dict
+        Phy_link_statistic_dict['Phy_link_status'] = self.GetPhyLinkStatus()
+        Phy_link_statistic_dict['Phy_link_speed'] = self.GetPhyLinkSpeed()
         return Phy_link_statistic_dict
 
 
@@ -3583,12 +3565,12 @@ class cvl(cvlDefines):
     ###  this scope was taken from logger to let us ability to logging the fw in the performance env   ####
 
 
-    def configure_logging_dnl(enable):
+    def configure_logging_dnl(self, enable):
         '''This function perform configuration for the dnl logging using aq command
             argument:
                 enable: flag to enable/disable dnl logging
             return:
-                None                
+                None 
         '''
         driver = self.driver
         aq_desc = AqDescriptor()
@@ -3602,7 +3584,6 @@ class cvl(cvlDefines):
             byte16 = 0x0  # bit 0 is 1 to enable AQ logging 
             byte18 = 0x1 
             #print "disable configure_logging_dnl"
-           
         param0 = (byte18 & 0xff ) << 16
         param0 = param0 | (byte16 & 0xff)
 
@@ -3624,7 +3605,7 @@ class cvl(cvlDefines):
 
         #print 'configure logging aq command has been sent successfully'
 
-    def clear_rx_events_queue():
+    def clear_rx_events_queue(self):
         '''This function will clear the buffer from previous messages  
             input: None
             return: None
@@ -3758,7 +3739,7 @@ class cvl(cvlDefines):
                 handler.send_file(LoggerFileName)
         return True
 
-    def logger_test():
+    def logger_test(self):
         '''This function is logging  dnl logger during ttl test for debug and development only
             argument: None
             return: None    

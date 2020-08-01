@@ -90,7 +90,7 @@ class cvlDefines(cvlBase):
                            7:"25G",
                            8:"40G",
                            9:"50G",
-                           10:"100G",f
+                           10:"100G",
                            11:"200G"}
 
     Phy_link_speed_dict = {0:"N/A",
