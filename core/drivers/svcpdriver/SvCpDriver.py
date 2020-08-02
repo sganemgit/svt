@@ -412,7 +412,7 @@ class SvCpDriver(object):
         This method stops RX on ring 0.
         '''
         if (self._rx_ring is None):
-            print
+            print()
             "Rx ring not set!!"
             return
 
@@ -553,7 +553,7 @@ class SvCpDriver(object):
         '''
         with self._mdio_lock:
             # key = threading.current_thread().getName()
-            # print 'writing mdio thread ' + key
+            # print( 'writing mdio thread ' + key)
 
             # address cycle
 

@@ -19,28 +19,28 @@ class cvl(cvlDefines):
         driver = self.driver
         port = driver.port_number()
         device_number = driver.device_number()
-        print "######################################"
-        print "CVL port ",port
-        print "CVL device",device_number
-        print "######################################"
+        print("######################################")
+        print("CVL port ",port)
+        print("CVL device",device_number)
+        print( "######################################")
         link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
-        print
-        print "Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0)#GetPhyAbility print
-        print "Phy Type: ", link_status_dict['PhyType']
-        print "FEC Type: ", self.GetCurrentFECStatus()
-        print "Mac Link Status: ",link_status_dict['MacLinkStatus']
+        print()
+        print("Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0))#GetPhyAbility print)
+        print("Phy Type: ", link_status_dict['PhyType'])
+        print("FEC Type: ", self.GetCurrentFECStatus())
+        print("Mac Link Status: ",link_status_dict['MacLinkStatus'])
         if link_up_flag:
-            print "Mac Link Speed: ",link_status_dict['MacLinkSpeed']
-            print "Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down'#GetPhyLinkStatus() # ONPI 
-            print "Phy Link Speed: ",self.GetPhyLinkSpeed() # ONPI
+            print("Mac Link Speed: ",link_status_dict['MacLinkSpeed'])
+            print("Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down')#GetPhyLinkStatus() # ONPI 
+            print("Phy Link Speed: ",self.GetPhyLinkSpeed())
             #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
-            print "Enabled FEC: ",link_status_dict['EnabeldFEC']
-            print "EEE abilities: ",self.GetEEEAbilities(rep_mode = 0) #GetPhyAbility
-            print
+            print("Enabled FEC: ",link_status_dict['EnabeldFEC'])
+            print("EEE abilities: ",self.GetEEEAbilities(rep_mode = 0)) #GetPhyAbility
+            print()
 
-        print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
-        print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
+        print("Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed())
+        print("Current PCIe link Width, ",self.GetPCIECurrentLinkWidth())
 
 ###############################################################################
 #                        Register reading section                             #
@@ -1010,15 +1010,15 @@ class cvl(cvlDefines):
             data = result[1]
         else:
             raise RuntimeError("Error {}: Admin command was not successful".format(GetLinkStatusFields.__name__))
-        print
-        print data
-        print
+        print()
+        print(data)
+        print()
 
-        print "link status {}".format(data['link_sts'])
-        print "media available {}".format(data['media_avail'])
+        print("link status {}".format(data['link_sts']))
+        print("media available {}".format(data['media_avail']))
 
-        print "PHY Type list  {}" .format(data['phy_type_list'])
-        print
+        print("PHY Type list  {}" .format(data['phy_type_list']))
+        print()
 
 
     def GetMacLinkSpeed(self, Location = "AQ"):
@@ -1146,7 +1146,7 @@ class cvl(cvlDefines):
         elif reset_type ==   "vflr":
             driver.device_reset("VFLR")
         else:
-            print "could not identify reset type"
+            print("could not identify reset type")
 
     def Reset2(Reset, Location = "REG"):
         '''This function performs reset to CVL
@@ -1550,7 +1550,7 @@ class cvl(cvlDefines):
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -1641,7 +1641,7 @@ class cvl(cvlDefines):
 
         status = ()
         status =  self.SetPhyConfig(config)
-        print status
+        print(status)
         
         if status[0]:
             error_msg = 'Error DisableFECRequests: Admin command was not successful, retval {}'.format(status[1])
@@ -1730,7 +1730,7 @@ class cvl(cvlDefines):
         config['an_mode'] = 0
         status = ()
         status =  self.SetPhyConfig(config)
-        print status
+        print(status)
         
         if status[0]:
             error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
@@ -1863,10 +1863,10 @@ class cvl(cvlDefines):
 
         if debug == True:
             if status[0] == 0:
-                print "Admin command successded" #TODO print admin command message 
+                print("Admin command successded") #TODO print admin command message 
             else:
-                print "Admin command failed"
-                print config
+                print("Admin command failed")
+                print(config)
         if status[0] :
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
@@ -1960,7 +1960,7 @@ class cvl(cvlDefines):
         #print config
         status = ()
         status =  self.SetPhyConfig(config)
-        print status
+        print(status)
         
         if status[0]:
             error_msg = 'Error _SetPhyTypeAq: Admin command was not successful, retval {}'.format(status[1])
@@ -2130,14 +2130,14 @@ class cvl(cvlDefines):
 
         if debug:
             for key,val in Phytuning_final_dict.iteritems():
-                print key
+                print(key)
                 Phytuning_dict = Phytuning_final_dict[key]
                 keylist = Phytuning_dict.keys()
                 keylist.sort()
                 for k in keylist:
                     #handler.serial_print(str(k) + ': '+ str(Phytuning_dict[k]))
-                    print str(k) + ': '+ str(Phytuning_dict[k])
-                print 
+                    print(str(k) + ': '+ str(Phytuning_dict[k]))
+                print()
 
         return Phytuning_final_dict
 
@@ -2503,7 +2503,7 @@ class cvl(cvlDefines):
             #print "N/A"
             return "N/A"
 
-    def GetPCIECurrentLinkWidth_WA():
+    def GetPCIECurrentLinkWidth_WA(self):
         '''This function returns PCIE link width from linux command.
             argument: None
             return: 'x1' / 'x2' / 'x4' / 'x16'
@@ -2552,34 +2552,34 @@ class cvl(cvlDefines):
     ######################################################################################################
     ###############################          Rotem - debug is needed            ##########################
     ######################################################################################################  
-        
-    def SetEEESetting_D(set_eee, Location = "AQ"):
+
+    def SetEEESetting_D(self, set_eee, Location = "AQ"):
         '''This function configure eee for the link.
             argument:
                 set_eee: [2 bytes] -- bitfield defined in Section 3.5.7.6.8 of CVL has to enable or disable advertisement of EEE capabilities
-                Location = "REG" / "AQ" 
-     
+                Location = "REG" / "AQ"
+
         '''
         if Location == "REG":
-            _SetEEESettingReg()
+            self._SetEEESettingReg()
         elif Location == "AQ":
-            _SetEEESettingAq(set_eee)
+            self._SetEEESettingAq(set_eee)
         else:
             raise RuntimeError("Err SetEEESetting: Error Location, please insert location REG/AQ")  
-     
-    def _SetEEESettingReg():
+
+    def _SetEEESettingReg(self):
         '''This function configure eee for the link.
             for debug only because SetEEESetting_D by REG is not implimented.
-        '''     
+        '''
         raise RuntimeError("Set EEE by Reg is not implimented") 
      
-    def _SetEEESettingAq_D(set_eee):
+    def _SetEEESettingAq_D(self, set_eee):
         '''This function configure eee for the link.
             input: 
                 set_eee: [2 bytes] -- bitfield defined in Section 3.5.7.6.8 of CVL has to enable or disable advertisement of EEE capabilities
         '''
         config = {}
-        abilities = GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':2}) ##TODO: check values
+        abilities = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':2}) ##TODO: check values
         
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['phy_type_0'] = abilities['phy_type_0']
@@ -2653,7 +2653,7 @@ class cvl(cvlDefines):
                 print all pstors
         '''
         pstores = _DnlReadPstore(context, pstores_number_to_read,debug)
-        print "Pstors: ",pstores 
+        print("Pstors: ",pstores)
      
     def DebugWriteDnlStore(context, store_type, store_index, value,debug=False):
         '''write PSTO for debug.
@@ -2686,7 +2686,6 @@ class cvl(cvlDefines):
         aq_desc.flags = param1
         aq_desc.datalen = data_len
         buffer = [0] * data_len
-        
         #buf = [0,1,2,3,4,5]
         #driver.send_aq_command(aq_desc, buf)
         #val1 = buf[0]
@@ -2694,18 +2693,18 @@ class cvl(cvlDefines):
 
         driver.send_aq_command(aq_desc,buffer)
 
-        print 'retval: ', hex(aq_desc.retval)
-        print 'flags: ', hex(aq_desc.flags)
-        print 'opcode: ', hex(aq_desc.opcode)
-        print 'param0: ', hex(aq_desc.param0)
-        print 'param1: ', hex(aq_desc.param1)
-        print 'cookie_high: ', hex(aq_desc.cookie_high)
-        print 'cookie_low: ', hex(aq_desc.cookie_low)
-        print 'addr_high: ', hex(aq_desc.addr_high)
-        print 'addr_low: ', hex(aq_desc.addr_low)
-        print 'buffer: ',buffer
-     
-     
+        print('retval: ', hex(aq_desc.retval))
+        print('flags: ', hex(aq_desc.flags))
+        print('opcode: ', hex(aq_desc.opcode))
+        print('param0: ', hex(aq_desc.param0))
+        print('param1: ', hex(aq_desc.param1))
+        print('cookie_high: ', hex(aq_desc.cookie_high))
+        print('cookie_low: ', hex(aq_desc.cookie_low))
+        print('addr_high: ', hex(aq_desc.addr_high))
+        print('addr_low: ', hex(aq_desc.addr_low))
+        print('buffer: ',buffer)
+
+
     ######################################################################################################
     ###############################           DNL section             ####################################
     ######################################################################################################
@@ -3297,42 +3296,42 @@ class cvl(cvlDefines):
 
         ####### get Mac Link status  ##############################################
         link_speed = 'N/A'
-        if Get_Speed_Status_dict:
+        if self.Get_Speed_Status_dict:
             if data['link_speed_10m']:
-                link_speed = Get_Speed_Status_dict[0]
+                link_speed = self.Get_Speed_Status_dict[0]
                 
             elif data['link_speed_100m']:
-                link_speed = Get_Speed_Status_dict[1]
+                link_speed = self.Get_Speed_Status_dict[1]
                 
             elif data['link_speed_1000m']:
-                link_speed = Get_Speed_Status_dict[2]
+                link_speed = self.Get_Speed_Status_dict[2]
                 
             elif data['link_speed_2p5g']:
-                link_speed = Get_Speed_Status_dict[3]
+                link_speed = self.Get_Speed_Status_dict[3]
                 
             elif data['link_speed_5g']:
-                link_speed = Get_Speed_Status_dict[4]
+                link_speed = self.Get_Speed_Status_dict[4]
                 
             elif data['link_speed_10g']:
-                link_speed = Get_Speed_Status_dict[5]
+                link_speed = self.Get_Speed_Status_dict[5]
                 
             elif data['link_speed_20g']:
-                link_speed = Get_Speed_Status_dict[6]
+                link_speed = self.Get_Speed_Status_dict[6]
                 
             elif data['link_speed_25g']:
-                link_speed = Get_Speed_Status_dict[7]
+                link_speed = self.Get_Speed_Status_dict[7]
                 
             elif data['link_speed_40g']:
-                link_speed = Get_Speed_Status_dict[8]
+                link_speed = self.Get_Speed_Status_dict[8]
                 
             elif data['link_speed_50g']:
-                link_speed = Get_Speed_Status_dict[9]
+                link_speed = self.et_Speed_Status_dict[9]
                 
             elif data['link_speed_100g']:
-                link_speed = Get_Speed_Status_dict[10]
+                link_speed = self.Get_Speed_Status_dict[10]
                 
             elif data['link_speed_200g']:
-                link_speed = Get_Speed_Status_dict[11]
+                link_speed = self.Get_Speed_Status_dict[11]
 
         else:
             raise RuntimeError("Error GetLinkStatusAfterParsing: Get_Speed_Status_dict is not defined")
@@ -3392,18 +3391,18 @@ class cvl(cvlDefines):
             quad = 0
             pmd_num = 0
         if number_of_ports == 2:        
-            quad = quad_for_2_ports_dict[port_num]        
-            pmd_num = pmd_num_for_2_ports_dict[port_num]
+            quad = self.quad_for_2_ports_dict[port_num]        
+            pmd_num = self.pmd_num_for_2_ports_dict[port_num]
         elif number_of_ports == 4:     
             if GetMuxStatus():
-                quad = quad_for_4_ports_mux_dict[port_num]
-                pmd_num = pmd_num_for_4_ports_mux_dict[port_num]
+                quad = self.quad_for_4_ports_mux_dict[port_num]
+                pmd_num = self.pmd_num_for_4_ports_mux_dict[port_num]
             else:
-                quad = quad_for_4_ports_dict[port_num]        
-                pmd_num = pmd_num_for_4_ports_dict[port_num]
+                quad = self.quad_for_4_ports_dict[port_num]        
+                pmd_num = self.pmd_num_for_4_ports_dict[port_num]
         elif number_of_ports == 8:        
-            quad = quad_for_8_ports_dict[port_num]
-            pmd_num = pmd_num_for_8_ports_dict[port_num]
+            quad = self.quad_for_8_ports_dict[port_num]
+            pmd_num = self.pmd_num_for_8_ports_dict[port_num]
 
         #print "quad: ", quad
         #print "port_num: ", port_num

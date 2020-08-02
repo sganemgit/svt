@@ -12,8 +12,8 @@ class testBase():
         self.log.info(self.testname)
         self._parser = self._configure_parser()
         self._args = self._parser.parse_args()
-        print self._args.setup
-        print self._args.regression
+        print(self._args.setup)
+        print(self._args.regression)
         self.setup = self._parse_setup_file()
         self._test_status = "Pass"
         self.user_args = self._parse_regression_file()
@@ -40,7 +40,7 @@ class testBase():
         try:
             tree = ET.parse(self._args.setup)
             root = tree.getroot()
-            print root
+            print(root)
         except Exception as e:
             self.log.critical(str(e))
             raise e
