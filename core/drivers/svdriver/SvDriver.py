@@ -6,6 +6,19 @@ from core.structs.DeviceInfo import DeviceInfo
 from core.structs.AqDescriptor import AqDescriptor
 from core.drivers.svdriver.SvDriverCommands import *
 
+import libPyApi
+
+class DriverProxy(libPyApi.driver_proxy):
+
+    def __init__(self, device, pf_num, nic_num=None, remote="", vf_num=libPyApi.INVALID_VF):
+        """
+        """
+        if nic_num:
+            super(DriverProxy, self).__init__(device, pf_num, nic_num, remote, vf_num)
+
+        else:
+            super(DriverProxy, self).__init__(device, pf_num, remote, vf_num)
+
 #from ipacore.drivers.projectsspecificdata import ProjectsSpecificData
 DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
            'sgvl': ['1563'],
@@ -24,15 +37,20 @@ DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
 class SvDriver(object):
     """This class wrapps 'libSvPython' module (python wrapper for SV driver)"""
 
-    def __init__(self, device_info):
+    def __init__(self, device_info, remote = ""):
         self._port_number = int(device_info.port_number)
-        self._project_name = device_info.project_name
+        self._project_name = device_info.device_name
         self._device_number = device_info.device_number
         self._device_string = device_info.driver_specific_id.encode("utf-8")
         self._dev_id = device_info.dev_id
-        self._bdf_location = device_info.location
+        self._bdf = device_info.location
 
         self._mdio_lock = None
+        print self._project_name
+        print self._port_number
+        print self._device_number
+
+        self._driver_proxy = DriverProxy(self._project_name,int(self._port_number), int(self._device_number), str(remote))
 
 #        self._mdio_cntrl, self._mdio_data = ProjectsSpecificData.get_mdios_regs(self._project_name)
 #        if self._mdio_cntrl is None:
@@ -42,14 +60,15 @@ class SvDriver(object):
         self._create()
 
     @classmethod
-    def create_driver_by_name(cls, project_name, device_number, port_number):
+    def create_driver_by_name(cls, device_name, device_number, port_number):
+        remote = ""
         device_info =  DeviceInfo()
-        device_info.projet_name = project_name
+        device_info.device_name = device_name
         device_info.device_number = str(device_number)
         device_info.port_number = str(port_number)
-        device_info.dev_id = get_device_id_by_name(project_name, device_number, port_number)
-        device_info.dev_location = get_device_bdf_by_name(project_name,device_number, port_number)
-        device_info.driver_specific_id = get_device_specific_id(project_name,device_number, port_number)
+        device_info.dev_id = get_device_id_by_name(device_name, device_number, port_number)
+        device_info.dev_location = get_device_bdf_by_name(device_name,device_number, port_number)
+        device_info.driver_specific_id = get_device_specific_id(device_name,device_number, port_number)
         return cls(device_info)
 
     def __del__(self):
@@ -60,7 +79,7 @@ class SvDriver(object):
 
     def port_number(self):
         '''
-        This method return port number of current port.            
+        This method return port number of current port.
         '''
         return self._port_number 
     def device_number(self):
@@ -70,7 +89,7 @@ class SvDriver(object):
         return self._device_number              
                
     def get_device_info(self):
-        return {'dev_id':self._dev_id, 'device_number':self._device_number, 'port_number':self._port_number,'bdf_location':self._bdf_location.get_location_string(),'b':self._bdf_location.a,'d':self._bdf_location.b,'f':self._bdf_location.c}
+        return {'dev_id':self._dev_id, 'device_number':self._device_number, 'port_number':self._port_number,'bdf_location':self._bdf.get_location_string(),'b':self._bdf.a,'d':self._bdf.b,'f':self._bdf.c}
 
     def start_tx(self, **kwargs):                
         '''
