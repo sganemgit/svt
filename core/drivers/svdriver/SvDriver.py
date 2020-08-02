@@ -44,12 +44,7 @@ class SvDriver(object):
         self._device_string = device_info.driver_specific_id.encode("utf-8")
         self._dev_id = device_info.dev_id
         self._bdf = device_info.location
-
         self._mdio_lock = None
-        print self._project_name
-        print self._port_number
-        print self._device_number
-
         self._driver_proxy = DriverProxy(self._project_name,int(self._port_number), int(self._device_number), str(remote))
 
 #        self._mdio_cntrl, self._mdio_data = ProjectsSpecificData.get_mdios_regs(self._project_name)
@@ -81,7 +76,7 @@ class SvDriver(object):
         '''
         This method return port number of current port.
         '''
-        return self._port_number 
+        return self._port_number
     def device_number(self):
         '''
         This method return device number to which current port belongs.

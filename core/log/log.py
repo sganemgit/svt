@@ -36,23 +36,28 @@ class log:
         #creating the logger
         self.logger = logging.getLogger()
 
-    def info(self, msg):
-        print(msg)
+    def info(self, msg = "", color = None):
+        if color == 'r':
+            print(colors.Red(msg))
+        elif color == 'b':
+            print(colors.Blue(msg))
+        else:
+            print(msg)
         self.logger.info(msg)
 
-    def debug(self, msg):
+    def debug(self, msg = ""):
         print(msg)
         self.logger.debug(msg)
 
-    def warning(self, msg):
+    def warning(self, msg = ""):
         print(msg)
         self.logger.warning(msg)
 
-    def error(self, msg):
+    def error(self, msg = ""):
         print(msg)
         self.logger.error(msg)
 
-    def critical(self, msg):
+    def critical(self, msg = ""):
         print(msg)
         self.logger.critical(msg)
 
