@@ -112,7 +112,7 @@ class LmChangeProtocol(testBase):
 
         return link_configuratio_status_flag
 
-    def run(self, arg):
+    def run(self):
         log = self.log
         log.info(str(svdt('-s')))
         log.info(str(svdt('-v')))
@@ -132,8 +132,10 @@ class LmChangeProtocol(testBase):
             log.info("perfoming globar on pair {}".format(index))
             self.reset_both_sides(pair['dut'],pair['lp'],'globr')
 
-        target_protocol = arg['protocol']
-        target_fec = arg['fec']
+        target_protocol = '25GBase-CR'
+        target_fec = '25G_RS_544_FEC'
+        #target_protocol = self.user_args['protocol']
+        #target_fec = self.user_args['fec']
         log.info("this is a log message")
         for index , pair in enumerate(pairs):
             dut = pair['dut']
@@ -167,8 +169,7 @@ class LmChangeProtocol(testBase):
                 log.info(colors.Red("protocol {} is not a common protocol between the DUT and LP".format(target_protocol)))
 
 if __name__ == '__main__':
-    arg = dict()
-    arg['protocol'] = '25GBase-CR'
-    arg['fec'] = '25G_RS_544_FEC'
-    test = LmChangeProtocol()
-    test.run(arg)
+#    arg = dict()
+#    arg['protocol'] = '25GBase-CR'
+#    arg['fec'] = '25G_RS_544_FEC'
+    LmChangeProtocol()
