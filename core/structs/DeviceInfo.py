@@ -9,3 +9,4 @@ class DeviceInfo():
         self.dev_id = None
         self.driver_specific_id = None
         self.location = None
+	self.hostname = None

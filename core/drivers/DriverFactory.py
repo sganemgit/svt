@@ -1,10 +1,10 @@
 class DriverFactory():
     '''This class is responsible for creation of drivers'''
     @classmethod
-    def create_driver_by_project_name(cls, driver_type, project_name, device_number, port_number):
+    def create_driver_by_project_name(cls, driver_type, project_name, device_number, port_number, hostname):
         if driver_type == "sv":
             from core.drivers.svdriver.SvDriver import SvDriver
-            return SvDriver.create_driver_by_name(project_name, device_number, port_number)
+            return SvDriver.create_driver_by_name(project_name, device_number, port_number, hostname)
 
     @classmethod
     def create_driver(cls, driver_type, device_info):

@@ -18,3 +18,6 @@ if devices:
 if __name__=="__main__":
     pass
 #    MacloopbackWithLP()
+
+
+cvlr = cvl(0,0,"localhost")

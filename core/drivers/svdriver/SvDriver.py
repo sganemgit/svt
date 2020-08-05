@@ -1,4 +1,7 @@
+# @author Shady Ganem <shady.ganem@intel.com>
 import libSvPython
+import libPyApi
+
 import struct
 from ctypes import *
 import threading
@@ -6,7 +9,6 @@ from core.structs.DeviceInfo import DeviceInfo
 from core.structs.AqDescriptor import AqDescriptor
 from core.drivers.svdriver.SvDriverCommands import *
 
-import libPyApi
 
 class DriverProxy(libPyApi.driver_proxy):
 
@@ -37,33 +39,34 @@ DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
 class SvDriver(object):
     """This class wrapps 'libSvPython' module (python wrapper for SV driver)"""
 
-    def __init__(self, device_info, remote = ""):
+    def __init__(self, device_info):
         self._port_number = int(device_info.port_number)
         self._project_name = device_info.device_name
         self._device_number = device_info.device_number
         self._device_string = device_info.driver_specific_id.encode("utf-8")
         self._dev_id = device_info.dev_id
         self._bdf = device_info.location
+	self._hostname = device_info.hostname
         self._mdio_lock = None
-        self._driver_proxy = DriverProxy(self._project_name,int(self._port_number), int(self._device_number), str(remote))
+        self._driver_proxy = DriverProxy(self._project_name,int(self._port_number), int(self._device_number), self._hostname)
 
+        self._create()
 #        self._mdio_cntrl, self._mdio_data = ProjectsSpecificData.get_mdios_regs(self._project_name)
 #        if self._mdio_cntrl is None:
 #            raise ValueError('Missing data for MDIO registers for project ' + self._project_name)
 
-        #create adapter handle
-        self._create()
+#        create adapter handle
 
     @classmethod
-    def create_driver_by_name(cls, device_name, device_number, port_number):
-        remote = ""
-        device_info =  DeviceInfo()
+    def create_driver_by_name(cls, device_name, device_number, port_number, hostname):
+        device_info = DeviceInfo()
         device_info.device_name = device_name
         device_info.device_number = str(device_number)
         device_info.port_number = str(port_number)
         device_info.dev_id = get_device_id_by_name(device_name, device_number, port_number)
         device_info.dev_location = get_device_bdf_by_name(device_name,device_number, port_number)
         device_info.driver_specific_id = get_device_specific_id(device_name,device_number, port_number)
+	device_info.hostname = hostname
         return cls(device_info)
 
     def __del__(self):
@@ -553,3 +556,15 @@ class SvDriver(object):
 
     def _release(self):
         pass
+
+
+
+if __name__=="__main__":
+	try:
+		import readline
+	except ImportError:
+		print("Module readline not available.")
+	else:
+		import rlcompleter
+		readline.parse_and_bind("tab: complete")
+	cvl = SvDriver.create_driver_by_name('cvl', str(0), str(0), 'ladh444')
