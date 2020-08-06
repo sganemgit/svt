@@ -89,6 +89,8 @@ DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
            'nnt' : ['10fb'],
            'mev' : ['f002']}
 
+
+
 class DriverProxy(libPyApi.driver_proxy):
 
     def __init__(self, device, pf_num, nic_num=None, remote="", vf_num=libPyApi.INVALID_VF):
@@ -370,9 +372,6 @@ class SvDriver(object):
         self._driver_proxy.dispose_admin_queue(aq)
         return status[0]
 
-
-
-
     def device_reset(self, reset_type):
         ''' This function resets device.
             Arguments:
@@ -381,38 +380,45 @@ class SvDriver(object):
                 'PCI', 'PCE_RESTORE', 'BME', 'ACPI'
 
         '''
-        reset_type_value = 0
         if reset_type == 'PF':
-            reset_type_value = 0
+            reset_type_value = libPyApi.DRT_PF_RESET
         elif reset_type == 'CORE':
-            reset_type_value = 1
+            reset_type_value = libPyApi.DRT_CORE_RESET
         elif reset_type == 'GLOBAL':
-            reset_type_value = 2
+            reset_type_value = libPyApi.DRT_GLOBAL_RESET
         elif reset_type == 'EMP':
-            reset_type_value = 3
+            reset_type_value = libPyApi.DRT_EMP_RESET
         elif reset_type == 'VF_SW':
-            reset_type_value = 4
+            reset_type_value = libPyApi.DRT_VF_SW_RESET
         elif reset_type == 'VFLR':
-            reset_type_value = 5
+            reset_type_value = libPyApi.DRT_VFLR_RESET
         elif reset_type == 'FL':
-            reset_type_value = 6
+            reset_type_value = libPyApi.DRT_FL_RESET
         elif reset_type == 'PCI':
-            reset_type_value = 7
+            reset_type_value = libPyApi.DRT_PCI_RESET
         elif reset_type == 'PCI_RESTORE':
-            reset_type_value = 8
+            reset_type_value = libPyApi.DRT_PCI_RESET_RESTORE
         elif reset_type == 'BME':
-            reset_type_value = 9
+            reset_type_value = libPyApi.DRT_BME_RESET
         elif reset_type == 'ACPI':
-            reset_type_value = 10
+            reset_type_value = libPyApi.DRT_ACPI_RESET
+        elif reset_type == 'None':
+            reset_type_value = libPyApi.DRT_NONE
+        elif reset_type == 'MEV_IMC':
+            reset_type_value = libPyApi.DRT_MEV_IMC_RESET
+        elif reset_type == 'MEV_LINK':
+            reset_type_value = libPyApi.DRT_MEV_IMC_RESET
         else:
             raise RuntimeError("Unsupported reset type " + reset_type)
-
-        libSvPython.reset_device_c(self._device_string, reset_type_value)
+        dcfg = self._driver_proxy.cfg()
+        result = dcfg.reset_device()
+        self._driver_proxy.dispose_driver_config(dcfg)
+        if result != libPyApi.ERROR_STATUS_OK:
+            raise RuntimeError(self._driver_proxy.driver_error_to_string(result))
 
 
     def __del__(self):
         pass
-
 
 if __name__=="__main__":
     try:
@@ -424,220 +430,3 @@ if __name__=="__main__":
         readline.parse_and_bind("tab: complete")
     cvl = SvDriver.create_driver_by_name('cvl', str(0), str(0), 'ladh444')
 
-
-
-
-
-
-   # def read_phy_register(self, page, register_offset, phy_add):
-    #     ''' 
-    #         This method reads phy register according to
-    #         'page', 'register_offset' and 'phy_add' and returns register value.            
-    #     '''
-    #     with self._mdio_lock:
-    #         #key = threading.current_thread().getName()
-    #         #print( 'read mdio thread ' + key)
-    #         value = 0        
-    #         value = value | ((phy_add & 0x1f) << 21) # set phy address
-    #         value = value | ((page & 0x1F) << 16) # set phy page
-    #         value = value | (register_offset & 0xFFFF) # set phy page
-    #         value = value | 0x40000000 # set mdio cmd        
-    
-    #         libSvPython.write_csr_c(self._device_string, self._mdio_cntrl, value)
-    #         while (self._read_csr(self._mdio_cntrl) & 0x40000000):
-    #             pass
-    
-    #         # read cycle        
-    #         value = value | (0x3 << 26)     # set opcode to read operation
-    #         value = value | 0x40000000         # set mdio cmd
-    
-    #         libSvPython.write_csr_c(self._device_string, self._mdio_cntrl, value)
-    
-    #         while (self._read_csr(self._mdio_cntrl) & 0x40000000):
-    #             pass    
-    
-    #         value = self._read_csr(self._mdio_data)
-    #         value = (value & 0xffff0000) >> 16
-    #         #print 'finished reading medio thread ' + key
-    #         return value        
-
-    # def write_phy_register(self, page, register_offset, phy_add, write_value):
-    #     '''
-    #     This method writes value specified in 'write_value' 
-    #     to phy register according to 'page', 'register_offset' and 'phy_add'.
-    #     '''           
-    #     with self._mdio_lock:
-    #         #key = threading.current_thread().getName()
-    #         #print 'writing mdio thread ' + key
-   
-    #         # address cycle        
-        
-    #         value = 0        
-    #         value = value | ((phy_add & 0x1f) << 21) # set phy address
-    #         value = value | ((page & 0x1F) << 16) # set phy page
-    #         value = value | (register_offset & 0xFFFF) # set phy page
-    #         value = value | 0x40000000 # set mdio cmd    
-    
-    
-    #         libSvPython.write_csr_c(self._device_string, self._mdio_cntrl, value)
-    #         while (self._read_csr(self._mdio_cntrl) & 0x40000000):
-    #             pass
-    #         # write data register
-    #         libSvPython.write_csr_c(self._device_string, self._mdio_data, (write_value & 0xFFFF))
-    
-    #         # write cycle        
-    #         value = value | (0x1 << 26)     # set opcode to read operation
-    #         value = value | 0x40000000         # set mdio cmd
-    
-    #         libSvPython.write_csr_c(self._device_string, self._mdio_cntrl, value)
-    
-    #         while (self._read_csr(self._mdio_cntrl) & 0x40000000):
-    #             pass    
-    
-    #         #print 'finished writing mdio thread ' + key
-    #         pass
-       #  def receive_aq_command(self, aq_descriptor, aq_buffer = None, debug_print = False):
-   #      '''This function receives AQ command.
-         #    Arguments:
-            #     aq_descriptor - aq command data descriptor with following fields
-            #       opcode, flags, param0, param1, cookie_high, cookie_low, address_high, address_low, retval, datalen.
-            #       If one of these fields not set default value is 0.
-            # aq_buffer - optional buffer for AQ. Refer to EAS for specific command, each value represents byte.
-            #               If no buffer required pass None, default value is None.
-            # debug_print - print AQ descriptor or not
-            # Responsse from FW will be returned in these arguments.
-         #    Returns:
-            #     0 if aq command sent successfully, else error code   
-      #   '''
-   #      desc_size = libSvPython.get_aq_descriptor_size()
-   #      descriptor = libSvPython.ByteArray(desc_size)
-    
-   #      aq_buffer_size = 0
-   #      sent_aq_buffer = None
-   #      if aq_buffer is not None:
-   #          aq_buffer_size = len(aq_buffer)
-   #          s = struct.Struct('b'*aq_buffer_size)
-   #          packed_s = s.pack(*aq_buffer)
-   #          sent_aq_buffer = str(packed_s)
-    
-   #      descriptor[0] = aq_descriptor.flags & 0xff
-   #      descriptor[1] = (aq_descriptor.flags >> 8) & 0xff
-   #      descriptor[2] = aq_descriptor.opcode & 0xff
-   #      descriptor[3] = (aq_descriptor.opcode >> 8) & 0xff
-   #      descriptor[4] = aq_descriptor.datalen & 0xff
-   #      descriptor[5] = (aq_descriptor.datalen >> 8) & 0xff
-   #      descriptor[6] = aq_descriptor.retval & 0xff
-   #      descriptor[7] = (aq_descriptor.retval >> 8) & 0xff
-   #      descriptor[8] = aq_descriptor.cookie_high & 0xff
-   #      descriptor[9] = (aq_descriptor.cookie_high >> 8) & 0xff
-   #      descriptor[10] = (aq_descriptor.cookie_high >> 16) & 0xff
-   #      descriptor[11] = (aq_descriptor.cookie_high >> 24) & 0xff
-   #      descriptor[12] = aq_descriptor.cookie_low & 0xff
-   #      descriptor[13] = (aq_descriptor.cookie_low >> 8) & 0xff
-   #      descriptor[14] = (aq_descriptor.cookie_low >> 16) & 0xff
-   #      descriptor[15] = (aq_descriptor.cookie_low >> 24) & 0xff
-   #      descriptor[16] = aq_descriptor.param0 & 0xff
-   #      descriptor[17] = (aq_descriptor.param0 >> 8) & 0xff
-   #      descriptor[18] = (aq_descriptor.param0 >> 16) & 0xff
-   #      descriptor[19] = (aq_descriptor.param0 >> 24) & 0xff
-   #      descriptor[20] = aq_descriptor.param1 & 0xff
-   #      descriptor[21] = (aq_descriptor.param1 >> 8) & 0xff
-   #      descriptor[22] = (aq_descriptor.param1 >> 16) & 0xff
-   #      descriptor[23] = (aq_descriptor.param1 >> 24) & 0xff
-   #      descriptor[24] = aq_descriptor.addr_high & 0xff
-   #      descriptor[25] = (aq_descriptor.addr_high >> 8) & 0xff
-   #      descriptor[26] = (aq_descriptor.addr_high >> 16) & 0xff
-   #      descriptor[27] = (aq_descriptor.addr_high >> 24) & 0xff
-   #      descriptor[28] = aq_descriptor.addr_low & 0xff
-   #      descriptor[29] = (aq_descriptor.addr_low >> 8) & 0xff
-   #      descriptor[30] = (aq_descriptor.addr_low >> 16) & 0xff
-   #      descriptor[31] = (aq_descriptor.addr_low >> 24) & 0xff
-
-   #      if debug_print:           
-   #          print( 'AQ descriptor sent:')
-   #          for i in range(0, desc_size):
-   #              print(descriptor[i],)
-   #          print()
-   #          print( 'Sent buffer:', sent_aq_buffer.__repr__())
-   
-   #      status = libSvPython.receive_adminqueue_command(self._device_string, descriptor, sent_aq_buffer, aq_buffer_size)
-  
-   #      if debug_print:
-   #          print( 'AQ descriptor received:')
-   #          for i in range(0, desc_size):
-   #              print(descriptor[i],)
-   #          print()
-   #          print('Received buffer:', sent_aq_buffer.__repr__())
-    
-   #      aq_descriptor.flags = libSvPython.get_aq_descriptor_flags(descriptor)
-   #      aq_descriptor.opcode = libSvPython.get_aq_descriptor_opcode(descriptor)
-   #      aq_descriptor.param0 = libSvPython.get_aq_descriptor_param0(descriptor)
-   #      aq_descriptor.param1 = libSvPython.get_aq_descriptor_param1(descriptor)
-   #      aq_descriptor.retval = libSvPython.get_aq_descriptor_retval(descriptor)
-   #      aq_descriptor.datalen = libSvPython.get_aq_descriptor_datalen(descriptor)
-   #      aq_descriptor.cookie_low = libSvPython.get_aq_descriptor_coockie_low(descriptor)
-   #      aq_descriptor.cookie_high = libSvPython.get_aq_descriptor_cookie_high(descriptor)
-   #      aq_descriptor.addr_low = libSvPython.get_aq_descriptor_addr(descriptor,True)
-   #      aq_descriptor.addr_high = libSvPython.get_aq_descriptor_addr(descriptor,False) 
-    
-   #      if aq_buffer is not None:
-   #          response_buffer = s.unpack(sent_aq_buffer)
-   #          for i in range(0, len(response_buffer)):
-   #              aq_buffer[i] = int(response_buffer[i])
-
-   #      return status
-
-       # def send_aq_command2(self, aq_descriptor, aq_buffer = None):
-    #     '''This function sends AQ command.
-    #         Arguments:
-    #             aq_descriptor - aq command data descriptor with following fields
-    #                 opcode, flags, param0, param1, cookie_high, cookie_low, address_high, address_low, retval, datalen.
-    #                 If one of these fields not set default value is 0.
-    #              aq_buffer - optional buffer for AQ. Refer to EAS for specific command, each value represents byte.
-    #                        If no buffer required pass None, default value is None.
-    #              Responsse from FW will be returned in these arguments.
-    #     '''
-    #     desc_size = libSvPython.get_aq_descriptor_size()
-    #     completion = libSvPython.ByteArray(desc_size)
-
-    #     aq_buffer_size = 0
-    #     sent_aq_buffer = None
-    #     if aq_buffer is not None:            
-    #         aq_buffer_size = len(aq_buffer)
-    #         sent_aq_buffer = libSvPython.ByteArray(aq_buffer_size)
-    #         j = 0
-    #         while j < aq_buffer_size:
-    #             sent_aq_buffer[j] = aq_buffer[j]
-    #             j += 1
-
-
-    #     ret_val = libSvPython.send_adminqueue_command_with_parameters(self._device_string,  aq_descriptor.opcode, aq_descriptor.param0, aq_descriptor.param1, aq_descriptor.addr_high, aq_descriptor.addr_low, sent_aq_buffer, aq_buffer_size, completion)
-                  
-    #     aq_descriptor.flags = libSvPython.get_aq_descriptor_flags(completion)
-    #     aq_descriptor.opcode = libSvPython.get_aq_descriptor_opcode(completion)
-    #     aq_descriptor.param0 = libSvPython.get_aq_descriptor_param0(completion)
-    #     aq_descriptor.param1 = libSvPython.get_aq_descriptor_param1(completion)
-    #     aq_descriptor.retval = libSvPython.get_aq_descriptor_retval(completion)
-    #     aq_descriptor.datalen = libSvPython.get_aq_descriptor_datalen(completion)
-    #     aq_descriptor.cookie_low = libSvPython.get_aq_descriptor_coockie_low(completion)
-    #     aq_descriptor.cookie_high = libSvPython.get_aq_descriptor_cookie_high(completion)
-    #     aq_descriptor.addr_low = libSvPython.get_aq_descriptor_addr(completion,True)
-    #     aq_descriptor.addr_high = libSvPython.get_aq_descriptor_addr(completion,False)                         
-    
-    #     if aq_buffer is not None:                                    
-    #         j = 0
-    #         while j < aq_buffer_size:
-    #             aq_buffer[j] = sent_aq_buffer[j]
-    #             j += 1  
-  # def set_additional_fields(self, **kwargs):
-    #     self._mdio_lock = kwargs['mdio_locker']
-#self._device_string = device_info.driver_specific_id
-        #self._dev_id = device_info.dev_id
-        #self._bdf = device_info.location
-        #self._mdio_lock = None
-        #self._create()
-#        self._mdio_cntrl, self._mdio_data = ProjectsSpecificData.get_mdios_regs(self._project_name)
-#        if self._mdio_cntrl is None:
-#            raise ValueError('Missing data for MDIO registers for project ' + self._project_name)
-
-#        create adapter handle

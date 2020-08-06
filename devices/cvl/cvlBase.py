@@ -21,6 +21,6 @@ class cvlBase:
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
         except Exception as e:
-            print "Driver Creatiot failed"
+            print("Driver Creatiot failed ",str(e))
             sys.exit()
 
