@@ -25,7 +25,7 @@ class cvl(cvlDefines):
         print( "######################################")
         link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
-        print()
+        
         print("Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0))#GetPhyAbility print)
         print("Phy Type: ", link_status_dict['PhyType'])
         print("FEC Type: ", self.GetCurrentFECStatus())

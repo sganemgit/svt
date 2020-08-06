@@ -4,7 +4,7 @@
 from core.drivers.DriverFactory import DriverFactory
 from core.drivers.svdriver.SvDriverCommands import *
 from core.structs.DeviceInfo import DeviceInfo
-
+import sys
 class cvlBase:
     '''
         This class is the base class for CVL classes 
@@ -18,11 +18,9 @@ class cvlBase:
         self.device_number = device_number
         self.port_number = port_number
 	self.hostname = hostname
-        if not check_device_availability(self.project_name, device_number, port_number):
-            print("cvl device {} port {} could not be found".format(device_number,port_number))
-            sys.exit()
-        else:
+        try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
-            if self.driver is None:
-                raise RuntimeError("driver not intialized")
+        except Exception as e:
+            print "Driver Creatiot failed"
+            sys.exit()
 
