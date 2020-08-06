@@ -20,13 +20,15 @@ class cvl(cvlDefines):
         port = driver.port_number()
         device_number = driver.device_number()
         print("######################################")
-        print("CVL port ",port)
-        print("CVL device",device_number)
-        print( "######################################")
+        print("CVL port {}".format(port))
+        print("CVL device {}".format(device_number))
+        print("######################################")
         link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
         
-        print("Phy Types abilities: ", self.GetPhyTypeAbilities(rep_mode = 0))#GetPhyAbility print)
+        print("Phy Types abilities: ")
+        for phy in self.GetPhyTypeAbilities(rep_mode = 0):
+            print(phy)
         print("Phy Type: ", link_status_dict['PhyType'])
         print("FEC Type: ", self.GetCurrentFECStatus())
         print("Mac Link Status: ",link_status_dict['MacLinkStatus'])
@@ -4292,9 +4294,7 @@ class cvl(cvlDefines):
         # addr_low(bytes 28-31) = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        #helper._debug('GetLinkStatus Admin Command')
         data_len = 0x1000
         aq_desc.opcode = opCodes.get_link_status
         aq_desc.datalen = data_len
@@ -4304,7 +4304,6 @@ class cvl(cvlDefines):
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x1200 #Set the buffer and long buffer flags
-        
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print 'Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
@@ -4326,7 +4325,6 @@ class cvl(cvlDefines):
             data['tx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x4) >> 2
             data['rx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x8) >> 3
             data['remote_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x10) >> 4
-
             data['ext_prt_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x20) >> 5
             data['media_avail'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x40) >> 6
             data['sig_det'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x80) >> 7
