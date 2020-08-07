@@ -1,3 +1,8 @@
+
+#--------------------------------------------
+# @author Shady Ganem <shady.ganem@intel.com>
+#--------------------------------------------
+
 import sys
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *

@@ -1,4 +1,9 @@
+
+#--------------------------------------------
 # @author Shady Ganem <shady.ganem@intel.com>
+# @name   SvDriver.py
+#--------------------------------------------
+
 import libSvPython
 import libPyApi
 import libPyAdminqApi
@@ -95,28 +100,18 @@ DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
            'nnt' : ['10fb'],
            'mev' : ['f002']}
 
-class DriverProxy(libPyApi.driver_proxy):
-
-    def __init__(self, device, pf_num, nic_num=None, remote="", vf_num=libPyApi.INVALID_VF):
-        """
-        """
-        if nic_num:
-            super(DriverProxy, self).__init__(device, pf_num, nic_num, remote, vf_num)
-
-        else:
-            super(DriverProxy, self).__init__(device, pf_num, remote, vf_num)
 
 class SvDriver(object):
-    """This class performs all the interface with SV driver)"""
-
+    """
+        This class performs all the interfacing with SV driver
+    """
     def __init__(self, device_info):
         self._project_name = device_info.device_name
-        self._device_number = device_info.device_number
+        self._device_number = int(device_info.device_number)
         self._port_number = int(device_info.port_number)
         self._hostname = device_info.hostname
-        self._driver_proxy = DriverProxy(self._project_name,int(self._port_number), int(self._device_number), self._hostname)
+        self._driver_proxy = libPyApi.driver_proxy(self._project_name,int(self._port_number), int(self._device_number), self._hostname)
         
-
     @classmethod
     def create_driver_by_name(cls, device_name, device_number, port_number, hostname = ""):
         '''This method constructs an SvDriver object
@@ -129,10 +124,7 @@ class SvDriver(object):
         device_info.device_name = device_name
         device_info.device_number = str(device_number)
         device_info.port_number = str(port_number)
-        device_info.dev_id = get_device_id_by_name(device_name, device_number, port_number)
-        device_info.dev_location = get_device_bdf_by_name(device_name,device_number, port_number)
-        device_info.driver_specific_id = get_device_specific_id(device_name,device_number, port_number)
-	device_info.hostname = hostname
+        device_info.hostname = hostname
         return cls(device_info)
 
     def port_number(self):
@@ -149,14 +141,9 @@ class SvDriver(object):
 
     def start_tx(self, **kwargs):                
         '''
-            This method starts TX on ring 0. Parameters can be passed in **kwargs dictionary
+            This method starts TX on ring a given ring. Parameters can be passed in **kwargs dictionary
             as key-value pairs. List of parameters and their default values
-            if not passed in **kwargs:
-                'packet_size' - default value 512            
-                'packets_to_send' - passed value -1 means infinite. Default value infinite 
-
-
-                @input as key = word arguments
+                @skip_ring_cfg
                 @number_of_packets
                 @ring_id
                 @ring_size
@@ -167,10 +154,20 @@ class SvDriver(object):
                 @tx_packet_load_method
                 @op_mode
                 @num_of_desc_per_packet
-                @rs_bit_frequency         
+                @rs_bit_frequency   
+                @operation_mode  
+                @cq_id
+                @time_limit
+                @tx_limit_type    
         '''
-        #TODO use the dict.get method to filling in the values
+        
         skip_ring_cfg = kwargs.get('skip_ring_cfg', False)
+        ring_id = kwargs.get('ring_id', 0)
+        desc_type = kwargs.get('desc_type', TX_DESCRIPTOR_TYPES['ADV_DATA'])
+        tx_packet_load_method = kwargs.get('tx_packet_load_method', TX_PACKET_LOAD_METHOD['AUTO_GENERATE_PACKETS_AND_DESCRIPTORS'])
+        tx_limit_type = kwargs.get('tx_limit_type', 'INFINTE')
+        time_limit = kwargs.get('time_limit', 5)
+        number_of_packets = kwargs.get('number_of_packets', 1000000)
     
         ring_cfg = libPyApi.TxRingConfiguration()
         ring_cfg.packet_size = kwargs.get('packet_size', 512)
@@ -179,18 +176,7 @@ class SvDriver(object):
         ring_cfg.ring_size = kwargs.get('ring_size', 1024)
         ring_cfg.wb_mode = kwargs.get('wb_mode', 0)
         ring_cfg.operation_mode = kwargs.get('operation_mode', 0)
-        # ring_cfg.cq_id = kwargs('cq_id', 1)
-
-        
-        ring_id = kwargs.get('ring_id', 0)
-        desc_type = kwargs.get('desc_type', TX_DESCRIPTOR_TYPES['ADV_DATA'])
-        tx_packet_load_method = kwargs.get('tx_packet_load_method', TX_PACKET_LOAD_METHOD['AUTO_GENERATE_PACKETS_AND_DESCRIPTORS'])
-
-        tx_limit_type = kwargs.get('tx_limit_type', 'INFINTE')
-
-        time_limit = kwargs.get('time_limit', 5)
-        number_of_packets = kwargs.get('number_of_packets', 1000000)
-
+        ring_cfg.cq_id = kwargs.get('cq_id', 1)
 
         rs_bit_frequency = 16
         descSize = 0
@@ -208,7 +194,6 @@ class SvDriver(object):
             raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
 
         tx_options = libPyApi.TxOptions()
-
         
         if tx_limit_type == 'INFINTE':
             tx_options.tx_limit_type = libPyApi.TX_MODE_INFINITE
@@ -218,7 +203,6 @@ class SvDriver(object):
             tx_options.tx_limit_type = libPyApi.TX_MODE_PACKET_COUNT_LIMIT
         else:
             tx_options.tx_limit_type = libPyApi.TX_MODE_FULL_RING
-
 
         status = tx_ring.start_tx(tx_options)
 

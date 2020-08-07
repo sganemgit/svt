@@ -1,3 +1,8 @@
+
+#--------------------------------------------
+# @author Shady Ganem <shady.ganem@intel.com>
+#--------------------------------------------
+
 from core.structs.AqDescriptor import AqDescriptor
 
 class LLDP_AQC:

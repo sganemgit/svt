@@ -1,3 +1,9 @@
+
+#--------------------------------------------
+# @author Shady Ganem <shady.ganem@intel.com>
+#--------------------------------------------
+
+
 class AqDescriptor(object):
     """ This class represents AQ command descriptor. 
         Each field represents relevant bytes in descriptor.
