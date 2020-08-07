@@ -47,3 +47,4 @@ else:
 
 
 cvl1 = cvl(0,0,"ladh444")
+cvl2 = cvl(1,0,"ladh444")

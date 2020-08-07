@@ -57,7 +57,7 @@ class LmChangeProtocol(testBase):
                 log.info("link is up on dut port {}".format(dut.port_number))
                 log.info("link is up on lp port {}".format(lp.port_number))
                 return True
-        log.info("link is down on dut port {} and lp port {}".format(dut.port_number,lp.port_number))
+        log.info("link is down on dut port {} and lp port {}".format(dut.port_number,lp.port_number),'r')
 
     def get_common_protocols(self, dut,lp):
         log = self.log
@@ -75,6 +75,8 @@ class LmChangeProtocol(testBase):
         lp.Reset(reset)
         log.info("performing {} reset on dut".format(reset))
         dut.Reset(reset)
+        if not self.poll_for_link(dut, lp, 15):
+            self.set_test_status('fail')
 
     def configure_link(self, dut,lp,PhyType,FecType):
         log = self.log
@@ -118,8 +120,14 @@ class LmChangeProtocol(testBase):
         log = self.log
 
         pairs = self.pairs
-        
+        for pair in pairs:
+            print 'dut device number = ' , pair['dut'].device_number
+            print 'dut port number = ' , pair['dut'].port_number
+            print 'lp port nuber =' , pair['lp'].device_number
+            print 'lp port number = ', pair['lp'].port_number
 
+        
+        print pairs
         target_protocol = '25GBase-CR'
         target_fec = '25G_RS_528_FEC'
         #target_protocol = self.user_args['protocol']
@@ -137,10 +145,10 @@ class LmChangeProtocol(testBase):
             if target_protocol in common_protocol_list:
                 for protocol in common_protocol_list:
                     log.info('------------------------------------------------------------')
-                    log.info( "                      {}".format(colors.Green(protocol)))
+                    log.info( "                      {}".format(protocol), 'g')
                     if protocol in lp.fec_dict:
                         for fec in lp.fec_dict[protocol]:
-                            log.info("configuting Phy to {}".format(colors.Green(target_protocol)))
+                            log.info("configuting Phy to {}".format(target_protocol), 'g')
                             config_status = self.configure_link(dut,lp,target_protocol,target_fec)
                             if config_status and self.poll_for_link(dut, lp, 15):
                                 log.info("{}:".format(colors.Orange(fec)))
@@ -156,7 +164,4 @@ class LmChangeProtocol(testBase):
                 log.info(colors.Red("protocol {} is not a common protocol between the DUT and LP".format(target_protocol)))
 
 if __name__ == '__main__':
-#    arg = dict()
-#    arg['protocol'] = '25GBase-CR'
-#    arg['fec'] = '25G_RS_544_FEC'
     LmChangeProtocol()

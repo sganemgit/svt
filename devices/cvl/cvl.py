@@ -34,21 +34,21 @@ class cvl(cvlDefines):
         
         print("Phy Types abilities: ")
         for phy in self.GetPhyTypeAbilities(rep_mode = 0):
-            print(phy)
-        print("Phy Type: ", link_status_dict['PhyType'])
-        print("FEC Type: ", self.GetCurrentFECStatus())
-        print("Mac Link Status: ",link_status_dict['MacLinkStatus'])
+            print('        {}'.format(phy))
+        print "Phy Type: ", link_status_dict['PhyType']
+        print "FEC Type: ", self.GetCurrentFECStatus()
+        print "Mac Link Status: ",link_status_dict['MacLinkStatus'] 
         if link_up_flag:
-            print("Mac Link Speed: ",link_status_dict['MacLinkSpeed'])
-            print("Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down')#GetPhyLinkStatus() # ONPI 
-            print("Phy Link Speed: ",self.GetPhyLinkSpeed())
+            print "Mac Link Speed: ",link_status_dict['MacLinkSpeed'] 
+            print "Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down' #GetPhyLinkStatus() # ONPI 
+            print "Phy Link Speed: ",self.GetPhyLinkSpeed() 
             #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
-            print("Enabled FEC: ",link_status_dict['EnabeldFEC'])
-            print("EEE abilities: ",self.GetEEEAbilities(rep_mode = 0)) #GetPhyAbility
-            print()
+            print "Enabled FEC: ", link_status_dict['EnabeldFEC']
+            print "EEE abilities: ", self.GetEEEAbilities(rep_mode = 0) #GetPhyAbility
+            print 
 
-        print("Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed())
-        print("Current PCIe link Width, ",self.GetPCIECurrentLinkWidth())
+        print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
+        print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
 
 ###############################################################################
 #                        Register reading section                             #
