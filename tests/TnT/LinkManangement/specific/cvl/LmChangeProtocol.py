@@ -23,6 +23,7 @@ class LmChangeProtocol(testBase):
         self.check_traffic(dut, lp)
 
     def check_traffic(self, dut, lp):
+        log = self.log
         dut_PTC = dut.GetPTC()
         log.info("DUT MAC transmitted packets counters")
         for key, value in dut_PTC.iteritems():
@@ -113,29 +114,14 @@ class LmChangeProtocol(testBase):
 
     def run(self):
         log = self.log
-        log.info(str(svdt('-s')))
-        log.info(str(svdt('-v')))
-        log.info(str(svdt('-f')))
-        devices = get_detected_devices("cvl")
-        connected_pairs = detect_connected_devices()
-        pairs = list()
-        for pair in connected_pairs:
-           DutLpPair = dict()
-           lpinfo = devices[pair['first']]
-           dutinfo = devices[pair['second']]
-           DutLpPair['lp']  = DeviceFactory.create_device(lpinfo['device_number'], lpinfo['port_number'])
-           DutLpPair['dut'] = DeviceFactory.create_device(dutinfo['device_number'], dutinfo['port_number'])
-           pairs.append(DutLpPair)
 
-        for index, pair in enumerate(pairs):
-            log.info("perfoming globar on pair {}".format(index))
-            self.reset_both_sides(pair['dut'],pair['lp'],'globr')
+        pairs = self.pairs
+        
 
         target_protocol = '25GBase-CR'
-        target_fec = '25G_RS_544_FEC'
+        target_fec = '25G_RS_528_FEC'
         #target_protocol = self.user_args['protocol']
         #target_fec = self.user_args['fec']
-        log.info("this is a log message")
         for index , pair in enumerate(pairs):
             dut = pair['dut']
             lp = pair['lp']
