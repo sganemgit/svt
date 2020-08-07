@@ -124,12 +124,17 @@ class testBase():
             self._test_status = "Pass"
         elif status.lower() == 'fail':
             self._test_status = "Fail"
+        elif status.lower == 'error':
+            self._test_status = "Error"
         else:
             self.log.warning("Trying to set an invalid test status - {}".format(status))
 
     def test_summry(self):
         self.log.info("")
         self.log.info("-----------------------")
-        self.log.info("Test Status: {}".format(self._test_status))
+        if self._test_status == "Pass":
+            self.log.info("Test Status: {}".format(self._test_status,'g'))
+        else:
+            self.log.info("Test Status: {}".format(self._test_status,'r'))
         self.log.info("-----------------------")
         self.log.info("")

@@ -321,10 +321,10 @@ class SvDriver(object):
             raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
         self._driver_proxy.dispose_rx_ring(rx_ring)
            
-    def configure_tx_ring(self, ring, **kwargs):
+    def configure_tx_ring(self, **kwargs):
         pass
 
-    def configure_rx_ring(self, ring, **kwargs):
+    def configure_rx_ring(self, **kwargs):
         pass
 
     def read_pci(self, register_offset):
@@ -354,7 +354,7 @@ class SvDriver(object):
             in 'register_offset' and returns register value.            
         '''
         csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
-        value = csr_block.read_64(register_offset)[1]
+        value = csr_block.read(register_offset)[1]
         self._driver_proxy.dispose_csr_block(csr_block)
         return value
 
@@ -398,14 +398,38 @@ class SvDriver(object):
         if aq_buffer is not None:
             for i in range(aq_descriptor.datalen):
                 aq_buffer_out[i] = aq_buffer[i]
+
         buffer_size = aq_descriptor.datalen
+        if debug_print:
+          print "admin queue desciptor response:\n"
+          # print admin queue desciptor
+          print("flags: %s" % (hex(desc.flags)))
+          print("opcode: %s" % (hex(desc.opcode)))
+          print("param0: %s" % (hex(desc.param0)))
+          print("param1: %s" % (hex(desc.param1)))
+          print("retval: %s" % (desc.retval))
+          print("datalen: %s" % (desc.datalen))
+          print("cookie_low: %s" % (hex(desc.cookie_low)))
+          print("cookie_high: %s" % (hex(desc.cookie_high)))
+          print("addr_low: %s" % (hex(desc.addr_low)))
+          print("addr_high: %s" % (hex(desc.addr_high)))
+
+          print()
+
+          if desc.datalen:
+            print("admin queue buffer: \n")
+            # print admin queue buffer
+            for i in range(desc.datalen):
+                if i > 0 and i % 16 == 0:
+                    sys.stdout.write("\n")
+                sys.stdout.write(hex(aq_buffer_out[i]) + " ")
+            print()
 
         # send command, response will update the desc fields and aq_buffer
         status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, True)
-        print(status)
 
         if debug_print:
-            print "admin queue desciptor:\n"
+            print "admin queue desciptor response:\n"
             # print admin queue desciptor
             print("flags: %s" % (hex(desc.flags)))
             print("opcode: %s" % (hex(desc.opcode)))
@@ -418,17 +442,17 @@ class SvDriver(object):
             print("addr_low: %s" % (hex(desc.addr_low)))
             print("addr_high: %s" % (hex(desc.addr_high)))
 
-            print
+            print()
 
             if desc.datalen:
-                print "admin queue buffer: \n"
+                print("admin queue buffer: \n")
                 # print admin queue buffer
                 for i in range(desc.datalen):
                     if i > 0 and i % 16 == 0:
                         sys.stdout.write("\n")
                     sys.stdout.write(hex(aq_buffer_out[i]) + " ")
+                print()
 
-                print
         aq_descriptor.flags = desc.flags
         aq_descriptor.opcode = desc.opcode
         aq_descriptor.param0 = desc.param0

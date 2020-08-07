@@ -40,7 +40,7 @@ if args.auto:
 	if devices:
 		for device,info in devices.iteritems():
 			globals()[device] = cvl(info['device_number'],info['port_number'])
-if arg.setup:
+if args.setup:
 	print("currently not available")
 else:
 	help()

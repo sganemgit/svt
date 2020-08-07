@@ -88,7 +88,9 @@ class LmChangeProtocol(testBase):
         else:
             log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             dut.SetPhyConfiguration(PhyType,FecType)
-        time.sleep(3)
+        
+
+        self.poll_for_link(dut, lp , 15)
 
         current_dut_phy_type = dut.GetPhyType()
         current_lp_phy_type = lp.GetPhyType()

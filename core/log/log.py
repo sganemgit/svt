@@ -41,6 +41,8 @@ class log:
             print(colors.Red(msg))
         elif color == 'b':
             print(colors.Blue(msg))
+        elif color == 'g':
+            print(colors.Green(msg))
         else:
             print(msg)
         self.logger.info(msg)
@@ -50,15 +52,15 @@ class log:
         self.logger.debug(msg)
 
     def warning(self, msg = ""):
-        print(msg)
+        print(colors.Orange(msg))
         self.logger.warning(msg)
 
     def error(self, msg = ""):
-        print(msg)
+        print(colors.Red(msg))
         self.logger.error(msg)
 
     def critical(self, msg = ""):
-        print(msg)
+        print(colors.Red(msg))
         self.logger.critical(msg)
 
 if __name__ == "__main__":
