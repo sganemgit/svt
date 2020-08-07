@@ -42,7 +42,8 @@ class LmChangeProtocol(testBase):
             log.info("{} = {}".format(key, value))
 
         if dut_PTC['TotalPTC'] != lp_PRC['TotalPRC']:
-            log.info(colors.Red("missed packets on LP"))
+            log.warning(colors.Red("missed packets on LP"))
+
 
         if lp_PTC['TotalPTC'] != dut_PRC['TotalPRC']:
             log.info(colors.Red("missed packets on DUT"))
@@ -88,9 +89,11 @@ class LmChangeProtocol(testBase):
             log.info("setting lp to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             lp.SetPhyConfiguration(PhyType,FecType)
         else:
+            lp.Reset('globr')
+            time.sleep(2)
             log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             dut.SetPhyConfiguration(PhyType,FecType)
-        
+            rawinput('waiting for user')
 
         self.poll_for_link(dut, lp , 15)
 

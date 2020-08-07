@@ -30,7 +30,6 @@ IP_TYPE = {'DEFAULT': libPyApi.IP_DEFAULT,
            'ALL' : libPyApi.IP_ALL,
            'MAX' : libPyApi.IP_MAX}
 
-
 TX_LIMIT_TYPE = {'FULL_RING': libPyApi.TX_MODE_FULL_RING,
                  'PACKET_COUNT': libPyApi.TX_MODE_PACKET_COUNT_LIMIT,
                  'TIME': libPyApi.TX_MODE_TIME_LIMIT,
@@ -170,15 +169,15 @@ class SvDriver(object):
                 @desc_type
                 @wb_mode
                 @tx_packet_load_method
-                @op_mode
                 @num_of_desc_per_packet
                 @rs_bit_frequency   
                 @operation_mode  
                 @cq_id
                 @time_limit
                 @tx_limit_type - options: FULL_RING, PACKET_COUNT, TIME, INFINTE
-                @dest_mac_enable
-                @
+                @dest_mac_enable - curntly not supported
+                @src_mac_enable - curently not supported
+                @vlan_tag_enable - not supported
         '''
         
         skip_ring_cfg = kwargs.get('skip_ring_cfg', False)
@@ -188,7 +187,8 @@ class SvDriver(object):
         tx_limit_type = kwargs.get('tx_limit_type', 'INFINTE')
         time_limit = kwargs.get('time_limit', 5)
         number_of_packets = kwargs.get('number_of_packets', 1000000)
-    
+        rs_bit_frequency = kwargs.get('rs_bit_frequency', 16)
+
         ring_cfg = libPyApi.TxRingConfiguration()
         ring_cfg.packet_size = kwargs.get('packet_size', 512)
         ring_cfg.packet_type = kwargs.get('tx_packet_type', TX_PACKET_TYPES['L2_DRIVER_PACKET'])
@@ -211,17 +211,13 @@ class SvDriver(object):
         if ring_cfg.vlan_tag_enable:
             ring_cfg.vlan_tag = kwargs.get('vlan_tag',ring_cfg.vlan_tag)
 
-        rs_bit_frequency = 16
-        descSize = 0
-        step = 0
-
         tx_ring = self._driver_proxy.get_tx_ring(ring_id)
 
         if not tx_ring:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(libPyApi.ERROR_RING_NOT_ALLOCATED))
 
         if not skip_ring_cfg:
-            status = tx_ring.configure_tx_ring_with_properties(ring_cfg)
+            status = tx_ring.configure_tx_ring(ring_cfg)
 
         if status != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(status))

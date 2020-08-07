@@ -10,9 +10,9 @@ from cvlBase import cvlBase
 class cvlDefines(cvlBase):
 
     fec_dict = {"400G-AUI8": ['25G_RS_544_FEC'],
-                "400G-AUI8-AOC-ACC":['25G_RS_544_FEC']
-                "400GBase-DR4":['25G_RS_544_FEC']
-                "400GBase-LR8":['25G_RS_544_FEC']
+                "400G-AUI8-AOC-ACC":['25G_RS_544_FEC'],
+                "400GBase-DR4":['25G_RS_544_FEC'],
+                "400GBase-LR8":['25G_RS_544_FEC'],
                 "400GBase-FR8":['25G_RS_544_FEC'],
                 "200G-AUI8":['25G_RS_544_FEC'],
                 "200G-AUI8-AOC-ACC":['25G_RS_544_FEC'],
