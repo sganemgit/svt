@@ -135,6 +135,6 @@ class testBase():
         if self._test_status == "Pass":
             self.log.info("Test Status: {}".format(self._test_status),'g')
         else:
-            self.log.info("Test Status: {}".format(self._test_status,'r'))
+            self.log.info("Test Status: {}".format(self._test_status),'r')
         self.log.info("-----------------------")
         self.log.info("")

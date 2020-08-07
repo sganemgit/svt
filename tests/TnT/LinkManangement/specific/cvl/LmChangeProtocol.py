@@ -51,15 +51,18 @@ class LmChangeProtocol(testBase):
 
     def poll_for_link(self, dut, lp, timeout):
         log = self.log
+        start_time = time.time()
         end_time = time.time() + timeout
         while time.time() < end_time:
             dut_link = dut.GetMacLinkStatus()
             lp_link = lp.GetMacLinkStatus()
             if dut_link == 1  and lp_link == 1:
+                log.info("TTL = {}".format(time.time() - start_time))
                 log.info("link is up on dut port {}".format(dut.port_number))
                 log.info("link is up on lp port {}".format(lp.port_number))
                 return True
         log.info("link is down on dut port {} and lp port {}".format(dut.port_number,lp.port_number),'r')
+        return False
 
     def get_common_protocols(self, dut,lp):
         log = self.log
@@ -94,41 +97,36 @@ class LmChangeProtocol(testBase):
             log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             dut.SetPhyConfiguration(PhyType,FecType)
 
-        self.poll_for_link(dut, lp , 15)
-        time.sleep(3)
-        current_dut_phy_type = dut.GetPhyType()
-        current_lp_phy_type = lp.GetPhyType()
+        if self.poll_for_link(dut, lp , 15):
+            time.sleep(3)
+            current_dut_phy_type = dut.GetPhyType()
+            current_lp_phy_type = lp.GetPhyType()
 
-        if current_dut_phy_type != PhyType:
-            log.info(colors.Red("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType)))
-            link_configuratio_status_flag = False
-        if current_lp_phy_type != PhyType:
-            log.info(colors.Red("LP Phy Type is {} Expected to be {}".format(current_lp_phy_type, PhyType)))
-            link_configuratio_status_flag = False
-            raw_input()
+            if current_dut_phy_type != PhyType:
+                log.info(colors.Red("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType)))
+                link_configuratio_status_flag = False
+            if current_lp_phy_type != PhyType:
+                log.info(colors.Red("LP Phy Type is {} Expected to be {}".format(current_lp_phy_type, PhyType)))
+                link_configuratio_status_flag = False
 
-        current_dut_fec = dut.GetCurrentFECStatus()
-        current_lp_fec = lp.GetCurrentFECStatus()
+            current_dut_fec = dut.GetCurrentFECStatus()
+            current_lp_fec = lp.GetCurrentFECStatus()
 
-        if current_dut_fec != FecType:
-            log.info(colors.Red("DUT FEC is {} Expected to be {}".format(current_dut_fec,FecType)))
+            if current_dut_fec != FecType:
+                log.info(colors.Red("DUT FEC is {} Expected to be {}".format(current_dut_fec,FecType)))
+                link_configuratio_status_flag = False
+            if current_lp_fec != FecType:
+                log.info(colors.Red("LP FEC is {} Expected to be {}".format(current_lp_fec, FecType)))
+                link_configuratio_status_flag = False
+                raw_input()
+        else:
             link_configuratio_status_flag = False
-        if current_lp_fec != FecType:
-            log.info(colors.Red("LP FEC is {} Expected to be {}".format(current_lp_fec, FecType)))
-            link_configuratio_status_flag = False
-
         return link_configuratio_status_flag
 
     def run(self):
         log = self.log
 
         pairs = self.pairs
-        for pair in pairs:
-            print 'dut device number = ' , pair['dut'].device_number
-            print 'dut port number = ' , pair['dut'].port_number
-            print 'lp port number =' , pair['lp'].device_number
-            print 'lp port number = ', pair['lp'].port_number
-
         target_protocol = '25GBase-CR'
         target_fec = '25G_RS_528_FEC'
         #target_protocol = self.user_args['protocol']
@@ -151,10 +149,10 @@ class LmChangeProtocol(testBase):
                         for fec in lp.fec_dict[protocol]:
                             log.info("configuting Phy to {}".format(target_protocol), 'g')
                             config_status = self.configure_link(dut,lp,target_protocol,target_fec)
-                            if config_status and self.poll_for_link(dut, lp, 15):
+                            if config_status :
                                 log.info("{}:".format(colors.Orange(fec)))
                                 config_status = self.configure_link(dut, lp, protocol, fec)
-                            if config_status and self.poll_for_link(dut,lp,15):
+                            if config_status :
                                 self.run_traffic(dut,lp,10)
                             else:
                                 log.info("link is not configured")
