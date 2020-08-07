@@ -60,6 +60,17 @@ TX_DESCRIPTOR_TYPES = {'ADV_CONTEXT': libPyApi.TXDT_ADV_CONTEXT,
                        'FLEX_DATA': libPyApi.TXDT_FLEX_DATA,
                        'LEGACY': libPyApi.TXDT_LEGACY}
 
+RX_DESCRIPTOR_TYPES ={"LEGACY": libPyApi.RXDT_LEGACY,
+                      "ONE_BUFFER": libPyApi.RXDT_ADV_ONE_BUFFER,
+                      "HDR_SPLIT": libPyApi.RXDT_ADV_HDR_SPLIT,
+                      "HDR_REPLIC": libPyApi.RXDT_ADV_HDR_REPLIC,
+                      "HDR_REPLIC_LONG": libPyApi.RXDT_ADV_HDR_REPLIC_LONG,
+                      "HDR_SPLIT_ALWAYS_USE_HEADER_BUFF": libPyApi.RXDT_ADV_HDR_SPLIT_ALWAYS_USE_HEADER_BUFF,
+                      "HDR_SPLIT_SMALL_LARGE": libPyApi.RXDT_ADV_HDR_SPLIT_SMALL_LARGE,
+                      "FLEX": libPyApi.RXDT_FLEX
+
+}
+
 TX_WB_MODE = {'SV_DD_BIT_WB_MODE': libPyApi.SV_DD_BIT_WB_MODE,
               'SV_HEAD_WB_MODE' : libPyApi.SV_HEAD_WB_MODE,
               'SV_PUSH_MODE' : libPyApi.SV_PUSH_MODE,
@@ -72,6 +83,11 @@ TX_PACKET_LOAD_METHOD = {'AUTO_GENERATE_DESCRIPTORS': libPyApi.TPLM_AUTO_GENERAT
                          'AUTO_GENERATE_PACKETS_AND_DESCRIPTORS_WITH_PARAMS' : libPyApi.TPLM_AUTO_GENERATE_PACKETS_AND_DESCRIPTORS_WITH_PARAMS, 
                          'DESCRIPTORS_GENERATED_EXTERNALLY' : libPyApi.TPLM_DESCRIPTORS_GENERATED_EXTERNALLY,
                          'DESCRIPTORS_GENERATED_EXTERNALLY_REMOTELY' : libPyApi.TPLM_DESCRIPTORS_GENERATED_EXTERNALLY_REMOTELY }
+
+MALICIOUS_MODE = {"NONE": libPyApi.MALICIOUS_NONE,
+                  "NO_EOP": libPyApi.MALICIOUS_NO_EOP,
+                  "TXADDR": libPyApi.MALICIOUS_TXADDR,
+                  "TXLEN": libPyApi.MALICIOUS_TXLEN}
 
 QUEUE_OPERATION_MODE = {'SV': libPyApi.QOM_SV ,
                         'QAV': libPyApi.QOM_QAV,
@@ -100,6 +116,8 @@ DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
            'nnt' : ['10fb'],
            'mev' : ['f002']}
 
+DESC_SIZE = {16: libPyApi.RXDS_16_BYTES,
+             32: libPyApi.RXDS_32_BYTES}
 
 class SvDriver(object):
     """
@@ -158,7 +176,9 @@ class SvDriver(object):
                 @operation_mode  
                 @cq_id
                 @time_limit
-                @tx_limit_type    
+                @tx_limit_type - options: FULL_RING, PACKET_COUNT, TIME, INFINTE
+                @dest_mac_enable
+                @
         '''
         
         skip_ring_cfg = kwargs.get('skip_ring_cfg', False)
@@ -177,6 +197,19 @@ class SvDriver(object):
         ring_cfg.wb_mode = kwargs.get('wb_mode', 0)
         ring_cfg.operation_mode = kwargs.get('operation_mode', 0)
         ring_cfg.cq_id = kwargs.get('cq_id', 1)
+
+
+        ring_cfg.dest_mac_enable = kwargs.get('dest_mac_enable', 0)
+        if ring_cfg.dest_mac_enable:
+            ring_cfg.dest_mac = kwargs.get('dest_mac', ring_cfg.dest_mac)
+
+        ring_cfg.src_mac_enable = kwargs.get('src_mac_enable', 0)
+        if ring_cfg.src_mac_enable:
+            ring_cfg.src_mac = kwargs.get('src_mac', ring_cfg.src_mac)
+
+        ring_cfg.vlan_tag_enable = kwargs.get('vlan_tag_enable', 0)
+        if ring_cfg.vlan_tag_enable:
+            ring_cfg.vlan_tag = kwargs.get('vlan_tag',ring_cfg.vlan_tag)
 
         rs_bit_frequency = 16
         descSize = 0
@@ -201,7 +234,10 @@ class SvDriver(object):
             tx_options.tx_limit_type = libPyApi.TX_MODE_TIME_LIMIT
         elif tx_limit_type == 'PACKET_COUNT':
             tx_options.tx_limit_type = libPyApi.TX_MODE_PACKET_COUNT_LIMIT
+        elif tx_limit_type == 'FULL_RING':
+            tx_options.tx_limit_type = libPyApi.TX_MODE_FULL_RING
         else:
+            print("invalid limit using FULL_RING")
             tx_options.tx_limit_type = libPyApi.TX_MODE_FULL_RING
 
         status = tx_ring.start_tx(tx_options)
@@ -229,43 +265,61 @@ class SvDriver(object):
 
     def start_rx(self, **kwargs):
         '''
-        This method starts RX on ring 0.       
-        '''    
-        ringId = 0        
-        rxringSize = 8160
-        rxbuffSize = 2048
-        rxhdrSize = 256        
-        rxdescType = "ADV_ONE_BUFFER"                
-        rxqueueOpMode = 0
-        descsPerPacket = 1        
-        descSize = 0 #0 - 16 byte descriptor, 1 - 32 byte descirptor
+            This method starts TX on ring a given ring. Parameters can be passed in **kwargs dictionary
+            as key-value pairs. List of parameters and their default values
+                @buffer_size
+                @ring_id
+                @ring_size
+                @packet_size
+                @desc_type
+                @op_mode
+                @num_of_desc_per_packet   
+                @operation_mode  
+        '''
+        ring_id = kwargs.get('ring_id', 0)
 
-        if self._project_name == 'rrc':
-            descSize = 1 # 32 byte
+        ring_cfg = libPyApi.RxRingProperties()
+        ring_cfg.desc_count = kwargs.get('desc_count', 128)
+        ring_cfg.desc_type = kwargs.get('desc_type', RX_DESCRIPTOR_TYPES['ONE_BUFFER'])
+        ring_cfg.desc_size = kwargs.get('desc_size', DESC_SIZE[32])
+        ring_cfg.buffer_size = kwargs.get('buffer_size', 2048)
+        ring_cfg.hdr_size = kwargs.get('hdr_size', 128)
+        ring_cfg.operation_mode = kwargs.get('operation_mode', QUEUE_OPERATION_MODE['DEFAULT'])
+        ring_cfg.srrctl_index = int("0xFFFF", 16)
+        ring_cfg.malicious_mode = kwargs.get('malicious_mode',MALICIOUS_MODE['NONE'])
+        ring_cfg.mirroring_replication = False
 
-        status = libSvPython.set_rx_ring_c(self._device_string, ringId, rxringSize, rxbuffSize, rxdescType, descSize, rxhdrSize, rxqueueOpMode)
-        if (status != libSvPython.ERROR_STATUS_OK):
-            raise RuntimeError("Error configuring Rx ring on {}, driver returned {}".format(self._device_string, status))
-       
-        status = libSvPython.start_rx_infinite_c(self._device_string, ringId)
-        if (status != libSvPython.ERROR_STATUS_OK):
-            raise RuntimeError("Error starting Rx on {}, driver returned {}".format(self._device_string, status))
+        rx_ring = self._driver_proxy.get_rx_ring(ring_id)
 
-        status = libSvPython.enable_rx_promiscuous_filter(self._device_string)
-        if (status != libSvPython.ERROR_STATUS_OK):
-            raise RuntimeError("Error setting promiscuous filter on {}, driver returned {}".format(self._device_string, status))
-                    
-        pass
+        if not rx_ring:
+            raise RuntimeError(self._driver_proxy.driver_error_to_string(libPyApi.ERROR_RING_NOT_ALLOCATED))
 
-    def stop_rx(self):
+        status = rx_ring.configure_rx_ring(ring_cfg)
+
+        if status != libPyApi.ERROR_STATUS_OK:
+            raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
+
+        status = rx_ring.start_rx()
+
+        if status != libPyApi.ERROR_STATUS_OK:
+            raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
+
+        self._driver_proxy.dispose_rx_ring(rx_ring)
+
+    def stop_rx(self, **kwargs):
         '''
         This method stops RX on ring 0.
         '''        
-        ringId = 0
-        status = libSvPython.stop_rx_c(self._device_string, ringId)
-        if (status != libSvPython.ERROR_STATUS_OK):
-            raise RuntimeError("Error stopping Rx on {}, driver returned {}".format(self._device_string, status))
-        pass
+        ring_id = kwargs.get('ring_id', 0)
+        rx_ring = self._driver_proxy.get_rx_ring(ring_id)
+        if not rx_ring:
+            raise RuntimeError(self._driver_proxy.driver_error_to_string(libPyApi.ERROR_RING_NOT_ALLOCATED))
+
+        status = rx_ring.stop_rx()
+
+        if (status != libPyApi.ERROR_STATUS_OK):
+            raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
+        self._driver_proxy.dispose_rx_ring(rx_ring)
            
     def configure_tx_ring(self, ring, **kwargs):
         pass
@@ -428,9 +482,9 @@ class SvDriver(object):
             reset_type_value = libPyApi.DRT_MEV_IMC_RESET
         else:
             raise RuntimeError("Unsupported reset type " + reset_type)
-        dcfg = self._driver_proxy.cfg()
-        result = dcfg.reset_device()
-        self._driver_proxy.dispose_driver_config(dcfg)
+        driver_cfg = self._driver_proxy.cfg()
+        result = driver_cfg.reset_device()
+        self._driver_proxy.dispose_driver_config(driver_cfg)
         if result != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(result))
 

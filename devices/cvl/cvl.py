@@ -9,8 +9,8 @@ from core.utilities.BitManipulation import *
 from temp import *
 import time
 
-from cvlBase import cvlBase
 from cvlDefines import *
+
 class cvl(cvlDefines):
     'This class contains all the methods to interface with a cvl pf'
     def info(self, advance = False, Location = "AQ"):
@@ -168,7 +168,6 @@ class cvl(cvlDefines):
 
         PTC_Dict['GetPTC64']   = _GetPTC64
         PTC_Dict['GetPTC127']  = _GetPTC127
-
         PTC_Dict['GetPTC511']  = _GetPTC511
         PTC_Dict['GetPTC1023'] = _GetPTC1023
         PTC_Dict['GetPTC1522'] = _GetPTC1522

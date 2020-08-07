@@ -6,8 +6,9 @@
 import sys
 import os
 from cvlBase import cvlBase
-###################
+
 class cvlDefines(cvlBase):
+
     fec_dict = {'10GBase-SR': ['NO_FEC'],
                 '10GBase-LR': ['NO_FEC'],
                 '10GBase-KR': ['10G_KR_FEC','NO_FEC'],
@@ -111,7 +112,7 @@ class cvlDefines(cvlBase):
                            10:"100G"}
 
 
-    #TODO check if this dicts relevant for CVL_eth
+    #TODO check if this dicts are relevant
     Mac_link_statistic_dict = {}
     Phy_link_statistic_dict = {}
 
@@ -130,27 +131,218 @@ class cvlDefines(cvlBase):
                                  75:"200G-AUI4-AOC-ACC",
                                  74:"200GBase-KR4-PAM4",
                                  73:"200GBase-DR4",
-                                 72:"200GBase-LR4",71:"200GBase-FR4",70:"200GBase-SR4",69:"200GBase-CR4-PAM4",68:"100G-AUI2",67:"100G-AUI2-AOC-ACC",66:"100G-CAUI2",65:"100G-CAUI2-AOC-ACC",64:"100GBase-KR2-PAM4",63:"100GBase-DR",62:"100GBase-SR2",61:"100GBase-CP2",60:"100GBase-KR-PAM4",59:"100GBase-CR-PAM4",58:"100G-AUI4",57:"100G-AUI4-AOC-ACC",56:"100G-CAUI4",55:"100G-CAUI4-AOC-ACC",54:"100GBase-KR4",53:"100GBase-LR4",52:"100GBase-SR4",51:"100GBase-CR4",50:"50G-AUI1",49:"50G-AUI1-AOC-ACC" ,48:"50GBase-KR-PAM4",47:"50GBase-LR",46:"50GBase-FR",45:"50GBase-SR",44:"50GBase-CP",43:"50G-AUI2",42:"50G-AUI2-AOC-ACC",41:"50G-LAUI2",40:"50G-LAUI2-AOC-ACC",39:"50GBase-KR2",38:"50GBase-LR2",37:"50GBase-SR2",36:"50GBase-CR2",35:"40G-XLAUI",34:"40G-XLAUI-AOC-ACC",33:"40GBase-KR4",32:"40GBase-LR4",31:"40GBase-SR4",30:"40GBase-CR4",29:"25G-AUI-C2C",28:"25G-AUI-AOC-ACC",27:"25GBase-KR1",26:"25GBase-KR-S",25:"25GBase-KR",24:"25GBase-LR",23:"25GBase-SR",22:"25GBase-CR1",21:"25GBase-CR-S",20:"25GBase-CR",19:"25GBase-T",18:"10G-SFI-C2C",17:"10G-SFI-AOC-ACC",16:"10GBase-KR-CR1",15:"10GBase-LR",14:"10GBase-SR",13:"10G-SFI-DA",12:"10GBase-T",11:"5GBase-KR",10:"5GBase-T",9:"2.5GBase-KX",8:"2.5GBase-X",7:"2.5GBase-T",6:"1G-SGMII",5:"1000Base-KX",4:"1000Base-LX",3:"1000Base-SX",2:"1000Base-T",1:"100M-SGMII",0:"100Base-TX"}
-    get_Ability_EEE_dict = {10:"EEEen100GBase-KR2-PAM4",9:"EEEen100GBase-KR4",8:"EEEen50GBase-KR-PAM4",7:"EEEen50GBase-KR2",6:"EEEen40GBase-KR4",5:"EEEen25GBase-KR",4:"EEEen10GBase-KR",3:"EEEen1000Base-KX",2:"EEEen10GBase-T",1:"EEEen1000Base-T",0:"EEEen100Base-TX"}
-    get_Ability_FEC_dict = {7:"25G_KR_FEC_abil",6:"25G_RS_528_FEC_abil",5:"Reserved",4:"25G_RS_544_FEC_req",3:"25G_KR_FEC_req",2:"25G_RS_528_FEC_req",1:"10G_KR_FEC_req",0:"10G_KR_FEC_abil"}
+                                 72:"200GBase-LR4",
+                                 71:"200GBase-FR4",
+                                 70:"200GBase-SR4",
+                                 69:"200GBase-CR4-PAM4",
+                                 68:"100G-AUI2",
+                                 67:"100G-AUI2-AOC-ACC",
+                                 66:"100G-CAUI2",
+                                 65:"100G-CAUI2-AOC-ACC",
+                                 64:"100GBase-KR2-PAM4",
+                                 63:"100GBase-DR",
+                                 62:"100GBase-SR2",
+                                 61:"100GBase-CP2",
+                                 60:"100GBase-KR-PAM4",
+                                 59:"100GBase-CR-PAM4",
+                                 58:"100G-AUI4",
+                                 57:"100G-AUI4-AOC-ACC",
+                                 56:"100G-CAUI4",
+                                 55:"100G-CAUI4-AOC-ACC",
+                                 54:"100GBase-KR4",
+                                 53:"100GBase-LR4",
+                                 52:"100GBase-SR4",
+                                 51:"100GBase-CR4",
+                                 50:"50G-AUI1",
+                                 49:"50G-AUI1-AOC-ACC",
+                                 48:"50GBase-KR-PAM4",
+                                 47:"50GBase-LR",
+                                 46:"50GBase-FR",
+                                 45:"50GBase-SR",
+                                 44:"50GBase-CP",
+                                 43:"50G-AUI2",
+                                 42:"50G-AUI2-AOC-ACC",
+                                 41:"50G-LAUI2",
+                                 40:"50G-LAUI2-AOC-ACC",
+                                 39:"50GBase-KR2",
+                                 38:"50GBase-LR2",
+                                 37:"50GBase-SR2",
+                                 36:"50GBase-CR2",
+                                 35:"40G-XLAUI",
+                                 34:"40G-XLAUI-AOC-ACC",
+                                 33:"40GBase-KR4",
+                                 32:"40GBase-LR4",
+                                 31:"40GBase-SR4",
+                                 30:"40GBase-CR4",
+                                 29:"25G-AUI-C2C",
+                                 28:"25G-AUI-AOC-ACC",
+                                 27:"25GBase-KR1",
+                                 26:"25GBase-KR-S",
+                                 25:"25GBase-KR",
+                                 24:"25GBase-LR",
+                                 23:"25GBase-SR",
+                                 22:"25GBase-CR1",
+                                 21:"25GBase-CR-S",
+                                 20:"25GBase-CR",
+                                 19:"25GBase-T",
+                                 18:"10G-SFI-C2C",
+                                 17:"10G-SFI-AOC-ACC",
+                                 16:"10GBase-KR-CR1",
+                                 15:"10GBase-LR",
+                                 14:"10GBase-SR",
+                                 13:"10G-SFI-DA",
+                                 12:"10GBase-T",
+                                 11:"5GBase-KR",
+                                 10:"5GBase-T",
+                                 9:"2.5GBase-KX",
+                                 8:"2.5GBase-X",
+                                 7:"2.5GBase-T",
+                                 6:"1G-SGMII",
+                                 5:"1000Base-KX",
+                                 4:"1000Base-LX",
+                                 3:"1000Base-SX",
+                                 2:"1000Base-T",
+                                 1:"100M-SGMII",
+                                 0:"100Base-TX"}
 
+    get_Ability_EEE_dict = {10:"EEEen100GBase-KR2-PAM4",
+                            9:"EEEen100GBase-KR4",
+                            8:"EEEen50GBase-KR-PAM4",
+                            7:"EEEen50GBase-KR2",
+                            6:"EEEen40GBase-KR4",
+                            5:"EEEen25GBase-KR",
+                            4:"EEEen10GBase-KR",
+                            3:"EEEen1000Base-KX",
+                            2:"EEEen10GBase-T",
+                            1:"EEEen1000Base-T",
+                            0:"EEEen100Base-TX"}
 
-
-
-
-
+    get_Ability_FEC_dict = {7:"25G_KR_FEC_abil",
+                            6:"25G_RS_528_FEC_abil",
+                            5:"Reserved",
+                            4:"25G_RS_544_FEC_req",
+                            3:"25G_KR_FEC_req",
+                            2:"25G_RS_528_FEC_req",
+                            1:"10G_KR_FEC_req",
+                            0:"10G_KR_FEC_abil"}
 
     ## AQ 0x601 Set PHY config ####
 
-    set_Ability_PhyType_dict = {"400G-AUI8":83,"400G-AUI8-AOC-ACC":82,"400GBase-DR4":81,"400GBase-LR8":80,"400GBase-FR8":79,"200G-AUI8":78,"200G-AUI8-AOC-ACC":77,"200G-AUI4":76,"200G-AUI4-AOC-ACC":75,"200GBase-KR4-PAM4":74,"200GBase-DR4":73,"200GBase-LR4":72,"200GBase-FR4":71,"200GBase-SR4":70,"200GBase-CR4-PAM4":69,"100G-AUI2":68,"100G-AUI2-AOC-ACC":67,"100G-CAUI2":66,"100G-CAUI2-AOC-ACC":65,"100GBase-KR2-PAM4":64,"100GBase-DR":63,"100GBase-SR2":62,"100GBase-CP2":61,"100GBase-KR-PAM4":60,"100GBase-CR-PAM4":59,"100G-AUI4":58,"100G-AUI4-AOC-ACC":57,"100G-CAUI4":56,"100G-CAUI4-AOC-ACC":55,"100GBase-KR4":54,"100GBase-LR4":53,"100GBase-SR4":52,"100GBase-CR4":51,"50G-AUI1":50,"50G-AUI1-AOC-ACC":49,"50GBase-KR-PAM4":48,"50GBase-LR":47,"50GBase-FR":46,"50GBase-SR":45,"50GBase-CP":44,"50G-AUI2":43,"50G-AUI2-AOC-ACC":42,"50G-LAUI2":41,"50G-LAUI2-AOC-ACC":40,"50GBase-KR2":39,"50GBase-LR2":38,"50GBase-SR2":37,"50GBase-CR2":36,"40G-XLAUI":35,"40G-XLAUI-AOC-ACC":34,"40GBase-KR4":33,"40GBase-LR4":32,"40GBase-SR4":31,"40GBase-CR4":30,"25G-AUI-C2C":29,"25G-AUI-AOC-ACC":28,"25GBase-KR1":27,"25GBase-KR-S":26,"25GBase-KR":25,"25GBase-LR":24,"25GBase-SR":23,"25GBase-CR1":22,"25GBase-CR-S":21,"25GBase-CR":20,"25GBase-T":19,"10G-SFI-C2C":18,"10G-SFI-AOC-ACC":17,"10GBase-KR-CR1":16,"10GBase-LR":15,"10GBase-SR":14,"10G-SFI-DA":13,"10GBase-T":12,"5GBase-KR":11,"5GBase-T":10,"2.5GBase-KX":9,"2.5GBase-X":8,"2.5GBase-T":7,"1G-SGMII":6,"1000Base-KX":5,"1000Base-LX":4,"1000Base-SX":3,"1000Base-T":2,"100M-SGMII":1,"100Base-TX":0}
+    set_Ability_PhyType_dict = {"400G-AUI8":83,
+                                "400G-AUI8-AOC-ACC":82,
+                                "400GBase-DR4":81,
+                                "400GBase-LR8":80,
+                                "400GBase-FR8":79,
+                                "200G-AUI8":78,
+                                "200G-AUI8-AOC-ACC":77,
+                                "200G-AUI4":76,
+                                "200G-AUI4-AOC-ACC":75,
+                                "200GBase-KR4-PAM4":74,
+                                "200GBase-DR4":73,
+                                "200GBase-LR4":72,
+                                "200GBase-FR4":71,
+                                "200GBase-SR4":70,
+                                "200GBase-CR4-PAM4":69,
+                                "100G-AUI2":68,
+                                "100G-AUI2-AOC-ACC":67,
+                                "100G-CAUI2":66,
+                                "100G-CAUI2-AOC-ACC":65,
+                                "100GBase-KR2-PAM4":64,
+                                "100GBase-DR":63,
+                                "100GBase-SR2":62,
+                                "100GBase-CP2":61,
+                                "100GBase-KR-PAM4":60,
+                                "100GBase-CR-PAM4":59,
+                                "100G-AUI4":58,
+                                "100G-AUI4-AOC-ACC":57,
+                                "100G-CAUI4":56,
+                                "100G-CAUI4-AOC-ACC":55,
+                                "100GBase-KR4":54,
+                                "100GBase-LR4":53,
+                                "100GBase-SR4":52,
+                                "100GBase-CR4":51,
+                                "50G-AUI1":50,
+                                "50G-AUI1-AOC-ACC":49,
+                                "50GBase-KR-PAM4":48,
+                                "50GBase-LR":47,
+                                "50GBase-FR":46,
+                                "50GBase-SR":45,
+                                "50GBase-CP":44,
+                                "50G-AUI2":43,
+                                "50G-AUI2-AOC-ACC":42,
+                                "50G-LAUI2":41,
+                                "50G-LAUI2-AOC-ACC":40,
+                                "50GBase-KR2":39,
+                                "50GBase-LR2":38,
+                                "50GBase-SR2":37,
+                                "50GBase-CR2":36,
+                                "40G-XLAUI":35,
+                                "40G-XLAUI-AOC-ACC":34,
+                                "40GBase-KR4":33,
+                                "40GBase-LR4":32,
+                                "40GBase-SR4":31,
+                                "40GBase-CR4":30,
+                                "25G-AUI-C2C":29,
+                                "25G-AUI-AOC-ACC":28,
+                                "25GBase-KR1":27,
+                                "25GBase-KR-S":26,
+                                "25GBase-KR":25,
+                                "25GBase-LR":24,
+                                "25GBase-SR":23,
+                                "25GBase-CR1":22,
+                                "25GBase-CR-S":21,
+                                "25GBase-CR":20,
+                                "25GBase-T":19,
+                                "10G-SFI-C2C":18,
+                                "10G-SFI-AOC-ACC":17,
+                                "10GBase-KR-CR1":16,
+                                "10GBase-LR":15,
+                                "10GBase-SR":14,
+                                "10G-SFI-DA":13,
+                                "10GBase-T":12,
+                                "5GBase-KR":11,
+                                "5GBase-T":10,
+                                "2.5GBase-KX":9,
+                                "2.5GBase-X":8,
+                                "2.5GBase-T":7,
+                                "1G-SGMII":6,
+                                "1000Base-KX":5,
+                                "1000Base-LX":4,
+                                "1000Base-SX":3,
+                                "1000Base-T":2,
+                                "100M-SGMII":1,
+                                "100Base-TX":0}
     #set_Ability_PhyType_dict = {83:"400G-AUI8",82:"400G-AUI8-AOC-ACC",81:"400GBase-DR4",80:"400GBase-LR8",79:"400GBase-FR8",78:"200G-AUI8",77:"200G-AUI8-AOC-ACC",76:"200G-AUI4",75:"200G-AUI4-AOC-ACC",74:"200GBase-KR4-PAM4",73:"200GBase-DR4",72:"200GBase-LR4",71:"200GBase-FR4",70:"200GBase-SR4",69:"200GBase-CR4-PAM4",68:"100G-AUI2",67:"100G-AUI2-AOC-ACC",66:"100G-CAUI2",65:"100G-CAUI2-AOC-ACC",64:"100GBase-KR2-PAM4",63:"100GBase-DR",62:"100GBase-SR2",61:"100GBase-CP2",60:"100GBase-KR-PAM4",59:"100GBase-CR-PAM4",58:"100G-AUI4",57:"100G-AUI4-AOC-ACC",56:"100G-CAUI4",55:"100G-CAUI4-AOC-ACC",54:"100GBase-KR4",53:"100GBase-LR4",52:"100GBase-SR4",51:"100GBase-CR4",50:"50G-AUI1",49:"50G-AUI1-AOC-ACC" ,48:"50GBase-KR-PAM4",47:"50GBase-LR",46:"50GBase-FR",45:"50GBase-SR",44:"50GBase-CP",43:"50G-AUI2",42:"50G-AUI2-AOC-ACC",41:"50G-LAUI2",40:"50G-LAUI2-AOC-ACC",39:"50GBase-KR2",38:"50GBase-LR2",37:"50GBase-SR2",36:"50GBase-CR2",35:"40G-XLAUI",34:"40G-XLAUI-AOC-ACC",33:"40GBase-KR4",32:"40GBase-LR4",31:"40GBase-SR4",30:"40GBase-CR4",29:"25G-AUI-C2C",28:"25G-AUI-AOC-ACC",27:"25GBase-KR1",26:"25GBase-KR-S",25:"25GBase-KR",24:"25GBase-LR",23:"25GBase-SR",22:"25GBase-CR1",21:"25GBase-CR-S",20:"25GBase-CR",19:"25GBase-T",18:"10G-SFI-C2C",17:"10G-SFI-AOC-ACC",16:"10GBase-KR-CR1",15:"10GBase-LR",14:"10GBase-SR",13:"10G-SFI-DA",12:"10GBase-T",11:"5GBase-KR",10:"5GBase-T",9:"2.5GBase-KX",8:"2.5GBase-X",7:"2.5GBase-T",6:"1G-SGMII",5:"1000Base-KX",4:"1000Base-LX",3:"1000Base-SX",2:"1000Base-T",1:"100M-SGMII",0:"100Base-TX"}
 
-    set_Ability_EEE_dict = {"EEEen100GBase-KR2-PAM4":10,"EEEen100GBase-KR4":9,"EEEen50GBase-KR-PAM4":8,"EEEen50GBase-KR2":7,"EEEen40GBase-KR4":6,"EEEen25GBase-KR":5,"EEEen10GBase-KR":4,"EEEen1000Base-KX":3,"EEEen10GBase-T":2,"EEEen1000Base-T":1,"EEEen100Base-TX":0}
+    set_Ability_EEE_dict = {"EEEen100GBase-KR2-PAM4":10,
+                            "EEEen100GBase-KR4":9,
+                            "EEEen50GBase-KR-PAM4":8,
+                            "EEEen50GBase-KR2":7,
+                            "EEEen40GBase-KR4":6,
+                            "EEEen25GBase-KR":5,
+                            "EEEen10GBase-KR":4,
+                            "EEEen1000Base-KX":3,
+                            "EEEen10GBase-T":2,
+                            "EEEen1000Base-T":1,
+                            "EEEen100Base-TX":0}
+
     set_Ability_FEC_dict = {"25GkrFECab":7,"25GrsFEC528ab":6,"Reserved":5,"25GrsFEC544req":4,"25GkrFECreq":3,"25GrsFEC528req":2,"10GkrFECreq":1,"10GkrFECen":0}
 
     ## AQ 0x607 Get link status response ####
 
-    Get_Speed_Status_dict = {0:"10M",1:"100M",2:"1G",3:"2.5G",4:"5G",5:"10G",6:"20G",7:"25G",8:"40G",9:"50G",10:"100G",11:"200G"}
+    Get_Speed_Status_dict = {0:"10M",
+                             1:"100M",
+                             2:"1G",
+                             3:"2.5G",
+                             4:"5G",
+                             5:"10G",
+                             6:"20G",
+                             7:"25G",
+                             8:"40G",
+                             9:"50G",
+                             10:"100G",
+                             11:"200G"}
+
     Get_Phy_Type_Status_dict = {84:"N/A",83:"400G-AUI8",82:"400G-AUI8-AOC-ACC",81:"400GBase-DR4",80:"400GBase-LR8",79:"400GBase-FR8",78:"200G-AUI8",77:"200G-AUI8-AOC-ACC",76:"200G-AUI4",75:"200G-AUI4-AOC-ACC",74:"200GBase-KR4-PAM4",73:"200GBase-DR4",72:"200GBase-LR4",71:"200GBase-FR4",70:"200GBase-SR4",69:"200GBase-CR4-PAM4",68:"100G-AUI2",67:"100G-AUI2-AOC-ACC",66:"100G-CAUI2",65:"100G-CAUI2-AOC-ACC",64:"100GBase-KR2-PAM4",63:"100GBase-DR",62:"100GBase-SR2",61:"100GBase-CP2",60:"100GBase-KR-PAM4",59:"100GBase-CR-PAM4",58:"100G-AUI4",57:"100G-AUI4-AOC-ACC",56:"100G-CAUI4",55:"100G-CAUI4-AOC-ACC",54:"100GBase-KR4",53:"100GBase-LR4",52:"100GBase-SR4",51:"100GBase-CR4",50:"50G-AUI1",49:"50G-AUI1-AOC-ACC" ,48:"50GBase-KR-PAM4",47:"50GBase-LR",46:"50GBase-FR",45:"50GBase-SR",44:"50GBase-CP",43:"50G-AUI2",42:"50G-AUI2-AOC-ACC",41:"50G-LAUI2",40:"50G-LAUI2-AOC-ACC",39:"50GBase-KR2",38:"50GBase-LR2",37:"50GBase-SR2",36:"50GBase-CR2",35:"40G-XLAUI",34:"40G-XLAUI-AOC-ACC",33:"40GBase-KR4",32:"40GBase-LR4",31:"40GBase-SR4",30:"40GBase-CR4",29:"25G-AUI-C2C",28:"25G-AUI-AOC-ACC",27:"25GBase-KR1",26:"25GBase-KR-S",25:"25GBase-KR",24:"25GBase-LR",23:"25GBase-SR",22:"25GBase-CR1",21:"25GBase-CR-S",20:"25GBase-CR",19:"25GBase-T",18:"10G-SFI-C2C",17:"10G-SFI-AOC-ACC",16:"10GBase-KR-CR1",15:"10GBase-LR",14:"10GBase-SR",13:"10G-SFI-DA",12:"10GBase-T",11:"5GBase-KR",10:"5GBase-T",9:"2.5GBase-KX",8:"2.5GBase-X",7:"2.5GBase-T",6:"1G-SGMII",5:"1000Base-KX",4:"1000Base-LX",3:"1000Base-SX",2:"1000Base-T",1:"100M-SGMII",0:"100Base-TX"}
 
     get_Link_Status1_dict = {7:'Signal Detect',6:'Media Available',5:'External port link Up',4:'Remote fault',3:'Receiver link fault',2:'Transmitter link fault',1:'Phy has Detect a link Fault',0:'Link Up'}
@@ -207,7 +399,6 @@ class cvlDefines(cvlBase):
 class cvl_structs:
 
 	def SbIosfMassageStruct(self):
-
 		Massage = {}
 		Massage['dest'] = 0
 		Massage['source'] = 0
@@ -225,10 +416,9 @@ class cvl_structs:
 		Massage['Fid'] = 0
 		Massage['address'] = 0
 		Massage['address_4thDW'] = 0
-
 		return Massage
 
-
+#TODO implement a new calss that holds these values as class member and not as instance members
 class AqOpCodes:
     def __init__(self):
         #General Admin Commands
