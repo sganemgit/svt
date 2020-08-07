@@ -10,7 +10,7 @@ class testBase():
         self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
         self.log = log(self.logname, "DEBUG")
         self.log.info(self.testname)
-        self._parser = self._configure_parser()
+        self._parser = self._configure_parser(argparse.ArgumentParser())
         self._args = self._parser.parse_args()
         print(self._args.setup)
         print(self._args.regression)
@@ -19,8 +19,7 @@ class testBase():
         self.user_args = self._parse_regression_file()
         self.run()
 
-    def _configure_parser(self):
-        parser = argparse.ArgumentParser()
+    def _configure_parser(self, parser):
         parser.add_argument('-r','--regression', help="Path to the regression file")
         parser.add_argument('-s', '--setup'    , help="Path to the setup file")
         return parser

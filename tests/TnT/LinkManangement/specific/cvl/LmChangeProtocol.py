@@ -1,6 +1,6 @@
 from core.drivers.svdriver.SvDriverCommands import *
 from core.utilities.colors import colors
-from devices.cvl.cvl import cvl
+from core.devices.DeviceFactory import DeviceFactory
 from core.tests.testBase import testBase
 import time
 
@@ -23,7 +23,6 @@ class LmChangeProtocol(testBase):
         self.check_traffic(dut, lp)
 
     def check_traffic(self, dut, lp):
-        log = self.log
         dut_PTC = dut.GetPTC()
         log.info("DUT MAC transmitted packets counters")
         for key, value in dut_PTC.iteritems():
@@ -79,7 +78,7 @@ class LmChangeProtocol(testBase):
     def configure_link(self, dut,lp,PhyType,FecType):
         log = self.log
         link_configuratio_status_flag = True
-        if PhyType in cvl.force_phy_types_list:
+        if PhyType in dut.force_phy_types_list:
             log.info(colors.Red("{} does not support AN".format(colors.Green(PhyType))))
             log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             dut.SetPhyConfiguration(PhyType,FecType)
@@ -124,8 +123,8 @@ class LmChangeProtocol(testBase):
            DutLpPair = dict()
            lpinfo = devices[pair['first']]
            dutinfo = devices[pair['second']]
-           DutLpPair['lp'] = cvl(lpinfo['device_number'], lpinfo['port_number'])
-           DutLpPair['dut'] = cvl(dutinfo['device_number'], dutinfo['port_number'])
+           DutLpPair['lp']  = DeviceFactory.create_device(lpinfo['device_number'], lpinfo['port_number'])
+           DutLpPair['dut'] = DeviceFactory.create_device(dutinfo['device_number'], dutinfo['port_number'])
            pairs.append(DutLpPair)
 
         for index, pair in enumerate(pairs):
@@ -151,8 +150,8 @@ class LmChangeProtocol(testBase):
                 for protocol in common_protocol_list:
                     log.info('------------------------------------------------------------')
                     log.info( "                      {}".format(colors.Green(protocol)))
-                    if protocol in cvl.fec_dict:
-                        for fec in cvl.fec_dict[protocol]:
+                    if protocol in lp.fec_dict:
+                        for fec in lp.fec_dict[protocol]:
                             log.info("configuting Phy to {}".format(colors.Green(target_protocol)))
                             config_status = self.configure_link(dut,lp,target_protocol,target_fec)
                             if config_status and self.poll_for_link(dut, lp, 15):
