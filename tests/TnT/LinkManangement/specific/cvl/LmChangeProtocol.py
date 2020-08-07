@@ -89,8 +89,7 @@ class LmChangeProtocol(testBase):
             log.info("setting lp to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             lp.SetPhyConfiguration(PhyType,FecType)
         else:
-            lp.Reset('globr')
-            time.sleep(2)
+            lp.DisableFECRequests(0)
             log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             dut.SetPhyConfiguration(PhyType,FecType)
             rawinput('waiting for user')
