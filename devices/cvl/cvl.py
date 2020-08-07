@@ -1224,8 +1224,7 @@ class cvl(cvlDefines):
         if self.Get_Phy_Type_Status_dict:
             for i in range(len(self.Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
-                        break
-            return self.Get_Phy_Type_Status_dict[i]
+                    return self.Get_Phy_Type_Status_dict[i]
 
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
@@ -1648,7 +1647,6 @@ class cvl(cvlDefines):
 
         status = ()
         status =  self.SetPhyConfig(config)
-        print(status)
         
         if status[0]:
             error_msg = 'Error DisableFECRequests: Admin command was not successful, retval {}'.format(status[1])

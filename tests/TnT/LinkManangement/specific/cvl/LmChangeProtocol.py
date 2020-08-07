@@ -42,11 +42,12 @@ class LmChangeProtocol(testBase):
             log.info("{} = {}".format(key, value))
 
         if dut_PTC['TotalPTC'] != lp_PRC['TotalPRC']:
-            log.warning(colors.Red("missed packets on LP"))
-
+            log.warning("missed packets on LP")
+            self.set_test_status('fail')
 
         if lp_PTC['TotalPTC'] != dut_PRC['TotalPRC']:
-            log.info(colors.Red("missed packets on DUT"))
+            log.info("missed packets on DUT")
+            self.set_test_status('fail')
 
     def poll_for_link(self, dut, lp, timeout):
         log = self.log
@@ -89,13 +90,12 @@ class LmChangeProtocol(testBase):
             log.info("setting lp to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             lp.SetPhyConfiguration(PhyType,FecType)
         else:
-            lp.DisableFECRequests(0)
+            lp.DisableFECRequests()
             log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
             dut.SetPhyConfiguration(PhyType,FecType)
-            rawinput('waiting for user')
 
         self.poll_for_link(dut, lp , 15)
-
+        time.sleep(3)
         current_dut_phy_type = dut.GetPhyType()
         current_lp_phy_type = lp.GetPhyType()
 
@@ -105,6 +105,7 @@ class LmChangeProtocol(testBase):
         if current_lp_phy_type != PhyType:
             log.info(colors.Red("LP Phy Type is {} Expected to be {}".format(current_lp_phy_type, PhyType)))
             link_configuratio_status_flag = False
+            raw_input()
 
         current_dut_fec = dut.GetCurrentFECStatus()
         current_lp_fec = lp.GetCurrentFECStatus()
@@ -125,11 +126,9 @@ class LmChangeProtocol(testBase):
         for pair in pairs:
             print 'dut device number = ' , pair['dut'].device_number
             print 'dut port number = ' , pair['dut'].port_number
-            print 'lp port nuber =' , pair['lp'].device_number
+            print 'lp port number =' , pair['lp'].device_number
             print 'lp port number = ', pair['lp'].port_number
 
-        
-        print pairs
         target_protocol = '25GBase-CR'
         target_fec = '25G_RS_528_FEC'
         #target_protocol = self.user_args['protocol']
