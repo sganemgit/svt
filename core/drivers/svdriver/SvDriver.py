@@ -30,6 +30,7 @@ IP_TYPE = {'DEFAULT': libPyApi.IP_DEFAULT,
            'ALL' : libPyApi.IP_ALL,
            'MAX' : libPyApi.IP_MAX}
 
+
 TX_LIMIT_TYPE = {'FULL_RING': libPyApi.TX_MODE_FULL_RING,
                  'PACKET_COUNT': libPyApi.TX_MODE_PACKET_COUNT_LIMIT,
                  'TIME': libPyApi.TX_MODE_TIME_LIMIT,
@@ -211,13 +212,15 @@ class SvDriver(object):
         if ring_cfg.vlan_tag_enable:
             ring_cfg.vlan_tag = kwargs.get('vlan_tag',ring_cfg.vlan_tag)
 
+
+
         tx_ring = self._driver_proxy.get_tx_ring(ring_id)
 
         if not tx_ring:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(libPyApi.ERROR_RING_NOT_ALLOCATED))
 
         if not skip_ring_cfg:
-            status = tx_ring.configure_tx_ring(ring_cfg)
+            status = tx_ring.configure_tx_ring_with_properties(ring_cfg)
 
         if status != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
