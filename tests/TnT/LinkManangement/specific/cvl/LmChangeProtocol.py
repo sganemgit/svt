@@ -11,9 +11,9 @@ class LmChangeProtocol(testBase):
         log.info()
         log.info("running traffic for {} seconds".format(traffic_time))
         dut.EthStartRx()
+        lp.EthStartRx()
         lp.EthStartTx()
         dut.EthStartTx()
-        lp.EthStartRx()
         time.sleep(traffic_time)
         dut.EthStopTx()
         lp.EthStopTx()
@@ -145,17 +145,16 @@ class LmChangeProtocol(testBase):
                 for protocol in common_protocol_list:
                     log.info('------------------------------------------------------------')
                     log.info( "                      {}".format(protocol), 'g')
-                    if protocol in lp.fec_dict:
-                        for fec in lp.fec_dict[protocol]:
-                            log.info("configuting Phy to {}".format(target_protocol), 'g')
-                            config_status = self.configure_link(dut,lp,target_protocol,target_fec)
-                            if config_status :
-                                log.info("{}:".format(colors.Orange(fec)))
-                                config_status = self.configure_link(dut, lp, protocol, fec)
-                            if config_status :
-                                self.run_traffic(dut,lp,10)
-                            else:
-                                log.info("link is not configured")
+                    for fec in lp.fec_dict[protocol]:
+                        log.info("configuting Phy to {}".format(target_protocol), 'g')
+                        config_status = self.configure_link(dut,lp,target_protocol,target_fec)
+                        if config_status :
+                            log.info("{}:".format(colors.Orange(fec)))
+                            config_status = self.configure_link(dut, lp, protocol, fec)
+                        if config_status :
+                            self.run_traffic(dut,lp,10)
+                        else:
+                            log.info("link is not configured")
                     self.reset_both_sides(dut,lp,'globr')
                     log.info('------------------------------------------------------------')
                     log.info()
@@ -163,4 +162,5 @@ class LmChangeProtocol(testBase):
                 log.info(colors.Red("protocol {} is not a common protocol between the DUT and LP".format(target_protocol)))
 
 if __name__ == '__main__':
-    LmChangeProtocol()
+    while True:
+        LmChangeProtocol()

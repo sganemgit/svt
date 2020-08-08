@@ -72,19 +72,18 @@ class testBase():
     def _create_devices(self):
         devices_info_dict = dict()
         try:
-            devices_list = self._setup_dom.findall('devices')
-            for devices_ET in devices_list:
-                device_list = devices_ET.findall('device')
-                for device_ET in device_list:
-                    port_list = device_ET.findall('port')
-                    for port_ET in port_list:
-                        info_dict = dict()
-                        info_dict['device_name'] = device_ET.get('name')
-                        info_dict['device_number'] = device_ET.get('driverDeviceNumber')
-                        info_dict['hostname'] = device_ET.get('host')
-                        info_dict['port_number'] = port_ET.get('driverPortNumber')
-                        devices_info_dict[port_ET.get('uniqueId')] = info_dict
+            devices_list = self._setup_dom.findall('devices/device')
+            for device_ET in devices_list:
+                port_list = device_ET.findall('port')
+                for port_ET in port_list:
+                    info_dict = dict()
+                    info_dict['device_name'] = device_ET.get('name')
+                    info_dict['device_number'] = device_ET.get('driverDeviceNumber')
+                    info_dict['hostname'] = device_ET.get('host')
+                    info_dict['port_number'] = port_ET.get('driverPortNumber')
+                    devices_info_dict[port_ET.get('uniqueId')] = info_dict
             devices_dict = dict()
+            print devices_info_dict
             for device, info in devices_info_dict.iteritems():
                 devices_dict[device] = DeviceFactory.create_device(info['device_name'], info['device_number'], info['port_number'], info['hostname'])
             return devices_dict
@@ -94,23 +93,22 @@ class testBase():
     def _create_dut_lp_pairs(self):
         pairs = list()
         try:
-            physicalConnection_list = self._setup_dom.findall('physicalConnection')
-            for physicalConnection_ET in physicalConnection_list:
-                physicalLink_list = physicalConnection_ET.findall('physicalLink')
-                for physicalLink_ET in physicalLink_list:
-                    pair_dict = dict()
-                    item_list = physicalLink_ET.findall('item')
-                    for item_ET in item_list:
-                        if item_ET.get('uniqueId') in self.devices:
-                            if item_ET.get('role') == "DUT":
-                                pair_dict['dut'] = self.devices[item_ET.get('uniqueId')]
-                            elif item_ET.get('role') == "PARTNER":
-                                pair_dict['lp'] = self.devices[item_ET.get('uniqueId')]
-                            else:
-                                raise DeviceRoleError("item {} has no role".format(item_ET.get('uniqueId')))
+            physicalLink_list = self._setup_dom.findall('physicalConnection/physicalLink')
+            for physicalLink_ET in physicalLink_list:
+                pair_dict = dict()
+                item_list = physicalLink_ET.findall('item')
+                for item_ET in item_list:
+                    if item_ET.get('uniqueId') in self.devices:
+                        if item_ET.get('role') == "DUT":
+                            pair_dict['dut'] = self.devices[item_ET.get('uniqueId')]
+                        elif item_ET.get('role') == "PARTNER":
+                            pair_dict['lp'] = self.devices[item_ET.get('uniqueId')]
                         else:
-                            raise PhysicalLinkError('item {} cannot be found in the devices'.format(item_ET.get('uniqueId')))
-                    pairs.append(pair_dict)
+                            raise DeviceRoleError("item {} has no role".format(item_ET.get('uniqueId')))
+                    else:
+                        raise PhysicalLinkError('item {} cannot be found in the devices'.format(item_ET.get('uniqueId')))
+                pairs.append(pair_dict)
+            print pairs
             return pairs
         except Exception as e:
             self.log.error("Error while creating DUT-LP pairs")
