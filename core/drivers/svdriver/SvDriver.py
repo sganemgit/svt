@@ -506,7 +506,7 @@ class SvDriver(object):
         else:
             raise RuntimeError("Unsupported reset type " + reset_type)
         driver_cfg = self._driver_proxy.cfg()
-        result = driver_cfg.reset_device()
+        result = driver_cfg.reset_device(reset_type_value)
         self._driver_proxy.dispose_driver_config(driver_cfg)
         if result != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(result))
