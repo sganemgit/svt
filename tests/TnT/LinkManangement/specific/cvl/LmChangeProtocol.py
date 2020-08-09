@@ -160,6 +160,10 @@ class LmChangeProtocol(testBase):
 
         log.info("run time in hours {}".format(run_time))
         log.info("run time in minutes {}".format(float(run_time)*60))
+
+        for device_id, device in self.devices.iteritems():
+            log.info("performing globr reset on {} ".format(device_id))
+            device.Reset('globr')
         timer = Timer(test_run_time)
         timer.start()
         while not timer.expired():

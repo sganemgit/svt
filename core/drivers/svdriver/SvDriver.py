@@ -30,7 +30,6 @@ IP_TYPE = {'DEFAULT': libPyApi.IP_DEFAULT,
            'ALL' : libPyApi.IP_ALL,
            'MAX' : libPyApi.IP_MAX}
 
-
 TX_LIMIT_TYPE = {'FULL_RING': libPyApi.TX_MODE_FULL_RING,
                  'PACKET_COUNT': libPyApi.TX_MODE_PACKET_COUNT_LIMIT,
                  'TIME': libPyApi.TX_MODE_TIME_LIMIT,
@@ -67,9 +66,7 @@ RX_DESCRIPTOR_TYPES ={"LEGACY": libPyApi.RXDT_LEGACY,
                       "HDR_REPLIC_LONG": libPyApi.RXDT_ADV_HDR_REPLIC_LONG,
                       "HDR_SPLIT_ALWAYS_USE_HEADER_BUFF": libPyApi.RXDT_ADV_HDR_SPLIT_ALWAYS_USE_HEADER_BUFF,
                       "HDR_SPLIT_SMALL_LARGE": libPyApi.RXDT_ADV_HDR_SPLIT_SMALL_LARGE,
-                      "FLEX": libPyApi.RXDT_FLEX
-
-}
+                      "FLEX": libPyApi.RXDT_FLEX}
 
 TX_WB_MODE = {'SV_DD_BIT_WB_MODE': libPyApi.SV_DD_BIT_WB_MODE,
               'SV_HEAD_WB_MODE' : libPyApi.SV_HEAD_WB_MODE,
@@ -180,7 +177,6 @@ class SvDriver(object):
                 @src_mac_enable - curently not supported
                 @vlan_tag_enable - not supported
         '''
-        
         skip_ring_cfg = kwargs.get('skip_ring_cfg', False)
         ring_id = kwargs.get('ring_id', 0)
         desc_type = kwargs.get('desc_type', TX_DESCRIPTOR_TYPES['ADV_DATA'])
@@ -199,7 +195,6 @@ class SvDriver(object):
         ring_cfg.operation_mode = kwargs.get('operation_mode', 0)
         ring_cfg.cq_id = kwargs.get('cq_id', 1)
 
-
         ring_cfg.dest_mac_enable = kwargs.get('dest_mac_enable', 0)
         if ring_cfg.dest_mac_enable:
             ring_cfg.dest_mac = kwargs.get('dest_mac', ring_cfg.dest_mac)
@@ -211,8 +206,6 @@ class SvDriver(object):
         ring_cfg.vlan_tag_enable = kwargs.get('vlan_tag_enable', 0)
         if ring_cfg.vlan_tag_enable:
             ring_cfg.vlan_tag = kwargs.get('vlan_tag',ring_cfg.vlan_tag)
-
-
 
         tx_ring = self._driver_proxy.get_tx_ring(ring_id)
 
@@ -326,6 +319,12 @@ class SvDriver(object):
     def configure_rx_ring(self, **kwargs):
         pass
 
+    def tx_start_traffic(self, **kwargs):
+        pass
+
+    def rx_start_traffic(self, **kwargs):
+        pass
+
     def read_pci(self, register_offset):
         ''' 
         This method reads 32-bits pci register at offset specified 
@@ -357,6 +356,16 @@ class SvDriver(object):
         self._driver_proxy.dispose_csr_block(csr_block)
         return value
 
+    def read_csr_64(self, register_offset):
+        ''' 
+            This method reads 64-bits csr register at offset specified 
+            in 'register_offset' and returns register value.          
+        '''
+        csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
+        value = csr_block.read_64(register_offset)[1]
+        self._driver_proxy.dispose_csr_block(csr_block)
+        return value
+
     def write_csr(self, register_offset, write_value):
         '''
             This method writes value specified in 'write_value' 
@@ -366,6 +375,14 @@ class SvDriver(object):
         csr_block.write(register_offset, write_value)
         self._driver_proxy.dispose_csr_block(csr_block)
 
+    def write_csr_64(self, register_offset, write_value):
+        '''
+            This method writes value specified in 'write_value' 
+            to 64-bits csr register at offset specified in 'register_offset'.
+        '''  
+        csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
+        csr_block.write_64(register_offset, write_value)
+        self._driver_proxy.dispose_csr_block(csr_block)
  
     def send_aq_command(self, aq_descriptor, aq_buffer = None, debug_print = False):
         '''This function sends AQ command.
