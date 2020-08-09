@@ -514,6 +514,23 @@ class cvl(cvlDefines):
         high_data = driver.read_csr(reg_addr)
         return (((high_data & 0xffff) << 32) | low_data)
 
+    def GetMacCounters(self):
+        counter_dict = dict()
+        counter_dict['LDPC'] =  self.GetLDPC()
+        counter_dict['MSPDC'] = self.GetMSPDC()
+        counter_dict['RJC'] = self.GetRJC()
+        counter_dict['ROC'] = self.GetROC()
+        counter_dict['RFC'] = self.GetRFC()
+        counter_dict['CRCERRS'] = self.GetCRCERRS()
+        counter_dict['link Down Counter'] = self.GetLinkDownCounter()
+        counter_dict['MLFC'] = self.GetMLFC()
+        counter_dict['MRFC'] = self.GetMRFC()
+        counter_dict['ILLERRC'] = self.GetILLERRC()
+        counter_dict['ERRBC'] = self.GetERRBC()
+        counter_dict['RLEC'] = self.GetRLEC()
+        counter_dict['RUC'] = self.GetRUC()
+        return counter_dict
+
     def GetPF(self):
         '''this function returns the physical function number currently running
             arguments : None
@@ -1763,7 +1780,7 @@ class cvl(cvlDefines):
         '''
         raise RuntimeError("SetPhyConfiguration by Reg is not implimented")
 
-    def _SetPhyConfigurationAQ(self, phy_type_list,set_fec,rep_mode,debug):
+    def _SetPhyConfigurationAQ(self, phy_type_list, set_fec,rep_mode,debug):
         '''This function configures the phy and the fec
             arguments:PhyType by string
                       set_fec by string
@@ -1799,7 +1816,10 @@ class cvl(cvlDefines):
         config['low_pwr_ctrl'] = abilities['low_pwr_ctrl']
         config['eee_cap_en'] = abilities['eee_cap']
         config['eeer'] = abilities['eeer']
-        config['auto_fec_en'] = 1
+        if '50GBase-CR2' in phy_type_list:
+            config['auto_fec_en'] = 0
+        else:
+            config['auto_fec_en'] = 1
 
         
         for recieved_phy_type in phy_type_list:
@@ -1838,8 +1858,8 @@ class cvl(cvlDefines):
             config['fec_rs528_req'] = 0 
             config['fec_firecode_25g_req'] = 1 
             config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+            config['fec_rs528_abil'] = 0
+            config['fec_firecode_25g_abil'] = 0
             
         elif set_fec == '25G_RS_528_FEC':
             config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 

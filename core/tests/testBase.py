@@ -26,7 +26,10 @@ class testBase():
             self.devices = self._create_devices()
             self.pairs = self._create_dut_lp_pairs()
             self.user_args = self._get_user_args()
+            self._core_args = self._get_core_args()
         self._test_status = "Pass"
+        self._fail_reason_list = list()
+        self.test_iteration = 0
         self.run()
 
     def __del__(self):
@@ -52,7 +55,7 @@ class testBase():
                 regression_dom = ET.parse(regression_file_path)
                 return regression_dom
             else:
-                raise RegressionFileError("regression argument was not passed to the test")
+                raise RegressionFileError("regression argument was not passed")
         except Exception as e:
             self.log.critical(str(e))
             raise e
@@ -72,7 +75,7 @@ class testBase():
     def _create_devices(self):
         devices_info_dict = dict()
         try:
-            devices_list = self._setup_dom.findall('devices/device')
+            devices_list = self._setup_dom.getroot().findall('devices/device')
             for device_ET in devices_list:
                 port_list = device_ET.findall('port')
                 for port_ET in port_list:
@@ -83,11 +86,34 @@ class testBase():
                     info_dict['port_number'] = port_ET.get('driverPortNumber')
                     devices_info_dict[port_ET.get('uniqueId')] = info_dict
             devices_dict = dict()
-            print devices_info_dict
             for device, info in devices_info_dict.iteritems():
                 devices_dict[device] = DeviceFactory.create_device(info['device_name'], info['device_number'], info['port_number'], info['hostname'])
             return devices_dict
         except Exception as e:
+            raise e
+
+    def _get_core_args(self):
+        args_dict = dict()
+        try:
+            parameter_list = self._reg_dom.getroot().findall('Parameter_List/parameter')
+            for parameter_ET in parameter_list:
+                if parameter_ET.get('type') == 'core':
+                        args_dict[parameter_ET.get('name')] = parameter_ET.get('value')
+            return args_dict
+        except Exception as e:
+            self.log.error("Error while parsing core args")
+            raise e
+
+    def _get_user_args(self):
+        args_dict = dict()
+        try:
+            parameter_list = self._reg_dom.getroot().findall('Parameter_List/parameter')
+            for parameter_ET in parameter_list:
+                if parameter_ET.get('type') == 'user':
+                        args_dict[parameter_ET.get('name')] = parameter_ET.get('value')
+            return args_dict
+        except Exception as e:
+            self.log.error("Error while creating user args")
             raise e
 
     def _create_dut_lp_pairs(self):
@@ -108,14 +134,14 @@ class testBase():
                     else:
                         raise PhysicalLinkError('item {} cannot be found in the devices'.format(item_ET.get('uniqueId')))
                 pairs.append(pair_dict)
-            print pairs
             return pairs
         except Exception as e:
             self.log.error("Error while creating DUT-LP pairs")
             raise e
 
-    def _get_user_args(self):
-        pass
+    def append_fail_reason(self, reason):
+        self._fail_reason_list.append('Test Iteration #{} - {}'.format(self.test_iteration, reason))
+        self.set_test_status('fail')
 
     def set_test_status(self, status):
         if status.lower() == 'pass':
@@ -128,6 +154,10 @@ class testBase():
             self.log.warning("Trying to set an invalid test status - {}".format(status))
 
     def test_summry(self):
+        if self._fail_reason_list:
+            self.log.info("")
+            for reason in self._fail_reason_list:
+                self.log.info('Fail Reason ' + str(reason))
         self.log.info("")
         self.log.info("-----------------------")
         if self._test_status == "Pass":
