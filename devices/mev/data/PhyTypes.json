@@ -1,0 +1,7 @@
+{
+	"10G-SFI-DA":{"auto_neg":["AN_NOT_SUPPORTED"],
+		      "media":["DAC"],
+      		      "FEC":["NO_FEC"],
+      		      "CAGE":["SFP","QSFP"],
+      		      "PMD_Width":"1"}
+}
