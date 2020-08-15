@@ -2734,7 +2734,7 @@ class cvl(cvlDefines):
     ###############################           DNL section             ####################################
     ######################################################################################################
 
-    def _DnlCallActivity(activity_id, context, sto_0, sto_1, sto_2, sto_3,debug=False):
+    def _DnlCallActivity(self, activity_id, context, sto_0, sto_1, sto_2, sto_3,debug=False):
         '''This function is an indirect admin command used to call a DNL activity in the specified context. 
             arguments:
                 activity_id - The ID of the activity to be called
@@ -2767,14 +2767,14 @@ class cvl(cvlDefines):
         if status != 0 or aq_desc.retval != 0:
             print 'Failed to send DNL CALL ACTIVITY AQ command, status:', status, ', FW ret value: ', aq_desc.retval
 
-        sto_0 = ut.compose_num_from_array_slice(buffer, 0, 4)
-        sto_1 = ut.compose_num_from_array_slice(buffer, 4, 4)
-        sto_2 = ut.compose_num_from_array_slice(buffer, 8, 4)
-        sto_3 = ut.compose_num_from_array_slice(buffer, 12, 4)
+        sto_0 = compose_num_from_array_slice(buffer, 0, 4)
+        sto_1 = compose_num_from_array_slice(buffer, 4, 4)
+        sto_2 = compose_num_from_array_slice(buffer, 8, 4)
+        sto_3 = compose_num_from_array_slice(buffer, 12, 4)
         
         return (sto_0, sto_1, sto_2, sto_3)
 
-    def _DnlReadPstore(context, psto_index_to_read,debug=False):
+    def _DnlReadPstore(self, context, psto_index_to_read,debug=False):
         '''Function that returns the value of the specific PSTO requested
             arguments: 
                 context - context number
@@ -2806,12 +2806,12 @@ class cvl(cvlDefines):
         pstores = []
         index = 0
         for i in range(0, psto_actual_index):
-            pstores.append(ut.compose_num_from_array_slice(buffer, index, psto_size))
+            pstores.append(compose_num_from_array_slice(buffer, index, psto_size))
             index += psto_size
              
         return pstores[-1] 
      
-    def _DnlWriteStore(context, store_type, store_index, value,debug=False):
+    def _DnlWriteStore(self, context, store_type, store_index, value,debug=False):
         '''Function that write the value to specific PSTO.
             arguments: context - context number
                        store_type - 'sto' / 'psto'
@@ -2841,7 +2841,7 @@ class cvl(cvlDefines):
         if status != 0 or aq_desc.retval != 0:
             print 'Failed to send DNL WRITE STORE AQ command, status:', status, ', FW ret value: ', aq_desc.retval
 
-    def DnlCvlDftTest(opcode,serdes_sel,data_in,debug=False):
+    def DnlCvlDftTest(self, opcode,serdes_sel,data_in,debug=False):
         '''This function run DNL dft test according to the list below (CVL-DFT-DO.8EX file).
              input:
                 opcode - dft opcode according to the below list 
@@ -2880,7 +2880,7 @@ class cvl(cvlDefines):
         sto_1 = 0
         sto_2 = 0
         sto_3 = 0
-        ret_val = _DnlCallActivity(CVL_DFT_TEST_ACT_IT,context, sto_0, sto_1, sto_2, sto_3,debug=False)
+        ret_val = self._DnlCallActivity(CVL_DFT_TEST_ACT_IT,context, sto_0, sto_1, sto_2, sto_3,debug=False)
         sto_0 = hex(ret_val[0]).replace('L','')
         sto_1 = hex(ret_val[1]).replace('L','')
         sto_2 = hex(ret_val[2]).replace('L','')
@@ -2888,11 +2888,11 @@ class cvl(cvlDefines):
 
         # check for errors define in CVL-DFT-DO.8EX file
         if int(sto_0,16) == 0xb00fb00f:
-            print "ERROR: Invalid DATA_IN"
+            print("ERROR: Invalid DATA_IN")
         elif int(sto_0,16) == 0xbeefbeef:
-            print "ERROR: Invalid SERDES_SEL"
+            print("ERROR: Invalid SERDES_SEL")
         elif int(sto_0,16) == 0xbeefbe0f:
-            print "ERROR: Invalid OP_CODE"
+            print("ERROR: Invalid OP_CODE")
 
         if debug:
             print "sto_0: ",sto_0
@@ -2901,7 +2901,7 @@ class cvl(cvlDefines):
             print "sto_3: ",sto_3
         return sto_0
 
-    def ReadDnlPstore(psto_index,debug=False):
+    def ReadDnlPstore(self, psto_index,debug=False):
         '''This function return value from psore.
             argument: psto_index 
             return: value (hex)
@@ -2909,12 +2909,12 @@ class cvl(cvlDefines):
         driver = self.driver
         context = driver.port_number()
 
-        ret_val = _DnlReadPstore(context,psto_index,debug=False)
+        ret_val = self._DnlReadPstore(context,psto_index,debug=False)
         #print 'ret_val',ret_val
         #ret_val = ret_val.replace('L','')
         return hex(ret_val)
 
-    def DnlGetPhyInfo():
+    def DnlGetPhyInfo(self):
         '''This function calls DNL script get_phy_info
             inputs:
                 dict --
@@ -2935,7 +2935,7 @@ class cvl(cvlDefines):
        
         #helper = LM_Validation()
         act_id = 0x000E
-        status = _DnlCallActivity(act_id, 0, sto0, sto1, sto2, sto3)
+        status = self._DnlCallActivity(act_id, 0, sto0, sto1, sto2, sto3)
         
         st = {}
 
@@ -5116,7 +5116,7 @@ class cvl(cvlDefines):
         P = 0
         retval = 0
         while(True):
-            if P > 10:#just in case something goes wrong
+            if P > 8:#just in case something goes wrong
                 break
             topology_list = self.GetLinkTopologyHandle(P)
             status = topology_list[0]
@@ -5137,7 +5137,7 @@ class cvl(cvlDefines):
             eeprom_dict[port] = list()
             for i in range(16):
                 offset = 16*i
-                I2C = ReadI2C(port,handle,offset)
+                I2C = self.ReadI2C(port,handle,offset)
                 data = I2C[2]
                 eeprom_dict[port] = eeprom_dict[port]+data
         return eeprom_dict
@@ -5148,176 +5148,146 @@ class cvl(cvlDefines):
 ######################         debug prints auto complete     #############
 ###########################################################################
 
+    def PRT_AN_HCD_OUTPUT(self):
+        return self.ReadDnlPstore(0x21)
 
+    def PRT_AN_LP_NP(self):
+        return self.ReadDnlPstore(0x22)
 
-    class DBG_PM_PSTO_print():
-        '''This class return PM PSTOs according to PSTO name (phy-manage spreat sheet).
-            input: none
-            return: PSTO content
-        '''
+    def PRT_AN_LP_BP(self):
+        return self.ReadDnlPstore(0x23)
 
-        def PRT_AN_TRACKING(self):
-            Reg =  ReadDnlPstore(0x20)
-            print "Register Value: ", Reg
-            print
-            self._PrintRegInfo(int(Reg.replace('L',''),16),PRT_AN_TRACKING)
+    def PRT_AN_LOCAL_NP(self):
+        return self.ReadDnlPstore(0x24)
 
-        def PRT_AN_HCD_OUTPUT(self):
-            print ReadDnlPstore(0x21)
+    def PRT_AN_LOCAL_BP(self):
+        return self.ReadDnlPstore(0x25)
 
-        def PRT_AN_LP_NP(self):
-            print ReadDnlPstore(0x22)
+    def PRT_STATE_MACHINE(self):
+        return self.ReadDnlPstore(0x26)
 
-        def PRT_AN_LP_BP(self):
-            print ReadDnlPstore(0x23)
+    def PRT_PCS_SELECT(self):
+        return self.ReadDnlPstore(0x27)
 
-        def PRT_AN_LOCAL_NP(self):
-            print ReadDnlPstore(0x24)
+    def PRT_SET_PMD_LINK_UP_ARG0(self):
+        return self.ReadDnlPstore(0x28)
 
-        def PRT_AN_LOCAL_BP(self):
-            print ReadDnlPstore(0x25)
+    def PRT_SET_PMD_LINK_UP_ARG1(self):
+        return self.ReadDnlPstore(0x29)
 
-        def PRT_STATE_MACHINE(self):
-            print ReadDnlPstore(0x26)
+    def PRT_SET_PMD_LINK_UP_ARG2(self):
+        return self.ReadDnlPstore(0x2A)
 
-        def PRT_PCS_SELECT(self):
-            print ReadDnlPstore(0x27)
+    def PRT_SET_PMD_LINK_UP_ARG3(self):
+        return self.ReadDnlPstore(0x2B)
 
-        def PRT_SET_PMD_LINK_UP_ARG0(self):
-            print ReadDnlPstore(0x28)
+    def PRT_SRDS_INT_CMD_ADDR(self):
+        return self.ReadDnlPstore(0x2C)
 
-        def PRT_SET_PMD_LINK_UP_ARG1(self):
-            print ReadDnlPstore(0x29)
+    def PRT_CVL_SERDES_POLARITY(self):
+        return self.ReadDnlPstore(0x2D)
 
-        def PRT_SET_PMD_LINK_UP_ARG2(self):
-            print ReadDnlPstore(0x2A)
+    def PRT_FM_SPEED_OUTPUT(self):
+        return self.ReadDnlPstore(0x2E)
 
-        def PRT_SET_PMD_LINK_UP_ARG3(self):
-            print ReadDnlPstore(0x2B)
+    def PRT_LAST_CONFIG(self):
+        return self.ReadDnlPstore(0x2F)
 
-        def PRT_SRDS_INT_CMD_ADDR(self):
-            print ReadDnlPstore(0x2C)
+    def PRT_SET_PMD_LINK_Down_ARG0(self):
+        return self.ReadDnlPstore(0x30)
 
-        def PRT_CVL_SERDES_POLARITY(self):
-            print ReadDnlPstore(0x2D)
+    def PRT_CVL_FLAGS(self):
+        return self.ReadDnlPstore(0x31)
 
-        def PRT_FM_SPEED_OUTPUT(self):
-            print ReadDnlPstore(0x2E)
+    def PRT_SERDES_LOOP(self):
+        return self.ReadDnlPstore(0x32)
 
-        def PRT_LAST_CONFIG(self):
-            print ReadDnlPstore(0x2F)
+    def PRT_WATCHDOG_TIMER(self):
+        return self.ReadDnlPstore(0x33)
 
-        def PRT_SET_PMD_LINK_Down_ARG0(self):
-            print ReadDnlPstore(0x30)
+    def PRT_SCRATCH0(self):
+        return self.ReadDnlPstore(0x41)
 
-        def PRT_CVL_FLAGS(self):
-            print ReadDnlPstore(0x31)
+    def PRT_LAST_ERROR_CVL_ALL(self):
+        return self.ReadDnlPstore(0x42)
 
-        def PRT_SERDES_LOOP(self):
-            print ReadDnlPstore(0x32)
+    def PRT_LAST_ERROR_SET_PMD_LINK_UP(self):
+        return self.ReadDnlPstore(0x43)
 
-        def PRT_WATCHDOG_TIMER(self):
-            print ReadDnlPstore(0x33)
+    def PRT_SET_PMD_LINK_UP_ARG0_BYPASS(self):
+        return self.ReadDnlPstore(0x44)
 
-        def PRT_SCRATCH0(self):
-            print ReadDnlPstore(0x41)
+    def PRT_SET_PMD_LINK_UP_ARG1_BYPASS(self):
+        return self.ReadDnlPstore(0x45)
 
-        def PRT_LAST_ERROR_CVL_ALL(self):
-            print ReadDnlPstore(0x42)
+    def PRT_SET_PMD_LINK_UP_ARG2_BYPASS(self):
+        return self.ReadDnlPstore(0x46)
 
-        def PRT_LAST_ERROR_SET_PMD_LINK_UP(self):
-            print ReadDnlPstore(0x43)
+    def PRT_SET_PMD_LINK_UP_ARG3_BYPASS(self):
+        return self.ReadDnlPstore(0x47)
 
-        def PRT_SET_PMD_LINK_UP_ARG0_BYPASS(self):
-            print ReadDnlPstore(0x44)
+    def PRT_SET_LINK_UP_INPUT_ARG0(self):
+        return self.ReadDnlPstore(0x06)
 
-        def PRT_SET_PMD_LINK_UP_ARG1_BYPASS(self):
-            print ReadDnlPstore(0x45)
+    def PRT_SET_LINK_UP_INPUT_ARG1(self):
+        return self.ReadDnlPstore(0x07)
 
-        def PRT_SET_PMD_LINK_UP_ARG2_BYPASS(self):
-            print ReadDnlPstore(0x46)
+    def PRT_SET_LINK_UP_INPUT_ARG2(self):
+        return self.ReadDnlPstore(0x08)
 
-        def PRT_SET_PMD_LINK_UP_ARG3_BYPASS(self):
-            print ReadDnlPstore(0x47)
+    def PRT_SET_LINK_UP_INPUT_ARG3(self):
+        return self.ReadDnlPstore(0x09)
 
-        def _PrintRegInfo(self,RegToParse,PM_dict):
+    def PRT_TOPO_CAPABILITIES_0(self):
+        return self.ReadDnlPstore(0x0A)
 
-            print "Bit"
-            for i in range(32):
-                if (RegToParse & 1) == 1:
-                    #print str(i) + ': ' + PM_dict[i]
-                    print ('{:>0} {:>20}').format(str(i),PM_dict[i])
+    def PRT_TOPO_CAPABILITIES_1(self):
+        return self.ReadDnlPstore(0x0B)
 
-                RegToParse = RegToParse >> 1
+    def PRT_TOPO_CAPABILITIES_2(self):
+        return self.ReadDnlPstore(0x0C)
 
+    def PRT_TOPO_CAPABILITIES_3(self):
+        return self.ReadDnlPstore(0x0D)
 
-    class DBG_LM_PSTO_print():
-        '''This class return LM PSTOs according to PSTO name (LM API 181212).
-            input: None
-            return: PSTO content
-        '''
-        def PRT_SET_LINK_UP_INPUT_ARG0(self):
-            print ReadDnlPstore(0x06)
+    def PRT_MEDIA_CAPABILITIES_0(self):
+        return self.ReadDnlPstore(0x0E)
 
-        def PRT_SET_LINK_UP_INPUT_ARG1(self):
-            print ReadDnlPstore(0x07)
+    def PRT_GET_CAPABILITIES_SM(self):
+        return self.ReadDnlPstore(0x0F)
 
-        def PRT_SET_LINK_UP_INPUT_ARG2(self):
-            print ReadDnlPstore(0x08)
+    def PRT_SET_LINK_CAPABILITIES_0(self):
+        return self.ReadDnlPstore(0x10)
 
-        def PRT_SET_LINK_UP_INPUT_ARG3(self):
-            print ReadDnlPstore(0x09)
+    def PRT_SET_LINK_CAPABILITIES_1(self):
+        return self.ReadDnlPstore(0x11)
 
-        def PRT_TOPO_CAPABILITIES_0(self):
-            print ReadDnlPstore(0x0A)
+    def PRT_SET_LINK_CAPABILITIES_2(self):
+        return self.ReadDnlPstore(0x12)
 
-        def PRT_TOPO_CAPABILITIES_1(self):
-            print ReadDnlPstore(0x0B)
+    def PRT_SET_LINK_CAPABILITIES_3(self):
+        return self.ReadDnlPstore(0x13)
 
-        def PRT_TOPO_CAPABILITIES_2(self):
-            print ReadDnlPstore(0x0C)
+    def PRT_OUTERLINK_INFO(self):
+        return self.ReadDnlPstore(0x14)
 
-        def PRT_TOPO_CAPABILITIES_3(self):
-            print ReadDnlPstore(0x0D)
+    def PRT_LINK_STATUS(self):
+        return self.ReadDnlPstore(0x15)
 
-        def PRT_MEDIA_CAPABILITIES_0(self):
-            print ReadDnlPstore(0x0E)
+    def PRT_LESM_INIT_AN_CONFIG(self):
+        return self.ReadDnlPstore(0x16)
 
-        def PRT_GET_CAPABILITIES_SM(self):
-            print ReadDnlPstore(0x0F)
+    def PRT_LESM_INIT_AN_LP_CONFIG(self):
+        return self.ReadDnlPstore(0x17)
 
-        def PRT_SET_LINK_CAPABILITIES_0(self):
-            print ReadDnlPstore(0x10)
+    def PRT_LESM_INIT_COUNTERS(self):
+        return self.ReadDnlPstore(0x18)
 
-        def PRT_SET_LINK_CAPABILITIES_1(self):
-            print ReadDnlPstore(0x11)
+    def PRT_LESM_INIT_FORCED_MODES(self):
+        return self.ReadDnlPstore(0x19)
 
-        def PRT_SET_LINK_CAPABILITIES_2(self):
-            print ReadDnlPstore(0x12)
+    def PRT_LESM_INIT_FEC_MODES(self):
+        return self.ReadDnlPstore(0x1A)
 
-        def PRT_SET_LINK_CAPABILITIES_3(self):
-            print ReadDnlPstore(0x13)
-
-        def PRT_OUTERLINK_INFO(self):
-            print ReadDnlPstore(0x14)
-
-        def PRT_LINK_STATUS(self):
-            print ReadDnlPstore(0x15)
-
-        def PRT_LESM_INIT_AN_CONFIG(self):
-            print ReadDnlPstore(0x16)
-
-        def PRT_LESM_INIT_AN_LP_CONFIG(self):
-            print ReadDnlPstore(0x17)
-
-        def PRT_LESM_INIT_COUNTERS(self):
-            print ReadDnlPstore(0x18)
-
-        def PRT_LESM_INIT_FORCED_MODES(self):
-            print ReadDnlPstore(0x19)
-
-        def PRT_LESM_INIT_FEC_MODES(self):
-            print ReadDnlPstore(0x1A)
-
-        def PRT_LESM_INIT_FORCED_TIMEOUTS(self):
-            print ReadDnlPstore(0x1B)
+    def PRT_LESM_INIT_FORCED_TIMEOUTS(self):
+        return self.ReadDnlPstore(0x1B)
