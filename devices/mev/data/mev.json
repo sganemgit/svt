@@ -1,0 +1,8 @@
+{
+	"1000Base-T":{"auto_neg":["CL28"],
+		      "media":["twisted-pair"],
+		      "fec":["NO_FEC"],
+		      "cage_type":["SFP"]:
+		      "PMD_width":"1"}
+}
+			
