@@ -41,8 +41,8 @@ class testBase():
     def _configure_parser(self, parser):
         parser.add_argument('-r', '--regression', help="Path to regression file")
         parser.add_argument('-s', '--setup' , help="Path to setup file")
-        parser.add_argument('-a', '--auto', help="Automatically detect device Ignore regression and setup", action='store_true')
-        parser.add_argument('-o', '--output', help="Automatically detect device")
+        parser.add_argument('-a', '--auto', help="Automatically detect device. No setup or regressioin files required", action='store_true')
+        parser.add_argument('-o', '--output', help="Set path to the output log file")
         return parser
 
     def run(self):
