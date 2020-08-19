@@ -2187,11 +2187,11 @@ class cvl(cvlDefines):
         '''
         if quad == None:
             quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],2),16)
-        counter_high = int(self.ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],3),16)
+        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],2),16)
+        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],3),16)
         return (counter_high << 16) | counter_low
 
-    def get_rsfec_uncorrected_codeword(quad = None):
+    def get_rsfec_uncorrected_codeword(self, quad = None):
         '''This function returns the rsfec uncorrected codeword see Section 22.3 of More than IP spec  ver 3.2
             argument:
                 quad num according the pf number
@@ -2200,11 +2200,11 @@ class cvl(cvlDefines):
         '''
         if quad == None :
             quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],4),16)
-        counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],5),16)
+        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],4),16)
+        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],5),16)
         return (counter_high << 16) | counter_low   
 
-    def get_rsfec_corrected_symbol_lane0(quad = None):
+    def get_rsfec_corrected_symbol_lane0(self, quad = None):
         '''This function returns the rsfec corrected symbol in lane 0 see Section 22.3 of More than IP spec  ver 3.2
             argument:
                 quad num according the pf number
@@ -2212,12 +2212,12 @@ class cvl(cvlDefines):
                 rsfec corrected symbol in lane 0 counter 32 bit
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],10),16)
-        counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],11),16)
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],10),16)
+        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],11),16)
         return (counter_high << 16) | counter_low
         
-    def get_rsfec_corrected_symbol_lane1(quad = None):
+    def get_rsfec_corrected_symbol_lane1(self, quad = None):
         '''This function returns the rsfec corrected symbol in lane 1 see Section 22.3 of More than IP spec  ver 3.2
             argument:
                 quad num according the pf number
@@ -2225,12 +2225,12 @@ class cvl(cvlDefines):
                 rsfec corrected symbol in lane 1 counter 32 bit
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],12),16)
-        counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],13),16)
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],12),16)
+        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],13),16)
         return (counter_high << 16) | counter_low
 
-    def get_rsfec_corrected_symbol_lane2(quad = None):
+    def get_rsfec_corrected_symbol_lane2(self, quad = None):
         '''This function returns the rsfec corrected symbol in lane 2 see Section 22.3 of More than IP spec  ver 3.2
             argument:
                 quad num according the pf number
@@ -2238,12 +2238,12 @@ class cvl(cvlDefines):
                 rsfec corrected symbol in lane 2 counter 32 bit
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],14),16)
-        counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],15),16)
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],14),16)
+        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],15),16)
         return (counter_high << 16) | counter_low
 
-    def get_rsfec_corrected_symbol_lane3(quad = None):
+    def get_rsfec_corrected_symbol_lane3(self, quad = None):
         '''This function returns the rsfec corrected symbol in lane 3 see Section 22.3 of More than IP spec  ver 3.2
             argument:
                 quad num according the pf number
@@ -2251,12 +2251,12 @@ class cvl(cvlDefines):
                 rsfec corrected symbol in lane 3 counter 32 bit
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],16),16)
-        counter_high = int(ReadMTIPRegister(MTIP_FEC_PCS_addr_dict[quad],17),16)
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],16),16)
+        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],17),16)
         return (counter_high << 16) | counter_low   
         
-    def GetRSFecCounters(quad = None):
+    def GetRSFecCounters(self, quad = None):
         '''This function returns all the rsfec counters
             argument:
                 quad num according the pf number
@@ -2271,13 +2271,13 @@ class cvl(cvlDefines):
         '''
         FEC_Counter_dict = {}
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        FEC_Counter_dict['RS_FEC_corrected_codeword'] = get_rsfec_corrected_codeword(quad)
-        FEC_Counter_dict['RS_FEC_uncorrected_codeword'] = get_rsfec_uncorrected_codeword(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane0'] = get_rsfec_corrected_symbol_lane0(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane1'] = get_rsfec_corrected_symbol_lane1(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane2'] = get_rsfec_corrected_symbol_lane2(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane3'] = get_rsfec_corrected_symbol_lane3(quad)  
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        FEC_Counter_dict['RS_FEC_corrected_codeword'] = self.get_rsfec_corrected_codeword(quad)
+        FEC_Counter_dict['RS_FEC_uncorrected_codeword'] = self.get_rsfec_uncorrected_codeword(quad)
+        FEC_Counter_dict['RS_FEC_corrected_symbol_lane0'] = self.get_rsfec_corrected_symbol_lane0(quad)
+        FEC_Counter_dict['RS_FEC_corrected_symbol_lane1'] = self.get_rsfec_corrected_symbol_lane1(quad)
+        FEC_Counter_dict['RS_FEC_corrected_symbol_lane2'] = self.get_rsfec_corrected_symbol_lane2(quad)
+        FEC_Counter_dict['RS_FEC_corrected_symbol_lane3'] = self.get_rsfec_corrected_symbol_lane3(quad)  
         return FEC_Counter_dict
 
     def get_kr_fec_corrected(quad = None):
@@ -2999,7 +2999,7 @@ class cvl(cvlDefines):
         NeighborDeviceWrite(0x2,1,1, address,data)
         pass
 
-    def ReadMTIPRegister(offset,address,debug = False):
+    def ReadMTIPRegister(self, offset,address,debug = False):
         '''this function read from MTIP in ethw.
             supporting read/write via SBiosf to neighbor device.
             arguments: 
@@ -3010,7 +3010,7 @@ class cvl(cvlDefines):
         ''' 
         addr = offset << 20
         addr  = addr | (address << 2)
-        ret_val = ReadEthwRegister(addr)
+        ret_val = self.ReadEthwRegister(addr)
         if debug:
             print "Reading from: ", hex(addr)
             print "return value: ", ret_val
@@ -3435,12 +3435,12 @@ class cvl(cvlDefines):
 
         return quad,pmd_num
 
-    def _GetPcsOffset():
+    def _GetPcsOffset(self):
         '''this func return the pcs num according the pf number.
             input: None
             Return: pcs offset
         '''
-        quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
+        quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
             
         #print "quad:",quad
         #print "pmd_num:",pmd_num
