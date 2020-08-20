@@ -3350,7 +3350,7 @@ class cvl(cvlDefines):
                 link_speed = self.Get_Speed_Status_dict[8]
                 
             elif data['link_speed_50g']:
-                link_speed = self.et_Speed_Status_dict[9]
+                link_speed = self.Get_Speed_Status_dict[9]
                 
             elif data['link_speed_100g']:
                 link_speed = self.Get_Speed_Status_dict[10]
