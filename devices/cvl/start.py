@@ -37,7 +37,7 @@ args = parser.parse_args()
 if args.auto:
 	devices = get_detected_devices("cvl")
 	if devices:
-		for device,info in devices.iteritems():
+		for device,info in devices.items():
 			globals()[device] = cvl(info['device_number'],info['port_number'])
 if args.setup:
 	print("currently not available")

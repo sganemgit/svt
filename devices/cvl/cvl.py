@@ -35,20 +35,20 @@ class cvl(cvlDefines):
         print("Phy Types abilities: ")
         for phy in self.GetPhyTypeAbilities(rep_mode = 0):
             print('        {}'.format(phy))
-        print "Phy Type: ", link_status_dict['PhyType']
-        print "FEC Type: ", self.GetCurrentFECStatus()
-        print "Mac Link Status: ",link_status_dict['MacLinkStatus'] 
+        print("Phy Type: ", link_status_dict['PhyType'])
+        print("FEC Type: ", self.GetCurrentFECStatus())
+        print("Mac Link Status: ",link_status_dict['MacLinkStatus'])
         if link_up_flag:
-            print "Mac Link Speed: ",link_status_dict['MacLinkSpeed'] 
-            print "Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down' #GetPhyLinkStatus() # ONPI 
-            print "Phy Link Speed: ",self.GetPhyLinkSpeed() 
+            print("Mac Link Speed: ",link_status_dict['MacLinkSpeed'])
+            print("Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down') #GetPhyLinkStatus() # ONPI)
+            print("Phy Link Speed: ",self.GetPhyLinkSpeed()) 
             #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
-            print "Enabled FEC: ", link_status_dict['EnabeldFEC']
-            print "EEE abilities: ", self.GetEEEAbilities(rep_mode = 0) #GetPhyAbility
-            print 
+            print("Enabled FEC: ", link_status_dict['EnabeldFEC'])
+            print("EEE abilities: ", self.GetEEEAbilities(rep_mode = 0))#GetPhyAbility)
+            print() 
 
-        print "Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed()
-        print "Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()
+        print("Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed())
+        print("Current PCIe link Width, ",self.GetPCIECurrentLinkWidth())
 
 ###############################################################################
 #                        Register reading section                             #
@@ -1597,7 +1597,7 @@ class cvl(cvlDefines):
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -1710,7 +1710,7 @@ class cvl(cvlDefines):
 
         status = ()
         status =  SetPhyConfig(config)
-        print status
+        print(status)
 
         if status[0]:
             error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
@@ -2356,7 +2356,7 @@ class cvl(cvlDefines):
             keylist = FEC_Counter_dict.keys()
             keylist.sort()
             for key in keylist:
-                print key,FEC_Counter_dict[key]
+                print(key,FEC_Counter_dict[key])
 
         return FEC_Counter_dict
 
@@ -2765,7 +2765,7 @@ class cvl(cvlDefines):
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send DNL CALL ACTIVITY AQ command, status:', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send DNL CALL ACTIVITY AQ command, status:', status, ', FW ret value: ', aq_desc.retval)
 
         sto_0 = compose_num_from_array_slice(buffer, 0, 4)
         sto_1 = compose_num_from_array_slice(buffer, 4, 4)
@@ -2801,7 +2801,7 @@ class cvl(cvlDefines):
          
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send DNL READ STORE AQ command, status:', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send DNL READ STORE AQ command, status:', status, ', FW ret value: ', aq_desc.retval)
              
         pstores = []
         index = 0
@@ -2839,7 +2839,7 @@ class cvl(cvlDefines):
          
         status = driver.send_aq_command(aq_desc,buffer,debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send DNL WRITE STORE AQ command, status:', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send DNL WRITE STORE AQ command, status:', status, ', FW ret value: ', aq_desc.retval)
 
     def DnlCvlDftTest(self, opcode,serdes_sel,data_in,debug=False):
         '''This function run DNL dft test according to the list below (CVL-DFT-DO.8EX file).
@@ -2895,10 +2895,10 @@ class cvl(cvlDefines):
             print("ERROR: Invalid OP_CODE")
 
         if debug:
-            print "sto_0: ",sto_0
-            print "sto_1: ",sto_1
-            print "sto_2: ",sto_2
-            print "sto_3: ",sto_3
+            print("sto_0: ",sto_0)
+            print("sto_1: ",sto_1)
+            print("sto_2: ",sto_2)
+            print("sto_3: ",sto_3)
         return sto_0
 
     def ReadDnlPstore(self, psto_index,debug=False):
@@ -2966,7 +2966,7 @@ class cvl(cvlDefines):
         '''
         driver = self.driver
         reg_value = driver.read_csr(offset)
-        print "Register Value: ",hex(reg_value)
+        print("Register Value: ",hex(reg_value))
 
     def WriteCsrRegister(offset,value):
         '''This function write value to CSR register address.
@@ -3012,8 +3012,8 @@ class cvl(cvlDefines):
         addr  = addr | (address << 2)
         ret_val = self.ReadEthwRegister(addr)
         if debug:
-            print "Reading from: ", hex(addr)
-            print "return value: ", ret_val
+            print("Reading from: ", hex(addr))
+            print("return value: ", ret_val)
         return ret_val
 
     def NeighborDeviceWrite(dest,opcode,addrlen,address,data):
@@ -3214,9 +3214,9 @@ class cvl(cvlDefines):
         '''
         driver = self.driver
         reg_value = driver.read_phy_register(Page, Register, driver.port_number())
-        print hex(reg_value)
+        print(hex(reg_value))
         reg_value = reg_value | (1 << BitNum)
-        print hex(reg_value)
+        print(hex(reg_value))
         driver.write_phy_register(Page, Register, driver.port_number(), reg_value)
      
     def ClearMdioBit(Page,Register,BitNum):
@@ -3224,9 +3224,9 @@ class cvl(cvlDefines):
         '''
         driver = self.driver
         reg_value = driver.read_phy_register(Page, Register, driver.port_number())
-        print hex(reg_value)    
+        print(hex(reg_value))
         reg_value = reg_value & ~(1 << BitNum)
-        print hex(reg_value)
+        print(hex(reg_value))
         driver.write_phy_register(Page, Register, driver.port_number(), reg_value)
 
     def CheckDeviceAliveness():
@@ -3515,7 +3515,7 @@ class cvl(cvlDefines):
 
         if debug:
             for i in return_list:
-                print i
+                print(i)
 
         return return_list
 
@@ -3657,7 +3657,7 @@ class cvl(cvlDefines):
             return:
                 None                    
         '''
-        print "Write logger file to: " + file_name
+        print("Write logger file to: " + file_name)
         try:
             f = open(file_name,'w',0)
             for line in logger_list:
@@ -3671,7 +3671,7 @@ class cvl(cvlDefines):
             f.flush()
             f.close()
         except Exception as e:
-            print "Exception in Write_logger_file " + str(e)
+            print("Exception in Write_logger_file " + str(e))
 
     def GetFWEvent(driver,debug=False):
         '''This function should get FW events
@@ -3726,7 +3726,7 @@ class cvl(cvlDefines):
         handler = get_handler()
         driver = self.driver
         configure_logging_dnl(True)
-        print "start dnl logging"   
+        print("start dnl logging")
         clear_rx_events_queue()
         time.sleep(0.1)
         manager = mp.Manager()
@@ -3748,7 +3748,7 @@ class cvl(cvlDefines):
                 True always                     
         '''
         driver = self.driver
-        print "stop dnl logging"
+        print("stop dnl logging")
         configure_logging_dnl(False)
         stop_polling_event.set()
         handler = get_handler()
@@ -3783,7 +3783,7 @@ class cvl(cvlDefines):
         while (GetMacLinkStatus() == True ):
             #print 'waiting for link down'
             if ((curr_time - start_time) > ttl_timeout):
-                print "link is down for 15s"
+                print("link is down for 15s")
                 link_down_flag = False
                 break
             curr_time = time.time()
@@ -3792,12 +3792,12 @@ class cvl(cvlDefines):
             curr_time = time.time()
             if GetMacLinkStatus('REG'):
                 curr_time = time.time()
-                print 'link up'
+                print('link up')
                 break
         
         #calc TTL time
         ttl_time = curr_time - start_time
-        print ttl_time
+        print(ttl_time)
 
         time.sleep(1)
         configure_logging_dnl(False)
@@ -3806,7 +3806,7 @@ class cvl(cvlDefines):
             msg = q.get()
         p.join()
 
-        print "end"
+        print("end")
 
     def ttl_test(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter):
         '''This function perform ttl test and print the result
@@ -3822,7 +3822,7 @@ class cvl(cvlDefines):
             return:
                 None
         '''
-        print MainTtl(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter)
+        print(MainTtl(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter))
 
 
 ###############################################################################
@@ -3847,56 +3847,56 @@ class cvl(cvlDefines):
             keylist = Phytuning_dict.keys()
             keylist.sort()
             for key in keylist:
-               print key,Phytuning_dict[key]
+               print(key,Phytuning_dict[key])
 
-            print '#############################################################################'
-            print "RxFFE_pre2  |RxFFE_pre1  |RxFFE_post1 |RxFFE_Bflf  |RxFFE_Bfhf  |RxFFE_Drate "
+            print('#############################################################################')
+            print("RxFFE_pre2  |RxFFE_pre1  |RxFFE_post1 |RxFFE_Bflf  |RxFFE_Bfhf  |RxFFE_Drate ")
             #print '{0:9s} | {1:9s} | {2:10s} | {3:9s} | {4:9s} | {5:9s}'.format(Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
-            print '%-12s|%-12s|%-12s|%-12s|%-12s|%-12s'% (Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
-            print
-            print '#######################################################'
-            print "CTLE_HF |CTLE_LF |CTLE_DC |CTLE_BW |CTLE_gs1|CTLE_gs2"
-            print '%-8s|%-8s|%-8s|%-8s|%-8s|%-8s'%(Phytuning_dict["CTLE_HF"], Phytuning_dict["CTLE_LF"], Phytuning_dict["CTLE_DC"],Phytuning_dict["CTLE_BW"], Phytuning_dict["CTLE_gs1"], Phytuning_dict["CTLE_gs2"])
-            print
-            print '############################################################################################################################################'
-            print "DFE_GAIN |DFE_GAIN2|DFE_2    |DFE_3    |DFE_4    |DFE_5    |DFE_6    |DFE_7    |DFE_8    |DFE_9    |DFE_A    |DFE_B    |DFE_C    |CTLE_gs2 "
-            print '%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s'%(Phytuning_dict["DFE_GAIN"], Phytuning_dict["DFE_GAIN2"], Phytuning_dict["DFE_2"],Phytuning_dict["DFE_3"], Phytuning_dict["DFE_4"], Phytuning_dict["DFE_5"], Phytuning_dict["DFE_6"], Phytuning_dict["DFE_7"], Phytuning_dict["DFE_8"], Phytuning_dict["DFE_9"], Phytuning_dict["DFE_A"], Phytuning_dict["DFE_B"], Phytuning_dict["DFE_C"], Phytuning_dict["CTLE_gs2"])
-            print 
-            print '#####################################################################################################'
-            print "Eye height_thle |Eye height_thme |Eye height_thue |Eye height_thlo |Eye height_thmo |Eye height_thuo "
-            print '%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"])
-            print
+            print('%-12s|%-12s|%-12s|%-12s|%-12s|%-12s'% (Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"]))
+            print()
+            print('#######################################################')
+            print("CTLE_HF |CTLE_LF |CTLE_DC |CTLE_BW |CTLE_gs1|CTLE_gs2")
+            print('%-8s|%-8s|%-8s|%-8s|%-8s|%-8s'%(Phytuning_dict["CTLE_HF"], Phytuning_dict["CTLE_LF"], Phytuning_dict["CTLE_DC"],Phytuning_dict["CTLE_BW"], Phytuning_dict["CTLE_gs1"], Phytuning_dict["CTLE_gs2"]))
+            print()
+            print('############################################################################################################################################')
+            print("DFE_GAIN |DFE_GAIN2|DFE_2    |DFE_3    |DFE_4    |DFE_5    |DFE_6    |DFE_7    |DFE_8    |DFE_9    |DFE_A    |DFE_B    |DFE_C    |CTLE_gs2 ")
+            print('%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s'%(Phytuning_dict["DFE_GAIN"], Phytuning_dict["DFE_GAIN2"], Phytuning_dict["DFE_2"],Phytuning_dict["DFE_3"], Phytuning_dict["DFE_4"], Phytuning_dict["DFE_5"], Phytuning_dict["DFE_6"], Phytuning_dict["DFE_7"], Phytuning_dict["DFE_8"], Phytuning_dict["DFE_9"], Phytuning_dict["DFE_A"], Phytuning_dict["DFE_B"], Phytuning_dict["DFE_C"], Phytuning_dict["CTLE_gs2"]))
+            print()
+            print('#####################################################################################################')
+            print("Eye height_thle |Eye height_thme |Eye height_thue |Eye height_thlo |Eye height_thmo |Eye height_thuo ")
+            print('%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"]))
+            print()
 
 
         elif PRT_AN_ENABLED and not link_up_flag:
-            print
-            print "###########################################  "
-            print "---------------  DUT  --------------------   "
-            print "###########################################  "
-            print
-            print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
-            print "PRT State Machine: ",PRT_STATE_MACHINE_AN[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
+            print()
+            print("###########################################  ")
+            print("---------------  DUT  --------------------   ")
+            print("###########################################  ")
+            print()
+            print("PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE))
+            print("PRT State Machine: ",PRT_STATE_MACHINE_AN[get_bits_slice_value(PRT_STATE_MACHINE,0,7)])
 
 
         elif not PRT_AN_ENABLED and not link_up_flag:# force mode and link down
-            print
-            print "###########################################  "
-            print "---------------  DUT  --------------------   "
-            print "###########################################  "
-            print
-            print "PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE)
-            print "PRT State Machine: ",PRT_STATE_MACHINE_FM[get_bits_slice_value(PRT_STATE_MACHINE,0,7)]
+            print()
+            print("###########################################  ")
+            print("---------------  DUT  --------------------   ")
+            print("###########################################  ")
+            print()
+            print("PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE))
+            print("PRT State Machine: ",PRT_STATE_MACHINE_FM[get_bits_slice_value(PRT_STATE_MACHINE,0,7)])
 
             # print pcs advanced info
             get_pcs_advenced_info = GetPcsAdvencedInfo()
-            print
-            print
-            print "###########################################  "
-            print "---------------  PCS Info  ---------------   "
-            print "###########################################  "
+            print()
+            print()
+            print("###########################################  ")
+            print("---------------  PCS Info  ---------------   ")
+            print("###########################################  ")
 
             for i in get_pcs_advenced_info:
-                print i
+                print(i)
 
 
 ###############################################################################
@@ -4050,7 +4050,7 @@ class cvl(cvlDefines):
         
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Set MAC Config Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Set MAC Config Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4100,7 +4100,7 @@ class cvl(cvlDefines):
         
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Setup Link Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Setup Link Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4185,7 +4185,7 @@ class cvl(cvlDefines):
         aq_desc.flags = 0x1200 #Set the buffer flag & long buffer flag
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Get PHY Abilities Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Get PHY Abilities Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4329,7 +4329,7 @@ class cvl(cvlDefines):
         aq_desc.flags = 0x1200 #Set the buffer and long buffer flags
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4337,7 +4337,7 @@ class cvl(cvlDefines):
             #The static section of Get PHY Abilities is 32 bytes
             #ut.compose_num_from_array_slice(input, index, width)
             if debug:
-                print buffer
+                print(buffer)
             data = {}
             data['lse_enabled'] = (aq_desc.param0 & 0x10000)
             data['topo_conflict'] = compose_num_from_array_slice(buffer, 0, 1) & 0x1
@@ -4436,7 +4436,7 @@ class cvl(cvlDefines):
         
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4482,7 +4482,7 @@ class cvl(cvlDefines):
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4509,7 +4509,7 @@ class cvl(cvlDefines):
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print 'Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval
+            print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -4550,7 +4550,7 @@ class cvl(cvlDefines):
         '''
         driver = self.driver
         if self.GetLcbPortLockStatus() == 1:
-            print " lock was on 1 at the beginning"
+            print(" lock was on 1 at the beginning")
             driver.write_csr(0x0009E944, self._GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port 
             driver.read_csr(0x0009E940) #read the reg data from the PCIe LCB Data Port
         driver.write_csr(0x0009E944, self._GetValAddrLCB(offset))# write the LCB reg address to the PCIe LCB Address Port 
@@ -4570,7 +4570,7 @@ class cvl(cvlDefines):
         '''
         driver = self.driver
         if self.GetLcbPortLockStatus() == 1:
-            print " lock was on 1 at the beginning"
+            print(" lock was on 1 at the beginning")
             driver.write_csr(0x0009E944, _GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port 
             driver.read_csr(0x0009E940) #read the reg data from the PCIe LCB Data Port
             time.sleep(0.5)
@@ -4624,7 +4624,7 @@ class cvl(cvlDefines):
             2: "Reserved",
             3: "D3hot"
         }
-        print "Device Power State: ", power_sate.get(val,"Wrong")
+        print("Device Power State: ", power_sate.get(val,"Wrong"))
 
     #########################################################################################################
     #################################         Power        ##################################################
@@ -4681,9 +4681,9 @@ class cvl(cvlDefines):
             return:
                 None
         '''
-        print "Link speed: ",self.GetMacLinkSpeed()
+        print("Link speed: ",self.GetMacLinkSpeed())
         for i in range(num_of_iteration):       
-            print "globr num: ",i
+            print("globr num: ",i)
             Reset(1)
             while (self.GetMacLinkStatus("REG")):
                 pass
@@ -4694,10 +4694,10 @@ class cvl(cvlDefines):
                 if self.GetMacLinkStatus("REG"):
                     curr_time = time.time()
                     link_flag = False
-                    print 'link up'
+                    print('link up')
                     
                     break
-            print "TTL: ",curr_time - start_time
+            print("TTL: ",curr_time - start_time)
             time.sleep(5)
             if (link_flag):
                 input("Press enter to continue")
@@ -4715,9 +4715,9 @@ class cvl(cvlDefines):
 
         ttl_list = []
         avg_ttl = 0
-        print "Link speed: ",GetMacLinkSpeed()
+        print("Link speed: ",GetMacLinkSpeed())
         for i in range(num_of_iteration):       
-            print "Restart AN num: ",i
+            print("Restart AN num: ",i)
             RestartAn()
             while (GetMacLinkStatus("REG")):
                 pass
@@ -4728,12 +4728,12 @@ class cvl(cvlDefines):
                 if GetMacLinkStatus("REG"):
                     curr_time = time.time()
                     link_flag = False
-                    print 'link up'
+                    print('link up')
                     time.sleep(1)
                     break
             TTL = curr_time - start_time
             ttl_list.append(TTL)
-            print "TTL: ",TTL
+            print("TTL: ",TTL)
             time.sleep(2)
             if (link_flag):
                 input("Press enter to continue")
@@ -4741,7 +4741,7 @@ class cvl(cvlDefines):
         for i in ttl_list:
              avg_ttl = avg_ttl + i
 
-        print "AVG TTL: ",avg_ttl/len(ttl_list)
+        print("AVG TTL: ",avg_ttl/len(ttl_list))
 
     def GetTimeStamp(self):
         '''This function return date and time 
@@ -4783,15 +4783,15 @@ class cvl(cvlDefines):
         ttl_list = []
         avg_ttl = 0
 
-        print "Link speed: ",GetMacLinkSpeed()
+        print("Link speed: ",GetMacLinkSpeed())
         for i in range(num_of_iteration):
             SaveRawDataFlag = False     
             
             if enable_logger:
-                print 'logger is enabled'
+                print('logger is enabled')
                 StartDnlLogging()   
         
-            print "Restart AN num: ",i
+            print("Restart AN num: ",i)
             RestartAn()
             while (self.GetMacLinkStatus("REG")):
                 pass
@@ -4802,19 +4802,19 @@ class cvl(cvlDefines):
                 if self.GetMacLinkStatus("REG"):
                     curr_time = time.time()
                     link_flag = False
-                    print 'link up'
+                    print('link up')
                     time.sleep(1)
                     break
             ttl = curr_time - start_time
             ttl_list.append(ttl)        
-            print "TTL: ",ttl
+            print("TTL: ",ttl)
 
             if enable_logger:
                 LoggerFileName = create_log_name("/home/laduser/LoggerRawData/RawData_IterationNum_",i,ttl)
                 if ttl > logger_low_limit_ttl:
                     SaveRawDataFlag = True
                     #print "rad data file saved to: ",LoggerFileName
-                print 'logger is disable'
+                print('logger is disable')
                 StopDnlLogging(LoggerFileName,SaveRawDataFlag,1)
 
             time.sleep(3)
@@ -4822,10 +4822,10 @@ class cvl(cvlDefines):
                 raw_input("Press enter to continue")
                 return(0)
 
-        print 
-        print "MIN TTL: ", min(ttl_list)
-        print "MAX TTL: ", max(ttl_list)    
-        print "AVG TTL: ", sum(ttl_list)/len(ttl_list)
+        print()
+        print("MIN TTL: ", min(ttl_list))
+        print("MAX TTL: ", max(ttl_list))
+        print("AVG TTL: ", sum(ttl_list)/len(ttl_list))
 
 
     def DBG_traffic_test(num_of_iteration,ber_timeout,packet_size):
@@ -4850,11 +4850,11 @@ class cvl(cvlDefines):
             #phy_tuning_paraps_dict = GetPhytuningParams()
             new_PTC_Dict = GetPTC()
             new_PRC_Dict = GetPRC()
-            print "Iteration: ",iter_num
-            print "PTC: " ,new_PTC_Dict['TotalPTC']
-            print "PRC: ", new_PRC_Dict['TotalPRC']   
+            print("Iteration: ",iter_num)
+            print("PTC: " ,new_PTC_Dict['TotalPTC'])
+            print("PRC: ", new_PRC_Dict['TotalPRC'])
 
-            print "Start TXRX"
+            print("Start TXRX")
             self.EthStartTraffic(packet_size)
             start_time = sampling_time_counter = time.time()
             while (curr_time < ber_timeout):
@@ -4864,40 +4864,40 @@ class cvl(cvlDefines):
                 CurrentPhyLinkStatus = GetPhyLinkStatus()
                 #print "curr time ",curr_time
                 if (CurrentMacLinkStatus == False or CurrentPhyLinkStatus == False):
-                    print "link drop event"
+                    print("link drop event")
                 #time.sleep(0.005)
             
-            print "Stop TXRX"
+            print("Stop TXRX")
             self.EthStopTraffic()
             #phy_tuning_paraps_dict = GetPhytuningParams()
             new_PTC_Dict = self.GetPTC()
             new_PRC_Dict = self.GetPRC()
-            print "Iteration: ",iter_num
-            print "PTC: " ,new_PTC_Dict['TotalPTC']
-            print "PRC: ", new_PRC_Dict['TotalPRC'] 
+            print("Iteration: ",iter_num)
+            print("PTC: " ,new_PTC_Dict['TotalPTC'])
+            print("PRC: ", new_PRC_Dict['TotalPRC'])
 
             ErrorStatistics = self.GetMacErrorsCounters(ErrorStatistics)
-            print
-            print "######  Mac Error Statistics  #######"
-            print
+            print()
+            print("######  Mac Error Statistics  #######")
+            print()
             keylist = ErrorStatistics.keys()
             keylist.sort()
             for key in keylist:
-                print key,ErrorStatistics[key]
-            print
-            print "######  Mac PTC Statistics  #######"
-            print
+                print(key,ErrorStatistics[key])
+            print()
+            print("######  Mac PTC Statistics  #######")
+            print()
             keylist = new_PTC_Dict.keys()
             keylist.sort()
             for key in keylist:
-                print key,new_PTC_Dict[key]
-            print
-            print "######  Mac PRC Statistics  #######"
-            print
+                print(key,new_PTC_Dict[key])
+            print()
+            print("######  Mac PRC Statistics  #######")
+            print()
             keylist = new_PRC_Dict.keys()
             keylist.sort()
             for key in keylist:
-                print key,new_PRC_Dict[key]
+                print(key,new_PRC_Dict[key])
 
     def DBG_globr_test_4_ports(num_of_iteration,ttl_timeout):
         '''This function performs  TTL test after performing global reset for 4 ports.
@@ -4909,10 +4909,10 @@ class cvl(cvlDefines):
                 None
         '''
         driver = self.driver    
-        print "Link speed: ",GetMacLinkSpeed()
+        print("Link speed: ",GetMacLinkSpeed())
         
         for i in range(num_of_iteration):       
-            print "globr iteration: ", i+1
+            print("globr iteration: ", i+1)
             Reset(1)
             link_flag_port0 = True
             link_flag_port1 = True
@@ -4933,8 +4933,8 @@ class cvl(cvlDefines):
                     LinkStatus0 = get_bit_value(reg_data0,30)       
                     if LinkStatus0:
                         curr_time_port0 = time.time()
-                        print 'link up on port 0'
-                        print "TTL port 0: ",curr_time_port0 - start_time
+                        print('link up on port 0')
+                        print("TTL port 0: ",curr_time_port0 - start_time)
                         link_flag_port0 = False
 
                 if link_flag_port1:
@@ -4943,8 +4943,8 @@ class cvl(cvlDefines):
                     LinkStatus1 = get_bit_value(reg_data0,30)       
                     if LinkStatus1:
                         curr_time_port1 = time.time()
-                        print 'link up on port 1'
-                        print "TTL port 1: ",curr_time_port1 - start_time
+                        print('link up on port 1')
+                        print("TTL port 1: ",curr_time_port1 - start_time)
                         link_flag_port1 = False
 
                 if link_flag_port2:
@@ -4953,8 +4953,8 @@ class cvl(cvlDefines):
                     LinkStatus2 = get_bit_value(reg_data2,30)       
                     if LinkStatus2:
                         curr_time_port2 = time.time()
-                        print 'link up on port 2'
-                        print "TTL port 2: ",curr_time_port2 - start_time
+                        print('link up on port 2')
+                        print("TTL port 2: ",curr_time_port2 - start_time)
                         link_flag_port2 = False
 
                 if link_flag_port3:
@@ -4963,8 +4963,8 @@ class cvl(cvlDefines):
                     LinkStatus3 = get_bit_value(reg_data3,30)       
                     if LinkStatus3:
                         curr_time_port3 = time.time()
-                        print 'link up on port 3'
-                        print "TTL port 3: ",curr_time_port3 - start_time   
+                        print('link up on port 3')
+                        print("TTL port 3: ",curr_time_port3 - start_time)
                         link_flag_port3 = False 
 
                 #if link_flag_port3 == False and link_flag_port2 == False and link_flag_port1 == False and link_flag_port0 == False:
@@ -5015,16 +5015,16 @@ class cvl(cvlDefines):
         buffer = []
         status      = driver.send_aq_command(aq_desc,buffer)
         if debug == True:
-            print "falg = " , hex(aq_desc.flags)
-            print "opcode = " , hex(aq_desc.opcode)
-            print "datalen = " ,hex( aq_desc.datalen)
-            print "retval = " , hex(aq_desc.retval)
-            print "cookie_high = " , hex(aq_desc.cookie_high)
-            print "cookie_low = " , hex(aq_desc.cookie_low)
-            print "param0 = " , hex(aq_desc.param0)
-            print "param1 = " , hex(aq_desc.param1)
-            print "addr_high = " , hex(aq_desc.addr_high)
-            print "addr_low = " , hex( aq_desc.addr_low)
+            print("falg = " , hex(aq_desc.flags))
+            print( "opcode = " , hex(aq_desc.opcode))
+            print("datalen = " ,hex( aq_desc.datalen))
+            print("retval = " , hex(aq_desc.retval))
+            print("cookie_high = " , hex(aq_desc.cookie_high))
+            print("cookie_low = " , hex(aq_desc.cookie_low))
+            print("param0 = " , hex(aq_desc.param0))
+            print("param1 = " , hex(aq_desc.param1))
+            print("addr_high = " , hex(aq_desc.addr_high))
+            print("addr_low = " , hex( aq_desc.addr_low))
             return aq_desc
         else:
             node_handle = (aq_desc.param1 & 0x3ff)
@@ -5063,16 +5063,16 @@ class cvl(cvlDefines):
         buffer = []
         status  = driver.send_aq_command(aq_desc)
         if debug == True:
-            print "falg = " ,hex(aq_desc.flags)
-            print "opcode = " ,hex(aq_desc.opcode)
-            print "datalen = " ,hex( aq_desc.datalen)
-            print "retval = " ,aq_desc.retval
-            print "cookie_high = " ,hex(aq_desc.cookie_high)
-            print "cookie_low = " ,hex(aq_desc.cookie_low)
-            print "param0 = " ,hex(aq_desc.param0)
-            print "param1 = " ,hex(aq_desc.param1)
-            print "addr_high = " ,hex(aq_desc.addr_high)
-            print "addr_low = " ,hex( aq_desc.addr_low)
+            print("falg = " ,hex(aq_desc.flags))
+            print("opcode = " ,hex(aq_desc.opcode))
+            print("datalen = " ,hex( aq_desc.datalen))
+            print("retval = " ,aq_desc.retval)
+            print("cookie_high = " ,hex(aq_desc.cookie_high))
+            print("cookie_low = " ,hex(aq_desc.cookie_low))
+            print("param0 = " ,hex(aq_desc.param0))
+            print("param1 = " ,hex(aq_desc.param1))
+            print("addr_high = " ,hex(aq_desc.addr_high))
+            print("addr_low = " ,hex( aq_desc.addr_low))
             return aq_desc
         data =  intgerTo4ByteList(aq_desc.param0)
         data += intgerTo4ByteList(aq_desc.param1)
@@ -5131,7 +5131,7 @@ class cvl(cvlDefines):
         eeprom_dict = dict()
         handlers_dict = node_handler_dict
         if handlers_dict == 'cable type unknown':
-            print  'cable type not supported'
+            print('cable type not supported')
             return
         for port,handle in handlers_dict.iteritems():
             eeprom_dict[port] = list()
