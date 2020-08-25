@@ -134,7 +134,7 @@ class crsvl(crsvlDefines):
             # sum_data = GetPTC64() + GetPTC127() + GetPTC255() + GetPTC511() + GetPTC1023() + GetPTC1522() + GetPTC9522()
             # return sum_data
 
-    def GetPRC64():
+    def GetPRC64(self):
             '''This function reads PRC64 FVL register
                     Packets Received [64 Bytes] Counter (12.2.2.19.22/23)
                     GLPRT_PRC64L = 0x00300480
@@ -173,7 +173,7 @@ class crsvl(crsvlDefines):
             high_data = driver.read_csr(reg_addr)
             return (((high_data & 0xffff) <<32) | low_data)
             
-    def GetPRC511():
+    def GetPRC511(self):
             '''This function reads PRC511 FVL register
                     Packets Received [256-511 Bytes] Counter (12.2.2.19.28/29)
                     GLPRT_PRC511L = 0x003004e0
@@ -226,35 +226,23 @@ class crsvl(crsvlDefines):
             return (((high_data & 0xffff) <<32) | low_data)
             
     def GetPRC(self):
-            '''This function reads all PRC FVL registers
-                    Total Packets Received Counter (12.2.2.19.23-12.2.2.19.35)
+            '''
+                This function reads all PRC FVL registers
+                Total Packets Received Counter (12.2.2.19.23-12.2.2.19.35)
             '''
             PRC_Dict = {}
-
-            _GetPRC64   = GetPRC64()
-            _GetPRC127  = GetPRC127()
-            _GetPRC255  = GetPRC255()
-            _GetPRC511  = GetPRC511()
-            _GetPRC1023 = GetPRC1023()
-            _GetPRC1522 = GetPRC1522()
-            _GetPRC9522 = GetPRC9522()
-
-            PRC_Dict['GetPRC64']   = _GetPRC64
-            PRC_Dict['GetPRC127']  = _GetPRC127
-            PRC_Dict['GetPRC255']  = _GetPRC255
-            PRC_Dict['GetPRC511']  = _GetPRC511
-            PRC_Dict['GetPRC1023'] = _GetPRC1023
-            PRC_Dict['GetPRC1522'] = _GetPRC1522
-            PRC_Dict['GetPRC9522'] = _GetPRC9522
-
-            PRC_Dict['TotalPRC'] = _GetPRC64 + _GetPRC127 + _GetPRC255 + _GetPRC511 + _GetPRC1023 + _GetPRC1522 + _GetPRC9522
-
+            PRC_Dict['GetPRC64']   = self.GetPRC64()
+            PRC_Dict['GetPRC127']  = self.GetPRC127()
+            PRC_Dict['GetPRC255']  = self.GetPRC255()
+            PRC_Dict['GetPRC511']  = self.GetPRC511()
+            PRC_Dict['GetPRC1023'] = self.GetPRC1023()
+            PRC_Dict['GetPRC1522'] = self.GetPRC1522()
+            PRC_Dict['GetPRC9522'] = self.GetPRC9522()
+            PRC_sum = 0
+            for key, val in PRC_Dict.items():
+                PRC_sum += val 
+            PRC_Dict['TotalPRC'] = PRC_sum
             return PRC_Dict
-
-            # sum_data = GetPRC64() + GetPRC127() + GetPRC255() + GetPRC511() + GetPRC1023() + GetPRC1522() + GetPRC9522()
-            # return sum_data
-
-
             
     ##############################################################################################	
 
@@ -379,8 +367,8 @@ class crsvl(crsvlDefines):
             '''This function counts the number of low density parity check (LDPC) CRC errors in ORCA
             '''
             driver = self.driver
-            low_data = driver.read_phy_register(0x1, 0xB08B, Phy_Address_dict[driver.port_number()])
-            high_data = driver.read_phy_register(0x1, 0xB08C, Phy_Address_dict[driver.port_number()])
+            low_data = driver.read_phy_register(0x1, 0xB08B, self.Phy_Address_dict[driver.port_number()])
+            high_data = driver.read_phy_register(0x1, 0xB08C, self.Phy_Address_dict[driver.port_number()])
             return (((high_data & 0xffff) <<16) | low_data)
 
     def GetMacErrorsStatistics(self, ErrorStatistics):
@@ -762,7 +750,7 @@ class crsvl(crsvlDefines):
 
             print "###################### FVL #############################################"
             driver = self.driver
-            reg_addr = calculate_port_offset(0x0008c260, 0x4, Phy_Address_dict[driver.port_number()])
+            reg_addr = calculate_port_offset(0x0008c260, 0x4, self.Phy_Address_dict[driver.port_number()])
             reg_value = driver.read_csr(reg_addr)
             print "FVL Mac link status: ",GetMacLinkStatus()
             print "Tamar PCS link status: ",GetInternalPcsLinkStatus()
@@ -815,7 +803,7 @@ class crsvl(crsvlDefines):
             interface10G = "None"
             interface1G = "None"
             driver = self.driver
-            reg_addr = calculate_port_offset(0x0008c260, 0x4, Phy_Address_dict[driver.port_number()])
+            reg_addr = calculate_port_offset(0x0008c260, 0x4, self.Phy_Address_dict[driver.port_number()])
             reg_value = driver.read_csr(reg_addr)
             SFI_XFI_KR_value = _get_bits_slice_value(reg_value, 2, 3)
             if SFI_XFI_KR_value == 2: interface10G = "SFI"
@@ -919,9 +907,9 @@ class crsvl(crsvlDefines):
             if Location == "Ext_Phy":
                     #ToggleFwLM(False)
                     HostOrBaseTDirection(1)
-                    reg_value = driver.read_phy_register(0x7,0,Phy_Address_dict[driver.port_number()])
+                    reg_value = driver.read_phy_register(0x7,0,self.Phy_Address_dict[driver.port_number()])
                     reg_value = reg_value | (1<<9)	
-                    driver.write_phy_register(0x7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                    driver.write_phy_register(0x7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                     
             elif Location == "AQ":
                     aq_desc = AqDescriptor()
@@ -1137,9 +1125,9 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 10G
                                     Adv10GLinkSpeed(True)				
                                     #clear 5G
@@ -1149,15 +1137,15 @@ class crsvl(crsvlDefines):
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause disable
                                     GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart AN
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #################################################################################### SFI PORTS THROUGHPUT
                                     reg_addr = calculate_port_offset(0x001C0980, 0x4, driver.port_number())
                                     temp = driver.read_csr(reg_addr)
@@ -1190,9 +1178,9 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 10G
                                     Adv10GLinkSpeed(False)				
                                     #clear 5G
@@ -1202,15 +1190,15 @@ class crsvl(crsvlDefines):
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause enable
                                     GetCommandHandler(0x8020,1,1,0,0,0,0)
                                     #Restart AN
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #################################################################################### SFI PORTS THROUGHPUT
                                     reg_addr = calculate_port_offset(0x001C0980, 0x4, driver.port_number())
                                     temp = driver.read_csr(reg_addr)
@@ -1242,9 +1230,9 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 10G
                                     Adv10GLinkSpeed(False)				
                                     #clear 5G
@@ -1254,15 +1242,15 @@ class crsvl(crsvlDefines):
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause enable
                                     GetCommandHandler(0x8020,1,1,0,0,0,0)
                                     #Restart AN
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #################################################################################### SFI PORTS THROUGHPUT
                                     reg_addr = calculate_port_offset(0x001C0980, 0x4, driver.port_number())
                                     temp = driver.read_csr(reg_addr)
@@ -1285,9 +1273,9 @@ class crsvl(crsvlDefines):
                             #set direction to BaseT side			
                             HostOrBaseTDirection(1)
                             #clear low power mode
-                            reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                            reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                             reg_value = reg_value & 0xF7FF
-                            driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                            driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                             #Set 10G
                             Adv10GLinkSpeed(False)
                             #clear 5G
@@ -1297,15 +1285,15 @@ class crsvl(crsvlDefines):
                             #Set 1G
                             Adv1GLinkSpeed(True)
                             #clear 100M
-                            reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                            reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                             reg_value = reg_value & 0xF07F
-                            driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)			
+                            driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)			
                             #set pause disable
                             GetCommandHandler(0x8020,1,0,0,0,0,0)
                             #Restart AN
-                            reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                            reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                             reg_value = reg_value | 0x1200
-                            driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                            driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                             #################################################################################### SFI PORTS THROUGHPUT
                             reg_addr = calculate_port_offset(0x001C0980, 0x4, driver.port_number())
                             temp = driver.read_csr(reg_addr)
@@ -1330,9 +1318,9 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 10G
                                     Adv10GLinkSpeed(True)				
                                     #clear 5G
@@ -1342,15 +1330,15 @@ class crsvl(crsvlDefines):
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause disable
                                     GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart ANreg_addr
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                             if speed == '5G':
                                     # FVL Tamar powerup
                                     reg_addr = calculate_port_offset(0x8CE00, 0x4, driver.port_number())
@@ -1371,9 +1359,9 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 10G
                                     Adv10GLinkSpeed(False)				
                                     #clear 5G
@@ -1383,15 +1371,15 @@ class crsvl(crsvlDefines):
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause disable
                                     GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart AN
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                             if speed == '2.5G':
                                     # FVL Tamar powerup
                                     reg_addr = calculate_port_offset(0x8CE00, 0x4, driver.port_number())
@@ -1418,9 +1406,9 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 10G
                                     Adv10GLinkSpeed(False)				
                                     #clear 5G
@@ -1430,15 +1418,15 @@ class crsvl(crsvlDefines):
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause enable
                                     GetCommandHandler(0x8020,1,1,0,0,0,0)
                                     #Restart AN
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                     elif interface == 'SGMII':
                             if speed != '1G' and speed != '100M':
                                     print "Wrong speed insertion"
@@ -1452,14 +1440,14 @@ class crsvl(crsvlDefines):
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
-                                    reg_value = driver.read_phy_register(1, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF7FF
-                                    driver.write_phy_register(1, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(1, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #Set 100M
-                                    reg_value = driver.read_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value & 0xF07F
                                     reg_value = reg_value | 0x100
-                                    driver.write_phy_register(7, 0x10, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #clear 1G
                                     Adv1GLinkSpeed(False)
                                     #clear 10G
@@ -1471,9 +1459,9 @@ class crsvl(crsvlDefines):
                                     #set pause disable
                                     GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart AN
-                                    reg_value = driver.read_phy_register(7, 0, Phy_Address_dict[driver.port_number()])
+                                    reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
-                                    driver.write_phy_register(7, 0, Phy_Address_dict[driver.port_number()], reg_value)
+                                    driver.write_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #################################################################################### SFI PORTS THROUGHPUT
                                     reg_addr = calculate_port_offset(0x001C0980, 0x4, driver.port_number())
                                     temp = driver.read_csr(reg_addr)
@@ -1633,7 +1621,7 @@ class crsvl(crsvlDefines):
             '''
             driver = self.driver
             #port = driver.port_number()
-            return GetETH_Internal_ehm12(Phy_Address_dict[driver.port_number()]*4)
+            return GetETH_Internal_ehm12(self.Phy_Address_dict[driver.port_number()]*4)
             
     def GetETH_Internal_ehm12(lane):
             '''this function return the Internal EHM12 base-address
@@ -1774,53 +1762,53 @@ class crsvl(crsvlDefines):
     ######################                 ORCA                 #############################################
     #########################################################################################################
             
-    def GetPhyLinkStatus():
+    def GetPhyLinkStatus(self):
             '''this function return the PHY_LINK_UP status.
             '''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x7, 1, Phy_Address_dict[driver.port_number()])
-            reg_value = driver.read_phy_register(0x7, 1, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x7, 1, self.Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x7, 1, self.Phy_Address_dict[driver.port_number()])
             link_status = _get_bit_value(reg_value, 2)
             return link_status
 
-    def GetPhyHostInterLinkStatus():
+    def GetPhyHostInterLinkStatus(self):
             '''this function return the HOST PHY_LINK_UP status.
             '''
             HostOrBaseTDirection(0)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x3, 1, Phy_Address_dict[driver.port_number()])
-            reg_value = driver.read_phy_register(0x3, 1, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x3, 1, self.Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x3, 1, self.Phy_Address_dict[driver.port_number()])
             link_status = _get_bit_value(reg_value, 2)
             return link_status	
 
-    def GetPhyLinkSpeed():
+    def GetPhyLinkSpeed(self):
             '''this function return EXT_Phy_LINK_SPEED status
             '''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x1E, 0x400D, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x1E, 0x400D, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
             link_speed = _get_bits_slice_value(reg_value, 2, 4)
             return link_speed
 
-    def GetAN_CompleteOrca_BaseT_side():
+    def GetAN_CompleteOrca_BaseT_side(self):
             '''This function return AN_Complete Orca BaseT side'''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x7, 0x1, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x7, 0x1, self.Phy_Address_dict[driver.port_number()])
             GetAutonegComplete = _get_bit_value(reg_value,5)
             return GetAutonegComplete
 
-    def GetAN_CompleteOrca_KR_side():
+    def GetAN_CompleteOrca_KR_side(self):
             '''This function return AN_Complete Orca KR side'''
             HostOrBaseTDirection(0)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x7, 0x1, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x7, 0x1, self.Phy_Address_dict[driver.port_number()])
             GetAutonegComplete = _get_bit_value(reg_value,5)
             return GetAutonegComplete
 
-    def Get_MS_Status():
+    def Get_MS_Status(self):
             '''this function return the master slave configuration resulation
                     argument: None
                     return:
@@ -1829,29 +1817,29 @@ class crsvl(crsvlDefines):
             '''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x7, 0x21, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x7, 0x21, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
             MS_configuration = _get_bit_value(reg_value, 14)
             return 	MS_configuration
 
-    def Set_MS_Config(MS):
+    def Set_MS_Config(self, MS):
             '''this function config the master slave resulation
                     argument: True = config PHY as Master
                                       False = config PHY as Slave
             '''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x7, 0x20, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x7, 0x20, self.Phy_Address_dict[driver.port_number()])
             reg_value = reg_value | (1<<15)	
             if (MS==True):
                     reg_value = reg_value |(1<<14)
             else:
                     reg_value = reg_value & (~(1<<14))
 
-            driver.write_phy_register(0x7, 0x20, Phy_Address_dict[driver.port_number()], reg_value)	
+            driver.write_phy_register(0x7, 0x20, self.Phy_Address_dict[driver.port_number()], reg_value)	
             RestartAn()	
 
-    def Adv10GLinkSpeed(State):
+    def Adv10GLinkSpeed(self, State):
             '''this function advertise Phy 10G link speed
                     argument: True/False 
             '''
@@ -1860,7 +1848,7 @@ class crsvl(crsvlDefines):
             else:
                     ClearMdioBit(0x7,0x20,12)
 
-    def Adv5GLinkSpeed(State):
+    def Adv5GLinkSpeed(self, State):
             '''this function advertise Phy 10G link speed
                     argument: True/FalseGetCurrentTemperature() 
             '''
@@ -1869,7 +1857,7 @@ class crsvl(crsvlDefines):
             else:
                     ClearMdioBit(0x7,0x20,8)
 
-    def Adv2p5GLinkSpeed(State):
+    def Adv2p5GLinkSpeed(self, State):
             '''this function advertise Phy 10G link speed
                     argument: True/False 
             '''
@@ -1878,7 +1866,7 @@ class crsvl(crsvlDefines):
             else:
                     ClearMdioBit(0x7,0x20,7)
 
-    def Adv1GLinkSpeed(State):
+    def Adv1GLinkSpeed(self, State):
             '''this function advertise Phy 10G link speed
                     argument: True/False 
             '''
@@ -1960,7 +1948,7 @@ class crsvl(crsvlDefines):
                                     FW_version[2] is Firmware version: Build
             '''
             driver = self.driver	
-            reg_value = driver.read_phy_register(0x30, 0x400F, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x30, 0x400F, self.Phy_Address_dict[driver.port_number()])
             FW_version = []	
             FW_version.append(_get_bits_slice_value(reg_value, 0, 6))
             FW_version.append(_get_bits_slice_value(reg_value, 7, 11))
@@ -1975,7 +1963,7 @@ class crsvl(crsvlDefines):
                                     0 - if fault condition is not detected
             '''
             driver = self.driver
-            reg_value = driver.read_phy_register(0x1, 0x0001, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x1, 0x0001, self.Phy_Address_dict[driver.port_number()])
             PMAFault = _get_bit_value(reg_value, 7)
             return PMAFault
 
@@ -1987,7 +1975,7 @@ class crsvl(crsvlDefines):
             '''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x1, 0x0001, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x1, 0x0001, self.Phy_Address_dict[driver.port_number()])
             PMDReceiveLinkStatus = _get_bit_value(reg_value, 2)
             return PMDReceiveLinkStatus
 
@@ -1998,7 +1986,7 @@ class crsvl(crsvlDefines):
                                     0 - if fault condition is not detected
             '''
             driver = self.driver
-            reg_value = driver.read_phy_register(0x3, 0x0001, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x3, 0x0001, self.Phy_Address_dict[driver.port_number()])
             PCSFault = _get_bit_value(reg_value, 7)
             return PCSFault
 
@@ -2010,14 +1998,14 @@ class crsvl(crsvlDefines):
             '''
             HostOrBaseTDirection(1)
             driver = self.driver
-            reg_value = driver.read_phy_register(0x3, 0x0001, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x3, 0x0001, self.Phy_Address_dict[driver.port_number()])
             PCSReceiveLinkStatus = _get_bit_value(reg_value, 2)
             return PCSReceiveLinkStatus
 
     def ConfigDirection(direction):
 
             driver = self.driver
-            Phy_Address = Phy_Address_dict[driver.port_number()]
+            Phy_Address = self.Phy_Address_dict[driver.port_number()]
             if direction:		
                     driver.write_phy_register(0x1E, 0x4110, Phy_Address,0x0001)
                     driver.write_phy_register(0x1E, 0x4111, Phy_Address,0x0001)
@@ -2092,24 +2080,24 @@ class crsvl(crsvlDefines):
     def SetMdioBit(Page,Register,BitNum):
             
             driver = self.driver
-            reg_value = driver.read_phy_register(Page, Register, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
             reg_value = reg_value | (1 << BitNum)
             #print hex(reg_value)
-            driver.write_phy_register(Page, Register, Phy_Address_dict[driver.port_number()], reg_value)
+            driver.write_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()], reg_value)
 
     def ClearMdioBit(Page,Register,BitNum):
             
             driver = self.driver
-            reg_value = driver.read_phy_register(Page, Register, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)	
             reg_value = reg_value & ~(1 << BitNum)
             #print hex(reg_value)
-            driver.write_phy_register(Page, Register, Phy_Address_dict[driver.port_number()], reg_value)
+            driver.write_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()], reg_value)
 
     def GetIEEE_FastRetrain_TX_RX_Count():
             driver = self.driver
-            reg_value = driver.read_phy_register(0x1,0x0093,Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x1,0x0093,self.Phy_Address_dict[driver.port_number()])
             FR_RX_TX_CNT = {}
             FR_RX_TX_CNT['RX'] = _get_bits_slice_value(reg_value,11,15)
             FR_RX_TX_CNT['TX'] = _get_bits_slice_value(reg_value,6,10)
@@ -2154,7 +2142,7 @@ class crsvl(crsvlDefines):
 
             # write opcode
             driver = self.driver
-            driver.write_phy_register(0x1E, 0x4005, Phy_Address_dict[driver.port_number()], opcode)
+            driver.write_phy_register(0x1E, 0x4005, self.Phy_Address_dict[driver.port_number()], opcode)
 
             # polling until the FW will be free to execute
             # timout 2 sec
@@ -2187,7 +2175,7 @@ class crsvl(crsvlDefines):
                                 0 -> free to execute command 
             '''	
             driver = self.driver
-            reg_value = driver.read_phy_register(0x1E, 0x4037, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(0x1E, 0x4037, self.Phy_Address_dict[driver.port_number()])
             if StatusFlag:
                     if ((reg_value == 0xBBBB) or  (reg_value == 2)):
                             return 1,reg_value
@@ -2210,7 +2198,7 @@ class crsvl(crsvlDefines):
             '''
             DataRegList = []
             driver = self.driver
-            Phy_Address = Phy_Address_dict[driver.port_number()]
+            Phy_Address = self.Phy_Address_dict[driver.port_number()]
             if SetOrGetFlag:
                     driver.write_phy_register(0x1E, 0x4038, Phy_Address, Data1Reg)
                     driver.write_phy_register(0x1E, 0x4039, Phy_Address, Data2Reg)
@@ -2421,14 +2409,14 @@ class crsvl(crsvlDefines):
     def Mdio_Read_Debug(self, Page, Register):
             
             driver = self.driver
-            reg_value = driver.read_phy_register(Page, Register, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
             return hex(reg_value)
 
     def Mdio_Write_Debug(self, Page,Register,value):
             
             driver = self.driver
-            driver.write_phy_register(Page, Register, Phy_Address_dict[driver.port_number()], value)
+            driver.write_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()], value)
             #print hex(reg_value)
 
     def CSR_Write_Debug(self, Address,Value,Mul=0):
@@ -2442,22 +2430,21 @@ class crsvl(crsvlDefines):
             return driver.read_csr(reg_addr)
 
     def DbgReadMdioRegister(self, Page,Register):
-            
             driver = self.driver
-            reg_value = driver.read_phy_register(Page, Register, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
             return hex(reg_value)
 
     def ReadMdioRegister(self, Page,Register):
             
             driver = self.driver
-            reg_value = driver.read_phy_register(Page, Register, Phy_Address_dict[driver.port_number()])
+            reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
             return reg_value
 
     def WriteMdioRegister(self, Page,Register,value):
             driver = self.driver
-            driver.write_phy_register(Page, Register, Phy_Address_dict[driver.port_number()], value)
+            driver.write_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()], value)
 
     def XFI_TX_prbs31_gen_config(self):
             ''' This function sets TX prbs31 according to "Advance Data Sheet 84892-DS102" pdf file section 2.7.1.11
@@ -2534,3 +2521,713 @@ class crsvl(crsvlDefines):
                     print "Host Interface reports KR mode enable"
             else:
                     print "unknown error occur"
+
+
+###############################################################################
+#                                link configuration Commands                  #
+###############################################################################
+
+    def SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
+        if (type(phy_type_list) == str ):
+            tmp_str = phy_type_list
+            phy_type_list = []
+            phy_type_list.append(tmp_str)
+        else:
+            pass
+
+        config = {}
+        phy_type = 0
+        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
+
+        if data[0]:
+            error_msg = 'Error _SetPhyConfigurationAQ: GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
+            raise RuntimeError(error_msg)
+
+        abilities = data[1]
+
+        config['port'] = 0 #not relevant for CVL according to CVL Spec
+        config['tx_pause_req'] = abilities['pause_abil']
+        config['rx_pause_req'] = abilities['asy_dir_abil']
+        config['low_pwr_abil'] = abilities['low_pwr_abil']
+        config['en_link'] = 1
+        config['en_auto_update'] = 1
+        config['lesm_en'] = 0
+        config['low_pwr_ctrl'] = abilities['low_pwr_ctrl']
+        config['eee_cap_en'] = abilities['eee_cap']
+        config['eeer'] = abilities['eeer']
+        if '50GBase-CR2' in phy_type_list:
+            config['auto_fec_en'] = 0
+        else:
+            config['auto_fec_en'] = 1
+
+
+        for recieved_phy_type in phy_type_list:
+            if recieved_phy_type in self.set_Ability_PhyType_dict:
+                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
+            else:
+                raise RuntimeError("Error _SetPhyConfigurationAQ: PHY_type is not exist in set_Ability_PhyType_dict") #implement a warning
+
+        config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
+        config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
+        config['phy_type_2'] = get_bits_slice_value(phy_type,64,95)
+        config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
+
+
+        if set_fec == 'NO_FEC':
+            config['fec_firecode_10g_abil'] = 0 #abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_req'] = 0 
+            config['fec_rs528_req'] = 0 
+            config['fec_firecode_25g_req'] = 0 
+            config['fec_rs544_req'] = 0 
+            config['fec_rs528_abil'] = 0 #abilities['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = 0 #abilities['fec_firecode_25g_abil']
+            
+        elif set_fec == '10G_KR_FEC':
+            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_req'] = 1
+            config['fec_rs528_req'] = 0 
+            config['fec_firecode_25g_req'] = 0 
+            config['fec_rs544_req'] = 0 
+            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+
+        elif set_fec == '25G_KR_FEC':
+            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_req'] = 0 
+            config['fec_rs528_req'] = 0 
+            config['fec_firecode_25g_req'] = 1 
+            config['fec_rs544_req'] = 0 
+            config['fec_rs528_abil'] = 0
+            config['fec_firecode_25g_abil'] = 0
+            
+        elif set_fec == '25G_RS_528_FEC':
+            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_req'] = 0 
+            config['fec_rs528_req'] = 1
+            config['fec_firecode_25g_req'] = 0 
+            config['fec_rs544_req'] = 0
+            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+
+        elif set_fec == '25G_RS_544_FEC':
+            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_req'] = 0 
+            config['fec_rs528_req'] = 0 
+            config['fec_firecode_25g_req'] = 0 
+            config['fec_rs544_req'] = 1
+            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+            
+        else:
+            error_msg = 'Error _SetPhyConfigurationAQ: fec input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
+            raise RuntimeError(error_msg)
+
+        status = ()
+        status =  self.SetPhyConfig(config)
+
+        if debug == True:
+            if status[0] == 0:
+                print("Admin command successded") #TODO print admin command message 
+            else:
+                print("Admin command failed")
+                print(config)
+        if status[0] :
+            error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(status[1])
+            raise RuntimeError(error_msg)
+
+
+###############################################################################
+#                                Admin Queue Commands                         #
+###############################################################################
+
+    def SetPhyConfig(self, config,debug=False):
+        #Updated for HAS 1.3
+        '''
+            Description:  Set various PHY configuration parameters on port. 
+            input:
+                config -- type(dict)
+                    'phy_type' : int[4 bytes] -- Bytes 3:0 of PHY capabilities
+					'link_speed' : int[1 byte]  -- Bytes 4 
+					'pause_abil' : int[2 bits] -- Bytes 5.0:5.1 
+					'low_pwr_abil': int[1 bit] -- Bytes 5.2
+					'en_link' : int[1 bit] -- Bytes 5.3
+					'an_mode' : int[1 bit] -- Bytes 5.4
+					'en_auto_link_update': int[1 bit] -- Bytes 5.5
+					'reserved' int[2 bit] -- Bytes 5.6:5.7
+					'EEE_capability_en' int[2 bytes] -- Bytes 6:7
+					'EEER' : int[4 bytes] -- Bytes 8:11
+					'low_pwr_ctrl' : int[1 byte] -- Bytes 12
+					'phy_type_extension': int[1 byte] -- Bytes 13
+					'FC_FEC_abil': int[1 bit] -- Bytes 14.0
+					'RS_FEC_abil': int[1 bit] -- Bytes 14.1
+					'FC_FEC_req' : int[1 bit] -- Bytes 14.2
+					'RS_FEC_req' : int[1 bit] -- Bytes 14.3
+					'en_auto_FEC_mode' : int[1 bit] -- Bytes 14.4
+					'reserved' : int[1 bytes 3 bit] -- Bytes 14.5:15
+            return:
+                status -- type(tuple) (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool True, value of Admin command retval, if false is None
+        '''
+        #Generic AQ descriptor --> Set PHY Config Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        driver = self.driver
+       	opcode = 0x601
+        aq_desc = AqDescriptor()
+        buffer = []
+        #Add PHY Type to buffer
+        byte_0 = config['phy_type'] & 0xff
+        buffer.append(byte_0)
+        byte_1 = (config['phy_type'] >> 8) & 0xff
+        buffer.append(byte_1)
+        byte_2 = (config['phy_type'] >> 16) & 0xff
+        buffer.append(byte_2)
+        byte_3 = (config['phy_type'] >> 24) & 0xff
+        buffer.append(byte_3)
+        byte_4 = config['link_speed']
+        buffer.append(byte_4)
+        byte_5 = config['en_auto_link_update'] << 5 | config['an_mode'] << 4 | config['en_link'] << 3 | config['low_pwr_abil'] << 2 | config['pause_abil']
+        buffer.append(byte_5)
+        byte_6 = config['EEE_capability_en'] & 0xff
+        buffer.append(byte_6)
+        byte_7 = 0
+        buffer.append(byte_7)
+        byte_8 = config['EEER'] & 0xff
+        buffer.append(byte_8)
+        byte_9 = (config['EEER'] >> 8) & 0xff
+        buffer.append(byte_9)
+        byte_10 = (config['EEER'] >> 16) & 0xff
+        buffer.append(byte_10)
+        byte_11 = (config['EEER'] >> 24) & 0xff
+        buffer.append(byte_11)
+        byte_12 = config['low_pwr_ctrl']
+        buffer.append(byte_12)
+        byte_13 = config['phy_type_extension']
+        buffer.append(byte_13)
+        byte_14 = config['en_auto_FEC_mode'] << 4 | config['RS_FEC_req'] << 3 | config['FC_FEC_req'] << 2 | config['RS_FEC_abil'] << 1 | config['FC_FEC_abil']
+        buffer.append(byte_14)
+        byte_15 = 0
+        buffer.append(byte_14)
+
+        aq_desc.opcode = 0x601
+        aq_desc.flags = 0x1400 #Include buffer and read flags for this command
+        aq_desc.param0 = 0
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def SetMacConfig(self, config,debug=False):
+        #Update for HAS 1.3
+        '''
+            Description: Set various MAC configuration parameters on the port.
+            input:
+                config -- type(dict):
+                    'max_frame' : int[2 bytes]  -- Sets the maximum ethernet frame size on a port
+                    'pacing_type' : int[1 bit] -- 1 enables fixed IPG rate pacing, 0 is  data-based rate pacing
+                    'pacing_rate' : int[4 bits] -- bitfield sets either the IPG words or the data pacing rate depending on state of pacing_type
+                    'tx_priority' : int[1 byte]
+                    'tx_value' : int[2 bytes]
+                    'fc_refr_thresh' : int[2 bytes]
+            return:
+                status -- type(tuple) (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool True, value of Admin command retval, if false is None
+        '''
+        #Generic AQ descriptor --> Set MAC Config Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        # param0 = (tx_priority + pacing + max_frame)
+        # param1 = (fc_refr_thresh + tx_value)
+        # addr_high = (0)
+        # addr_low = (0)
+        #Class instantiation
+        driver = self.driver
+        opCodes = AqOpCodes()
+        aq_desc = AqDescriptor()
+        #lvar assignment
+        data_len = 0x0
+        aq_desc.opcode = opCodes.set_mac_config
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (config['tx_priority'] << 24) | (config['pacing_rate'] << 23) | (config['pacing_type'] << 19) | config['max_frame']
+        aq_desc.param1 = (config['fc_refr_thresh'] << 16) | (config['tx_value'])
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+        
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set MAC Config Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def SetupLink(self, slu_args,debug=False):
+        #Updated for HAS 1.3
+        '''
+            Description:  Sets up the link and restarts link auto-negotiation. This operation could bring down the link. This
+                        command needs to be executed for other set link parameters to take effect on the link.
+            input:
+                slu_args -- type(dict):
+                    'port' : int[1 byte]
+                    'restart' : int[1 bit] -- 1 to restart the link
+                    'enable' : int[1 bit] -- 1 to enable the link, 0 to disable the link
+            return:
+                status -- type(tuple) (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool True, value of Admin command retval, if false is None
+        '''
+        #Generic AQ descriptor --> Setup Link and Retart Auto-negotiation Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        # param0 = (enable + restart + reserved + logical_port_number)
+        # param1 = (0)
+        # addr_high = (0)
+        # addr_low = (0)
+
+        
+        #Class instantiation
+        driver = self.driver
+        opCodes = AqOpCodes()
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor()
+        helper._debug('SetupLink Admin Command')
+        #lvar assignment
+        data_len = 0x0
+        aq_desc.opcode = opCodes.setup_link
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (slu_args['enable'] << 18) | (slu_args['restart'] << 17) | slu_args['port']
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+        
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Setup Link Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def GetPhyAbilities(self, get_abils,debug=False):
+        '''
+            Description:  Get various PHY abilities supported on the port.
+            input:
+                get_abils -- type(dict)
+                    'port' : int[1 byte]
+                    'rep_qual_mod' : int[1 bit] -- 1 will report list of qualified modules, 0 will not
+                    'rep_mode' : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
+            return:
+                bool -- Indication if Admin command was successful, False if so, True if not
+                dict -- 
+                    'phy_type_0' : int[4 bytes] -- Bytes 3:0 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
+                    'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
+                    'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
+                    'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
+                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
+                    'pause_abil': int[1 bit] -- 1 if capable of PAUSE advertisement, 0 if not capable
+                    'asy_dir_abil' : int[1 bit] -- 1 if capable of ASY_DIR pause advertisement, 0 if not capable
+                    'low_pwr_abil': int[1 bit] -- 0 for high power mode, 1 for low power mode
+                    'link_mode' : int[1 bit] -- 1 if link is enabled, 0 if link is disabled
+                    'an_mode' : int[1 bit] -- 1 if AN is enabled, 0 if AN is disabled
+                    'en_mod_qual' : int[1 bit] -- 1 if Module or PHY qualification is enabled, 0 if not
+                    'lesm_en' : int[1 bit] -- 1 if LESM is enabled, 0 if disabled
+                    'auto_fec_en' : int[1 bit] -- 1 if AutoFEC is enabled, 0 if disabled
+                    'low_pwr_ctrl' : int[1 bit] -- 1 if LPLU is enabled, 0 if LPLU is disabled
+                    'eee_cap' : int[2 bytes] -- bitfied indicating which EEE capabilities are capable
+                    'eeer' : int[2 bytes] -- Content of the EEER MAC register
+                    'oui' : int[4 bytes] -- Current BASE-T PHY ID or Module Vendor ID
+                    'phy_fw_ver' : int[8 bytes] -- Outermost PHY FW version
+                    'fec_opt' : int[1 byte] -- Available FEC options for the link
+                    'fec_firecode_10g_abil' : int[1 bit] -- Enable advertisement of 10G Fire Code FEC ability, only applicable in 10GBASE-KR
+                    'fec_firecode_10g_req' : int[1 bit] -- Enable request for 10G Fire Code FEC, only applicable in 10GBASE-KR
+                    'fec_rs528_req' : int[1 bit] -- Enable request for RS-528 FEC
+                    'fec_firecode_25g_req' : int[1 bit] -- Enable request for 25G Fire Code FEC
+                    'fec_rs544_req' : int[1 bit] -- Enable requuest for RS-544 FEC
+                    'fec_rs528_abil' : int[1 bit] -- Enable advertisement of RS-528 FEC, only applicable for Consortium modes?
+                    'fec_firecode_25g_req' : int[1 bit] -- Enable advertisement of 25G Fire Code FEC, only applicable for Consortium modes?
+                    'mod_ext_comp_code' : int[1 byte] -- Extended compliance code of the attached external module, SFP+ (Addr 0xA0, Byte 36) 
+                    'mod_id' : int[1 byte] -- module identifier of current module, SFP+ (Addr 0xA0, Byte 0) or QSFP+ (Addr 128, page 0)
+                    'mod_sfp_cu_passive': int[1 bit] -- 1 if SFP+ Cu Passive is supported
+                    'mod_sfp_cu_active': int[1 bit] -- 1 if SFP+ Cu Active is supported
+                    'mod_10g_sr': int[1 bit] -- 1 if 10GBASE-SR is supported
+                    'mod_10g_lr': int[1 bit] -- 1 if 10GBASE-LR is supported
+                    'mod_10g_lrm': int[1 bit] -- 1 if 10GBASE-LRM is supported
+                    'mod_10g_er': int[1 bit] -- 1 if 10GBASE-ER is supported
+                    'mod_1g_comp_code' : int[1 byte] -- GbE compliance code of current module, SFP+ (Addr 0xA0, Byte 6) or QSFP+ (Addr 134, page0) 
+
+                    'qual_mod_count' : int[1 byte] -- Number of qualified modules in list(max: 16)
+                    'qual_mod_ids' : list[dicts] -- List of Qualified module IDs
+                        {'vendor_oui' : int[3 bytes], 'vendor_pn' : int[16 bytes], 'vendor_rev' : int[4 bytes]}
+                    if bool is True, dict becomes in with Admin command retval
+        '''
+        
+        #Generic AQ descriptor --> Get PHY Abilities Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        # param0(bytes 16-19) = (rep_mode + rep_qual_mod + reserved + logical_port_number)
+        # param1(bytes 20-23) = (0)
+        # addr_high(bytes 24-27) = (0)
+        # addr_low(bytes 28-31) = (0)
+        driver = self.driver
+        opCodes = AqOpCodes()
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor()
+        #helper._debug('GetPhyAbilities Admin Command')
+        #lvar assignment
+        data_len = 0x1000
+        aq_desc.opcode = opCodes.get_phy_abilities
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (get_abils['rep_mode'] << 17) | (get_abils['rep_qual_mod'] << 16) | get_abils['port']
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x1200 #Set the buffer flag & long buffer flag
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Get PHY Abilities Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            #The static section of Get PHY Abilities is 32 bytes
+            #ut.compose_num_from_array_slice(input, index, width)
+            data = {}
+            mod_ids = []
+            data['phy_type_0'] = compose_num_from_array_slice(buffer, 0, 4)
+            data['phy_type_1'] = compose_num_from_array_slice(buffer, 4, 4)
+            data['phy_type_2'] = compose_num_from_array_slice(buffer, 8, 4)
+            data['phy_type_3'] = compose_num_from_array_slice(buffer, 12, 4)
+            phy_type_list = []        
+            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
+            data['phy_type_list'] = phy_type_list
+
+            data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x1)
+            data['asy_dir_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x2) >> 1
+            data['low_pwr_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x4) >> 2
+            data['link_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x8) >> 3
+            data['an_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x10) >> 4
+            data['en_mod_qual'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x20) >> 5
+            data['lesm_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x40) >> 6
+            data['auto_fec_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x80) >> 7
+            lpc = compose_num_from_array_slice(buffer, 17, 1)
+            if lpc:
+                data['low_pwr_ctrl'] = 1
+            else:
+                data['low_pwr_ctrl'] = 0
+            #data['low_pwr_ctrl'] = ut.compose_num_from_array_slice(buffer, 17, 1) #if more bits end up being used, remove if/else above and uncomment this line
+            data['eee_cap'] = compose_num_from_array_slice(buffer, 18, 2)
+            data['eeer'] = compose_num_from_array_slice(buffer, 20, 2)
+            data['oui'] = compose_num_from_array_slice(buffer, 22, 4)
+            data['phy_fw_ver'] = compose_num_from_array_slice(buffer, 26, 8)
+            #data['fec_opt'] = ut.compose_num_from_array_slice(buffer, 34, 1)
+            data['fec_firecode_10g_abil'] = compose_num_from_array_slice(buffer, 34, 1) & 0x1
+            data['fec_firecode_10g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x2) >> 1
+            data['fec_rs528_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x4) >> 2
+            data['fec_firecode_25g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x8) >> 3
+            data['fec_rs544_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x10) >> 4
+            data['fec_rs528_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x40) >> 6
+            data['fec_firecode_25g_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x80) >> 7
+            data['mod_ext_comp_code'] = compose_num_from_array_slice(buffer, 36, 1)
+            data['mod_id'] = compose_num_from_array_slice(buffer, 37, 1)
+            data['mod_sfp_cu_passive'] = compose_num_from_array_slice(buffer, 38, 1) & 0x1
+            data['mod_sfp_cu_active'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x2) >> 1
+            data['mod_10g_sr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x10) >> 4     
+            data['mod_10g_lr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x20) >> 5
+            data['mod_10g_lrm'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x40) >> 6
+            data['mod_10g_er'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x80) >> 7
+            data['mod_1g_comp_code'] = compose_num_from_array_slice(buffer, 39, 1)
+            data['qual_mod_count'] = compose_num_from_array_slice(buffer, 40, 1)
+            #if data['qual_mod_count']:
+                #TODO: Implement function that slices the 32 byte sections from the buffer based on mod_count, then builds a list of dictionaries that deciphers the module info based on table in CPK HAS
+            #    data['qual_mod_ids'] = mod_ids
+            data['qual_mod_ids'] = 0
+            status = (False, data)
+        return status
+
+    def GetLinkStatus(self, gls,debug=False):
+        #Updated for HAS 1.3
+        '''
+            Description:  Get link status of the port.
+            input:
+                gls -- dict
+                    'port' : int[1 byte]
+                    'cmd_flag': int[2 bits] -- See description in Table 3-105 of CPK HAS
+            return:
+                status -- type(tuple) (bool, dict)
+                bool -- Indication if Admin command was successful, False if so, True if not
+                dict -- 
+                    'lse_enabled' : int[1 bit] -- 1 if LSE is enabled, 0 if disabled
+                    'topo_conflict' : int[1 bit] -- 1 if topology conflict detect, 0 if not
+                    'media_conflict' : int[1 bit] -- 1 if media conflict detected, 0 if not
+                    'lom_topo_corrupt' : int[1 bit] -- 1 if LOM topology netlist is corrupted, 0 if not
+                    'link_sts': int[1 bit] -- 1 if link is up, 0 if down
+                    'link_fault': int[1 bit] -- 1 if PHY has detected a link fault condition
+                    'tx_link_fault': int[1 bit] -- 1 if a transmit link fault condition is detected 'rx_link_fault': int[1 bit] -- 1 if a receive link fault condition is detected 'remote_fault': int[1 bit] -- 1 if a remote fault condition is detected
+                    'ext_prt_sts' : int[1 bit] -- 1 if link up, 0 if down
+                    'media_avail' : int[1 bit] -- 1 if media is availble, 0 if not
+                    'sig_det' int[1 bit] -- 1 if signal detected, 0 if not
+                    'an_comp' : int[1 bit] -- 1 if AN completed successfully, 0 if not(only valid if PHY type supports AN)
+                    'lp_an_abil' : int[1 bit] -- 1 if LP supports AN, 0 if not(only valid if PHY type supports AN)
+                    'pd_fault' : int[1 bit] -- 1 if parallel detect fault occured, 0 if not(only valid if AN w/ pd support enabled)
+                    '10g_kr_fec' : int[1 bit] -- 1 if KR, KR4 or CR4 FEC is enabled, 0 if not(only valid if PHY supports FEC)
+                    'low_pwr_state' : int[1 bit] -- 1 if low power mode, 0 if high power mode
+                    'tx_pause' : int[1 bit] -- 1 if TX Pause is enabled
+                    'rx_pause' : int[1 bit] -- 1 if RX Pause is enabled
+                    'qual_mod' : int[1 bit] -- 1 if the module is qualified, 0 if not
+                    'temp_alarm' : int[1 bit] -- 1 if temp alarm is asserted by PHY, 0 if not
+                    'hi_err' : int[1 bit] -- 1 if high_ber reported by the PHY
+                    'tx_susp' : int[2 bits] -- Refer to Table 3-107 in HAS for bitfield definition
+                    'lcl_lpbk' : int[1 bit] -- Indicates that PHY local loopback is enabled
+                    'rem_lpbk' : int[1 bit] -- Indicates that PHY remote loopback is enabled
+                    'mac_lpbk' : int[1 bit] -- Indicates that MAC local loopback is enabled
+                    'max_frame' : int[2 bytes] -- Max frame size set on the port
+                    '25g_kr_fec' : int[1 bit] -- 1 if 25G KR FEC was negotiated on the link
+                    '25g_rs_528' : int[1 bit] -- 1 if 25G RS 528 FEC negotiated on the link
+                    'rs_544' : int[1 bit] -- 1 if RS 544 FEC was negotiated on the link
+                    'pacing_type' : int[1 bit] -- Determines if Inter-Packet Gap is used for rate pacing or data dependent
+                    'pacing_rate' : int[4 bits] -- Refer to Table 3-66 for bitfield definition
+                    'link_speed_10m' : int[1 bit] -- 1 if current link speed is 10 Mbps
+                    'link_speed_100m' : int[1 bit] -- 1 if current link speed is 100 Mbps
+                    'link_speed_1000m' : int[1 bit] -- 1 if current link speed is 1000 Mbps
+                    'link_speed_2p5g' : int[1 bit] -- 1 if current link speed is 2.5 Gbps
+                    'link_speed_5g' : int[1 bit] -- 1 if current link speed is 5 Gbps
+                    'link_speed_10g' : int[1 bit] -- 1 if current link speed is 10 Gbps
+                    'link_speed_20g' : int[1 bit] -- 1 if current link speed is 20 Gbps
+                    'link_speed_25g' : int[1 bit] -- 1 if current link speed is 25 Gbps
+                    'link_speed_40g' : int[1 bit] -- 1 if current link speed is 40 Gbps
+                    'link_speed_50g' : int[1 bit] -- 1 if current link speed is 50 Gbps
+                    'link_speed_100g' : int[1 bit] -- 1 if current link speed is 100 Gbps
+                    'link_speed_200g' : int[1 bit] -- 1 if current link speed is 200 Gbps
+                    'phy_type_0' : int[4 bytes] -- Bytes 3:0 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
+                    'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
+                    'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
+                    'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
+                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
+                if bool is True, dict becomes int with Admin command retval
+        '''
+        #Generic AQ descriptor --> Get Link Status Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        # param0(bytes 16-19) = (cmd_flag + reserved + logical_port_number)
+        # param1(bytes 20-23) = (0)
+        # addr_high(bytes 24-27) = (0)
+        # addr_low(bytes 28-31) = (0)
+        driver = self.driver
+        opCodes = AqOpCodes()
+        aq_desc = AqDescriptor()
+        data_len = 0x1000
+        aq_desc.opcode = opCodes.get_link_status
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (gls['cmd_flag'] << 16) | gls['port']
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x1200 #Set the buffer and long buffer flags
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            #The static section of Get PHY Abilities is 32 bytes
+            #ut.compose_num_from_array_slice(input, index, width)
+            if debug:
+                print(buffer)
+            data = {}
+            data['lse_enabled'] = (aq_desc.param0 & 0x10000)
+            data['topo_conflict'] = compose_num_from_array_slice(buffer, 0, 1) & 0x1
+            data['media_conflict'] = (compose_num_from_array_slice(buffer, 0, 1) & 0x2) >> 1
+            data['lom_topo_corrupt'] = (compose_num_from_array_slice(buffer, 0, 1) & 0x4) >> 2
+            data['link_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x1)
+            data['link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x2) >> 1
+            data['tx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x4) >> 2
+            data['rx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x8) >> 3
+            data['remote_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x10) >> 4
+            data['ext_prt_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x20) >> 5
+            data['media_avail'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x40) >> 6
+            data['sig_det'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x80) >> 7
+            data['an_comp'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x1)
+            data['lp_an_abil'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x2) >> 1
+            data['pd_fault'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x4) >> 2
+            data['10g_kr_fec'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x8) >> 3
+            data['low_pwr_state'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x10) >> 4
+            data['tx_pause'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x20) >> 5
+            data['rx_pause'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x40) >> 6
+            data['qual_mod'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x80) >> 7
+            data['temp_alarm'] = compose_num_from_array_slice(buffer, 4, 1) & 0x1
+            data['hi_err'] = (compose_num_from_array_slice(buffer, 4, 1) & 0x2) >> 1
+            data['tx_susp'] = (compose_num_from_array_slice(buffer, 4, 1) & 0xC) >> 2
+            data['lcl_lpbk'] = compose_num_from_array_slice(buffer, 5, 1) & 0x1
+            data['rem_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x2) >> 1
+            data['mac_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x4) >> 2
+            data['max_frame'] = compose_num_from_array_slice(buffer, 6, 2)
+            data['25g_kr_fec'] = compose_num_from_array_slice(buffer, 8, 1) & 0x1
+            data['25g_rs_528'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
+            data['rs_544'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x4) >> 2
+            data['pacing_type'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7
+            data['pacing_rate'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3
+            data['link_speed_10m'] = compose_num_from_array_slice(buffer, 10, 1) & 0x1
+            data['link_speed_100m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1
+            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2
+            data['link_speed_2p5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3
+            data['link_speed_5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4
+            data['link_speed_10g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5
+            data['link_speed_20g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6
+            data['link_speed_25g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7
+            data['link_speed_40g'] = compose_num_from_array_slice(buffer, 11, 1) & 0x1
+            data['link_speed_50g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1
+            data['link_speed_100g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2
+            data['link_speed_200g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3
+            data['phy_type_0'] = compose_num_from_array_slice(buffer, 16, 4)
+            data['phy_type_1'] = compose_num_from_array_slice(buffer, 20, 4)
+            data['phy_type_2'] = compose_num_from_array_slice(buffer, 24, 4)
+            data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
+
+            phy_type_list = []
+            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
+            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
+            data['phy_type_list'] = phy_type_list
+
+            status = (False, data)
+        return status
+
+    def SetPhyLoopback(self,phy_lpbk_args,debug=False):
+        #Updated for HAS 1.3
+        '''
+            Description:  Sets various PHYs loopback modes of the link
+            input:
+                phy_lpbk -- type(dict)
+                    'port' : int[1 byte]
+                    'index' : int[1 byte]
+                    'enable' : int[1 bit]
+                    'type' : int[1 bit]
+                    'level' : int[1 bit]
+            return:
+                status -- type(tuple) (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool is False, None, else int is Admin command retval
+        '''
+        #Generic AQ descriptor --> Set PHY Loopback Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        # param0 = (level + type + enable + phy_index + logical_port_number)
+        # param1 = (0)
+        # addr_high = (0)
+        # addr_low = (0)
+        driver = self.driver
+        opCodes = AqOpCodes()
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor() # helper._debug('SetPhyLoopback Admin Command')
+        data_len = 0x0
+        aq_desc.opcode = opCodes.set_phy_loopback
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (phy_lpbk_args['level'] << 26) | (phy_lpbk_args['type'] << 25) | (phy_lpbk_args['enable'] << 24) | (phy_lpbk_args['index'] << 16) | phy_lpbk_args['port']
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+        
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def SetPhyDebug(self, debug_args,debug=False):
+        #Updated for HAS 1.3
+        '''
+            Description:  Resets PHYs or disables Link Management Firmware
+            input:
+                debug_args -- type(dict)
+                    'port' : int[1 byte]
+                    'index' : int[1 byte]
+                    'cmd_flags' : int[1 byte] -- See Table 3-115 for bitfield description
+            return:
+                status -- type(tuple) (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool is False, None, else int is Admin command retval
+        '''
+        # Generic AQ descriptor --> Set PHY Debug Admin command translation
+        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
+        # param0 = (cmd_flags + index + port)
+        # param1 = (0)
+        # addr_high = (0)
+        # addr_low = (0)
+
+        driver = self.driver
+        opCodes = AqOpCodes()
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor()
+       # helper._debug('SetPhyDebug Admin Command')
+        data_len = 0x0
+        aq_desc.opcode = opCodes.set_phy_debug
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (debug_args['cmd_flags'] << 24) | (debug_args['index'] << 16) | debug_args['port']
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def SetMacLoopback(self, args, debug = False):
+        '''
+            This method sends a Set MAC Loopback addmin command
+        '''
+        driver = self.driver
+        opCodes = AqOpCodes()
+        aq_desc = AqDescriptor()
+        data_len = 0x0
+        aq_desc.opcode = opCodes.set_mac_loopback
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = args["loopback mode"]
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
