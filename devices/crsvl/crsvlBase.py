@@ -8,7 +8,7 @@ import sys
 
 class crsvlBase:
     '''
-        This class is the base class for CVL infreface, defines the constructor 
+        This class is the base class for CVL inferface, defines the constructor 
         and holds information about the object instance
         dervied classed define functionality
     '''
@@ -18,6 +18,7 @@ class crsvlBase:
         self.device_number = device_number
         self.port_number = port_number
         self.hostname = hostname
+        self._host_or_baseT = 0
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
         except Exception as e:

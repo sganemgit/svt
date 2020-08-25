@@ -1,5 +1,11 @@
+
+#--------------------------------------------
+# @author Shady Ganem <shady.ganem@intel.com>
+#--------------------------------------------
+
 def compose_num_from_array_slice(buffer, start_index, length):
-    ''' This function builds number from bytes in array and returns it
+    ''' 
+        This function builds number from bytes in array and returns it
         Arguments:
             buffer - array of bytes
             start_index - index of byte to start from, will be MSB in final number
@@ -15,7 +21,8 @@ def compose_num_from_array_slice(buffer, start_index, length):
     return result
 
 def calculate_port_offset(offset_base, mul, port_number):
-    '''This function return port offset according to port number and offset.
+    '''
+        This function return port offset according to port number and offset.
     '''
     return offset_base + mul * port_number
 
@@ -31,7 +38,8 @@ def get_bits_slice_value(value, bit_start_number, bit_end_number):
         return slice_value
 
 def get_bit_value(value, bit_number):
-    '''This function return the value from specific bit
+    '''
+        This function return the value from specific bit
         argument:
             value (hex) - value from register
             bit_number (int) 
@@ -39,7 +47,8 @@ def get_bit_value(value, bit_number):
     return (value >> bit_number) & 0x1
 
 def intgerTo4ByteList(I):
-        '''this is a Level 0 function that convert a 4-byte integer to an array of length 4 that contans the 4 bytes
+        '''
+            this is a Level 0 function that convert a 4-byte integer to an array of length 4 that contans the 4 bytes
             argument: I = integer
             return: list of length 4
         '''

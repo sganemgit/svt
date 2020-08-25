@@ -762,12 +762,12 @@ class crsvl(crsvlDefines):
             #print "PCIE current link width: ",GetPCIE_CurrentLinkWidth()
             print "FVL MAC remote fault: ", MacRemoteFault()
             print "FVL MAC local fault: ",MacLocalFault()
-            if _get_bit_value(reg_value, 13) == 1: print "AN_CLAUSE_37_ENABLE"
-            if _get_bit_value(reg_value, 16) == 1: print "Advertise support PCS 1G-KX ability"
-            if _get_bit_value(reg_value, 24) == 1: print "Advertise support for EEE PCS 1G-KX ability"
-            if _get_bit_value(reg_value, 18) == 1: print "Advertise support PCS 10G-KR ability"
-            if _get_bit_value(reg_value, 18) == 1: print "Advertise support for EEE PCS 10G-KR ability"
-            if _get_bit_value(reg_value, 29) == 1: print "AN_CLAUSE_73_ENABLE"
+            if get_bit_value(reg_value, 13) == 1: print "AN_CLAUSE_37_ENABLE"
+            if get_bit_value(reg_value, 16) == 1: print "Advertise support PCS 1G-KX ability"
+            if get_bit_value(reg_value, 24) == 1: print "Advertise support for EEE PCS 1G-KX ability"
+            if get_bit_value(reg_value, 18) == 1: print "Advertise support PCS 10G-KR ability"
+            if get_bit_value(reg_value, 18) == 1: print "Advertise support for EEE PCS 10G-KR ability"
+            if get_bit_value(reg_value, 29) == 1: print "AN_CLAUSE_73_ENABLE"
             print "###################### ORCA #############################################"
             
             print "ORCA PHY link status BaseT: ",GetPhyLinkStatus()
@@ -790,16 +790,16 @@ class crsvl(crsvlDefines):
             print "ORCA PHY resolved to","<",temp,">" 
             print "ORCA PHY Temperature: ",GetCurrentTemperature()
             if (FVLPcsMode == "KX" and real_speed == "1G") or (FVLPcsMode == "SGMII" and real_speed == "100M") :
-                    print "ORCA 1G Remote Fault status: ", _get_bit_value(Mdio_Read_Debug(0x7,0xFFE1), 4)
+                    print "ORCA 1G Remote Fault status: ", get_bit_value(Mdio_Read_Debug(0x7,0xFFE1), 4)
             else:
                     print "ORCA PMA fault status: ", PMAFault()
                     print "ORCA PCS fault status: ", PCSFault()
             #PmaPmdCap = Mdio_Read_Debug(0x1,0x0004)
-            #print "PMA/PMD capability of operating at 100M: ", _get_bit_value(PmaPmdCap, 5)
-            #print "PMA/PMD capability of operating at 1G: ", _get_bit_value(PmaPmdCap, 4)
-            #print "PMA/PMD capability of operating at 10G: ", _get_bit_value(PmaPmdCap, 0)
+            #print "PMA/PMD capability of operating at 100M: ", get_bit_value(PmaPmdCap, 5)
+            #print "PMA/PMD capability of operating at 1G: ", get_bit_value(PmaPmdCap, 4)
+            #print "PMA/PMD capability of operating at 10G: ", get_bit_value(PmaPmdCap, 0)
                     
-    def GetFVLPcsMode():
+    def GetFVLPcsMode(self):
             interface10G = "None"
             interface1G = "None"
             driver = self.driver
@@ -809,7 +809,7 @@ class crsvl(crsvlDefines):
             if SFI_XFI_KR_value == 2: interface10G = "SFI"
             elif SFI_XFI_KR_value == 1: interface10G = "XFI"
             elif SFI_XFI_KR_value == 0: interface10G = "KR"
-            SGMII_KX_BX_value = (_get_bit_value(reg_value, 12)<<1) + _get_bit_value(reg_value, 6) 
+            SGMII_KX_BX_value = (get_bit_value(reg_value, 12)<<1) + get_bit_value(reg_value, 6) 
             if SGMII_KX_BX_value == 2: interface1G = "SGMII"
             elif SGMII_KX_BX_value == 1: interface1G = "KX"
             elif SGMII_KX_BX_value == 0: interface1G = "BX"
@@ -819,7 +819,7 @@ class crsvl(crsvlDefines):
             elif MacLinkSpeed == "1G" or MacLinkSpeed == "100M": return interface1G
 
 
-    def GetMacLinkStatus(*bits,**options):
+    def GetMacLinkStatus(self, *bits,**options):
             '''This function returns the MAC_LINK_UP status bit by default.
                     If other bits are required pass as additional args.
                     Options:
@@ -831,21 +831,21 @@ class crsvl(crsvlDefines):
             reg_data = driver.read_csr(reg_addr)
 
             result=[]
-            result.append(_get_bit_value(reg_data,30))
+            result.append(get_bit_value(reg_data,30))
             for bit_key in bits:
-                    result.append(_get_bit_value(reg_data,bit_key))
+                    result.append(get_bit_value(reg_data,bit_key))
             if options.get('GetSpeed') == True:
                     result.append(_get_bits_slice_value(reg_data,27,29))
             if options.get('GetRF') == True:
-                    result.append(_get_bit_value(reg_data,2))
+                    result.append(get_bit_value(reg_data,2))
             if options.get('GetLF') == True:
-                    result.append(_get_bit_value(reg_data,3))
+                    result.append(get_bit_value(reg_data,3))
                     
             if len(result) == 1:
                     return result[0]
             return result
 
-    def IsMacLinkUp(ttl_timeout):
+    def IsMacLinkUp(self, ttl_timeout):
             '''This function returns the if Mac Link UP.
                     argument:
                             ttl_timeout
@@ -860,13 +860,15 @@ class crsvl(crsvlDefines):
             while ((curr_time - start_time) < ttl_timeout):
                     curr_time = time.time()
                     reg_data = driver.read_csr(reg_addr)
-                    if (_get_bit_value(reg_data,30)):
+                    if (get_bit_value(reg_data,30)):
                             return True
             return False
 
-    def ToggleFwLM(enable):
-            ''' argument:
-                            enable = True/False'''
+    def ToggleFwLM(self, enable):
+            ''' 
+                argument:
+                            enable = True/False
+            '''
 
             driver = self.driver
 
@@ -877,11 +879,12 @@ class crsvl(crsvlDefines):
 
             driver.send_aq_command(aq_desc)
 
-    def MacReset(Reset):
-            ''' argument:
-                            int Reset = 0: for core reset
-                                                    1: for global reset
-                                                    2:EMP reset
+    def MacReset(self, Reset):
+            ''' 
+                argument:
+                        int Reset = 0: for core reset
+                                                1: for global reset
+                                                2:EMP reset
             '''
             driver = self.driver
             reg_addr = 0x00B8190
@@ -896,7 +899,7 @@ class crsvl(crsvlDefines):
                     print "wrong reset - nothing to do"
             driver.write_csr(reg_addr, reg_value)
 
-    def RestartAn(Location = "Ext_Phy"): 
+    def RestartAn(self, Location = "Ext_Phy"): 
             '''This function performs restart autoneg
                     [WIP] - add support for admin command reset
                     argument:
@@ -939,7 +942,7 @@ class crsvl(crsvlDefines):
             else:
                     raise RuntimeError("Error RestartAn: Error Location, please insert location Int_Phy/AQ/Ext_Phy")	
 
-    def SetInternalPcsLink(interface, speed): ## Ability --> 'SGMII' :('100M', '1G'), 'XFI': ('10G'), SFI: ('10G') 'KR': ('10G'), 'KX': ('1G') 
+    def SetInternalPcsLink(self, interface, speed): ## Ability --> 'SGMII' :('100M', '1G'), 'XFI': ('10G'), SFI: ('10G') 'KR': ('10G'), 'KX': ('1G') 
             '''This function sets Interface and Speed to PCS Link Control 0x0008c260. 
                     argument:
                             interface = 'SGMII', 'XFI', 'SFI', 'KR', 'KX'
@@ -998,7 +1001,7 @@ class crsvl(crsvlDefines):
             #print hex(reg_value)
             driver.write_csr(reg_addr, reg_value)
 
-    def DBG_restartAN_test(self, num_of_iteration,ttl_timeout,link_stability_time):#TODO add link stability check and link drop source
+    def DBG_restartAN_test(self, num_of_iteration, ttl_timeout, link_stability_time):#TODO add link stability check and link drop source
             ttl_list = []
             avg_ttl = 0
             stable_dict = {}
@@ -1121,7 +1124,7 @@ class crsvl(crsvlDefines):
                                     reg_addr = calculate_port_offset(0x8C260, 0x4, driver.port_number())
                                     driver.write_csr(reg_addr, 0xA5048070)
                                     #set KR mode enable on Orca host side
-                                    GetCommandHandler(0x800f,1,1,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,1,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1141,7 +1144,7 @@ class crsvl(crsvlDefines):
                                     reg_value = reg_value & 0xF07F
                                     driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause disable
-                                    GetCommandHandler(0x8020,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart AN
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1172,9 +1175,9 @@ class crsvl(crsvlDefines):
                                     temp = temp & 0xFFFB # clear RPFCM
                                     driver.write_csr(reg_addr, temp)
                                     #set KR mode enable on Orca host side
-                                    GetCommandHandler(0x800f,1,1,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,1,0,0,0,0)
                                     # Rate over XFI 10GBASE-R
-                                    GetCommandHandler(0x8017,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8017,1,0,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1194,7 +1197,7 @@ class crsvl(crsvlDefines):
                                     reg_value = reg_value & 0xF07F
                                     driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause enable
-                                    GetCommandHandler(0x8020,1,1,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,1,0,0,0,0)
                                     #Restart AN
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1224,9 +1227,9 @@ class crsvl(crsvlDefines):
                                     temp = temp & 0xFFFB # clear RPFCM
                                     driver.write_csr(reg_addr, temp)
                                     #set KR mode enable on Orca host side
-                                    GetCommandHandler(0x800f,1,1,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,1,0,0,0,0)
                                     # Rate over XFI 10GBASE-R
-                                    GetCommandHandler(0x8017,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8017,1,0,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1246,7 +1249,7 @@ class crsvl(crsvlDefines):
                                     reg_value = reg_value & 0xF07F
                                     driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause enable
-                                    GetCommandHandler(0x8020,1,1,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,1,0,0,0,0)
                                     #Restart AN
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1269,7 +1272,7 @@ class crsvl(crsvlDefines):
                             reg_addr = calculate_port_offset(0x8C260, 0x4, driver.port_number())
                             driver.write_csr(reg_addr, 0xA5018070)
                             #set KR mode enable on Orca host side
-                            GetCommandHandler(0x800F,1,1,0,0,0,0)				
+                            self.GetCommandHandler(0x800F,1,1,0,0,0,0)				
                             #set direction to BaseT side			
                             HostOrBaseTDirection(1)
                             #clear low power mode
@@ -1289,7 +1292,7 @@ class crsvl(crsvlDefines):
                             reg_value = reg_value & 0xF07F
                             driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)			
                             #set pause disable
-                            GetCommandHandler(0x8020,1,0,0,0,0,0)
+                            self.GetCommandHandler(0x8020,1,0,0,0,0,0)
                             #Restart AN
                             reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                             reg_value = reg_value | 0x1200
@@ -1314,7 +1317,7 @@ class crsvl(crsvlDefines):
                                     reg_addr = calculate_port_offset(0x8C260, 0x4, driver.port_number())
                                     driver.write_csr(reg_addr, 0x80000438)
                                     #set KR mode disable on Orca host side
-                                    GetCommandHandler(0x800f,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,0,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1334,7 +1337,7 @@ class crsvl(crsvlDefines):
                                     reg_value = reg_value & 0xF07F
                                     driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause disable
-                                    GetCommandHandler(0x8020,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart ANreg_addr
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1353,9 +1356,9 @@ class crsvl(crsvlDefines):
                                     temp = temp | 0x50000
                                     driver.write_csr(reg_addr, temp)
                                     #set KR mode disable on Orca host side
-                                    GetCommandHandler(0x800f,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,0,0,0,0,0)
                                     # Rate over XFI 10GBASE-R
-                                    GetCommandHandler(0x8017,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8017,1,0,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1375,7 +1378,7 @@ class crsvl(crsvlDefines):
                                     reg_value = reg_value & 0xF07F
                                     driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause disable
-                                    GetCommandHandler(0x8020,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart AN
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1400,9 +1403,9 @@ class crsvl(crsvlDefines):
                                     temp = temp & 0xFFFB # clear RPFCM
                                     driver.write_csr(reg_addr, temp)
                                     #set KR mode disable on Orca host side
-                                    GetCommandHandler(0x800f,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,0,0,0,0,0)
                                     # Rate over XFI 10GBASE-R
-                                    GetCommandHandler(0x8017,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8017,1,0,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1422,7 +1425,7 @@ class crsvl(crsvlDefines):
                                     reg_value = reg_value & 0xF07F
                                     driver.write_phy_register(7, 0x10, self.Phy_Address_dict[driver.port_number()], reg_value)
                                     #set pause enable
-                                    GetCommandHandler(0x8020,1,1,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,1,0,0,0,0)
                                     #Restart AN
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1436,7 +1439,7 @@ class crsvl(crsvlDefines):
                                     driver.write_csr(reg_addr, 0x00001000)
                                     driver.write_csr(0x8C260, 0x80003138)
                                     #set KR mode disable on Orca host side
-                                    GetCommandHandler(0x800f,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x800f,1,0,0,0,0,0)
                                     #set direction to BaseT side			
                                     HostOrBaseTDirection(1)
                                     #clear low power mode
@@ -1457,7 +1460,7 @@ class crsvl(crsvlDefines):
                                     #clear 2.5G
                                     Adv2p5GLinkSpeed(False)			
                                     #set pause disable
-                                    GetCommandHandler(0x8020,1,0,0,0,0,0)
+                                    self.GetCommandHandler(0x8020,1,0,0,0,0,0)
                                     #Restart AN
                                     reg_value = driver.read_phy_register(7, 0, self.Phy_Address_dict[driver.port_number()])
                                     reg_value = reg_value | 0x1200
@@ -1500,7 +1503,7 @@ class crsvl(crsvlDefines):
             driver.start_tx(packet_size = packet_size)
     ###############################################################
 
-    def GetCurrentThroughput(packet_size = 512):
+    def GetCurrentThroughput(self, packet_size = 512):
             '''This function returns current Throughput 
                     Default packet size is 512''' 
 
@@ -1514,25 +1517,25 @@ class crsvl(crsvlDefines):
             end_PTC = GetPTC()
             return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
             
-    def GetThroughput(start,end,sample_time,packet_size = 512):
+    def GetThroughput(self, start,end,sample_time,packet_size = 512):
             '''This function returns current Throughput 
                     Default packet size is 512''' 
 
             return int((end - start)*8*packet_size/sample_time)
     ################################################################
-    def EthStopRx():
+    def EthStopRx(self):
             '''This function stops Tx and Rx.
             '''
             driver = self.driver
             driver.stop_rx()
 
-    def EthStopTx():
+    def EthStopTx(self):
             '''This function stops Tx and Rx.
             '''
             driver = self.driver
             driver.stop_tx()
 
-    def EthStopTraffic():
+    def EthStopTraffic(self):
             '''This function stops Tx and Rx.
             '''
             driver = self.driver
@@ -1540,7 +1543,7 @@ class crsvl(crsvlDefines):
             time.sleep(2)
             driver.stop_rx()
 
-    def EthGetTrafficStatistics():
+    def EthGetTrafficStatistics(self):
             '''This function reads traffic statistic
                     and saves results to list and returns
                     it.
@@ -1554,7 +1557,7 @@ class crsvl(crsvlDefines):
 
             return result
 
-    def GetInternalPcsLinkStatus():
+    def GetInternalPcsLinkStatus(self):
             '''RETURN:1-Link is up and there was no link down since last time this register was read (We need to call this function two times to know the current status. 0- Link is/was down (12.2.2.4.81)
                     PCS_LINK_STATUS2 = 0x0008c220
             ''' 
@@ -1562,9 +1565,9 @@ class crsvl(crsvlDefines):
             reg_addr = calculate_port_offset(0x0008c220, 0x4, driver.port_number())
             reg_data = driver.read_csr(reg_addr)
             reg_data = driver.read_csr(reg_addr)
-            return _get_bit_value(reg_data, 7)
+            return get_bit_value(reg_data, 7)
 
-    def Get_Port_Type():
+    def Get_Port_Type(self):
             '''this function return port type KR/BaseT
                     argument: 
                     Return: BaseT or KR port type 
@@ -1582,23 +1585,23 @@ class crsvl(crsvlDefines):
             else:
                     return "wrong port number"
 
-    def MacRemoteFault():
+    def MacRemoteFault(self):
             '''this function return the MAC RX LINK FAULT RF (remote fault)
             '''
             driver = self.driver
             reg_addr = calculate_port_offset(0x001E2420, 0x4, driver.port_number())
             reg_data = driver.read_csr(reg_addr)
-            return _get_bit_value(reg_data, 2)
+            return get_bit_value(reg_data, 2)
 
-    def MacLocalFault():
+    def MacLocalFault(self):
             '''this function return the MAC RX LINK FAULT LF (local fault)
             '''
             driver = self.driver
             reg_addr = calculate_port_offset(0x001E2420, 0x4, driver.port_number())
             reg_data = driver.read_csr(reg_addr)
-            return _get_bit_value(reg_data, 3)
+            return get_bit_value(reg_data, 3)
 
-    def GetFVL_FW_Version():
+    def GetFVL_FW_Version(self):
             '''This function returns FVL firmware version
             '''
             driver = self.driver
@@ -1616,14 +1619,14 @@ class crsvl(crsvlDefines):
             FW_Version_Dict['FW_API_Major_Miner_Version'] = hex(aq_desc.addr_low)
             return FW_Version_Dict
 
-    def GetEye():
+    def GetEye(self):
             '''this function return Eye value
             '''
             driver = self.driver
             #port = driver.port_number()
             return GetETH_Internal_ehm12(self.Phy_Address_dict[driver.port_number()]*4)
             
-    def GetETH_Internal_ehm12(lane):
+    def GetETH_Internal_ehm12(self, lane):
             '''this function return the Internal EHM12 base-address
             '''
             address = 0x0630
@@ -1633,24 +1636,24 @@ class crsvl(crsvlDefines):
                     ehm12_read =  Read_ana_reg(PMD_address)
             return ehm12_read
 
-    def DisableIdleDetector():
+    def DisableIdleDetector(self):
             Write_ana_reg(0x905c,0xc8e672)
 
-    def Write_ana_reg(address,data):
+    def Write_ana_reg(self, address,data):
             ''' This function write read analog register content
             '''	
             driver = self.driver
             driver.write_csr(0xa4038,address)
             driver.write_csr(0xa403c,data)	
             
-    def Read_ana_reg(address):
+    def Read_ana_reg(self, address):
             ''' This function returns read analog register content
             '''
             driver = self.driver
             driver.write_csr(0xa4038,address)
             return driver.read_csr(0xa403c)
             
-    def	GetPCIE_CurrentLinkSpeed():
+    def	GetPCIE_CurrentLinkSpeed(self):
             '''This function returns PCIE link speed: 
             "Gen1 = 2.5G, Gen2 = 5G, Gen3 = 8G"'''
             val = _get_bits_slice_value(_get_val_addr_pcie(0xB0),16,19)
@@ -1664,7 +1667,7 @@ class crsvl(crsvlDefines):
             return link_speed.get(val,"Wrong")
 
             
-    def GetPCIE_CurrentLinkWidth():
+    def GetPCIE_CurrentLinkWidth(self):
             '''This function returns PCIE link width
             '''
             val = _get_bits_slice_value(_get_val_addr_pcie(0xB0),20,23)
@@ -1679,7 +1682,7 @@ class crsvl(crsvlDefines):
             
             return link_width.get(val,"Wrong")
             
-    def _get_val_addr_pcie(address):
+    def _get_val_addr_pcie(self, address):
             ''' This function returns PCIE value by input address
             '''
             driver = self.driver
@@ -1709,7 +1712,7 @@ class crsvl(crsvlDefines):
     # RESERVED 30:25 0x0 RSV Reserved.
     # PARITY 31 0b RO UNDEFINED Even parity of the fuses.	
 
-    def Get_FVL_ULT():
+    def Get_FVL_ULT(self):
             '''This function returns FVL ULT value
             '''
             driver = self.driver
@@ -1727,15 +1730,15 @@ class crsvl(crsvlDefines):
             TEST_YEAR = int(_get_bits_slice_value(ult,58,61))
             TEST_FAB_WORK_WEEK = int(_get_bits_slice_value(ult,52,57))
             X_LOCATION = int(_get_bits_slice_value(ult,45,50))
-            if _get_bit_value(ult, 51) == 1:
+            if get_bit_value(ult, 51) == 1:
                     X_LOCATION = - X_LOCATION
             Y_LOCATION = int(_get_bits_slice_value(ult,38,43))
-            if _get_bit_value(ult, 44) == 1:
+            if get_bit_value(ult, 44) == 1:
                     Y_LOCATION = - Y_LOCATION
             WAFER = int(_get_bits_slice_value(ult,33,37))
             LOT = _get_bits_slice_value(ult,7,32) 
             LOT_AlphaNumeric = int_to_base36(LOT) #### Integer to AlphaNumeric convertion (base 36)
-            PARITY = int(_get_bit_value(ult,1))
+            PARITY = int(get_bit_value(ult,1))
             ULT_Dict["FAB_SITE"] = FAB_SITE
             ULT_Dict["TEST_YEAR"] = TEST_YEAR
             ULT_Dict["TEST_FAB_WORK_WEEK"] = 'ww' + str(TEST_FAB_WORK_WEEK)
@@ -1746,7 +1749,7 @@ class crsvl(crsvlDefines):
             ULT_Dict["PARITY"] =  PARITY
             return ULT_Dict
 
-    def int_to_base36(num):
+    def int_to_base36(self, num):
         """Converts a positive integer into a base36 string."""
         assert num >= 0
         digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -1769,7 +1772,7 @@ class crsvl(crsvlDefines):
             driver = self.driver
             reg_value = driver.read_phy_register(0x7, 1, self.Phy_Address_dict[driver.port_number()])
             reg_value = driver.read_phy_register(0x7, 1, self.Phy_Address_dict[driver.port_number()])
-            link_status = _get_bit_value(reg_value, 2)
+            link_status = get_bit_value(reg_value, 2)
             return link_status
 
     def GetPhyHostInterLinkStatus(self):
@@ -1779,7 +1782,7 @@ class crsvl(crsvlDefines):
             driver = self.driver
             reg_value = driver.read_phy_register(0x3, 1, self.Phy_Address_dict[driver.port_number()])
             reg_value = driver.read_phy_register(0x3, 1, self.Phy_Address_dict[driver.port_number()])
-            link_status = _get_bit_value(reg_value, 2)
+            link_status = get_bit_value(reg_value, 2)
             return link_status	
 
     def GetPhyLinkSpeed(self):
@@ -1797,7 +1800,7 @@ class crsvl(crsvlDefines):
             HostOrBaseTDirection(1)
             driver = self.driver
             reg_value = driver.read_phy_register(0x7, 0x1, self.Phy_Address_dict[driver.port_number()])
-            GetAutonegComplete = _get_bit_value(reg_value,5)
+            GetAutonegComplete = get_bit_value(reg_value,5)
             return GetAutonegComplete
 
     def GetAN_CompleteOrca_KR_side(self):
@@ -1805,7 +1808,7 @@ class crsvl(crsvlDefines):
             HostOrBaseTDirection(0)
             driver = self.driver
             reg_value = driver.read_phy_register(0x7, 0x1, self.Phy_Address_dict[driver.port_number()])
-            GetAutonegComplete = _get_bit_value(reg_value,5)
+            GetAutonegComplete = get_bit_value(reg_value,5)
             return GetAutonegComplete
 
     def Get_MS_Status(self):
@@ -1819,7 +1822,7 @@ class crsvl(crsvlDefines):
             driver = self.driver
             reg_value = driver.read_phy_register(0x7, 0x21, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
-            MS_configuration = _get_bit_value(reg_value, 14)
+            MS_configuration = get_bit_value(reg_value, 14)
             return 	MS_configuration
 
     def Set_MS_Config(self, MS):
@@ -1877,7 +1880,7 @@ class crsvl(crsvlDefines):
                     ClearMdioBit(0x7,0xFFE9,9)
                     ClearMdioBit(0x7,0xFFE9,8)
 
-    def SetExtPhyLinkSpeed(Speed):
+    def SetExtPhyLinkSpeed(self, Speed):
             '''this function set link speed on Phy
                     argument: Link speed in str for exmp: 100M,1G,2.5G,5G,10G 
             '''
@@ -1912,18 +1915,18 @@ class crsvl(crsvlDefines):
 
             RestartAn()
 
-    def GetCurrentTemperature():
+    def GetCurrentTemperature(self):
             '''this function return current teperature for BCM PHY
                     argument: None
                     return: temperature in [C]
             '''
-            DataRegList = GetCommandHandler(0x8031,0,0,0,0,0,0)
+            DataRegList = self.GetCommandHandler(0x8031,0,0,0,0,0,0)
             if DataRegList[0]:
                     print "ERROR to read temperature"
                     return 0xffff
             return DataRegList[1]
 
-    def GetSnr():
+    def GetSnr(self):
             '''this function return SNR value for BCM PHY
                     argument: None
                     return: DataRegValue[2] SNR for channel A in db
@@ -1932,7 +1935,7 @@ class crsvl(crsvlDefines):
                                     DataRegValue[5] SNR for channel D in db
 
             '''
-            DataRegList = GetCommandHandler(0x8030,1,0,0,0,0,0)
+            DataRegList = self.GetCommandHandler(0x8030,1,0,0,0,0,0)
             if DataRegList[0]:
                     print "ERROR to read SNR"
                     return 0xffff
@@ -1940,7 +1943,7 @@ class crsvl(crsvlDefines):
                     DataRegList[i] /= 10.0
             return DataRegList[2:]
             
-    def PHY_FW_Version():
+    def PHY_FW_Version(self):
             '''this function return FW version for BCM phy
                     argument: None
                     return: FW_version[0] is Firmware version: Branch
@@ -1956,7 +1959,7 @@ class crsvl(crsvlDefines):
             return FW_version
             print FW_version
 
-    def PMAFault():
+    def PMAFault(self):
             '''this function return PMA/PMD fault status
                     argument: None
                     return: 1 - if fault condition detected
@@ -1964,7 +1967,7 @@ class crsvl(crsvlDefines):
             '''
             driver = self.driver
             reg_value = driver.read_phy_register(0x1, 0x0001, self.Phy_Address_dict[driver.port_number()])
-            PMAFault = _get_bit_value(reg_value, 7)
+            PMAFault = get_bit_value(reg_value, 7)
             return PMAFault
 
     def GetPMDReceiveLinkStatus():
@@ -1976,10 +1979,10 @@ class crsvl(crsvlDefines):
             HostOrBaseTDirection(1)
             driver = self.driver
             reg_value = driver.read_phy_register(0x1, 0x0001, self.Phy_Address_dict[driver.port_number()])
-            PMDReceiveLinkStatus = _get_bit_value(reg_value, 2)
+            PMDReceiveLinkStatus = get_bit_value(reg_value, 2)
             return PMDReceiveLinkStatus
 
-    def PCSFault():
+    def PCSFault(self):
             '''this function return PCS fault status
                     argument: None
                     return: 1 - if fault condition detected
@@ -1987,10 +1990,10 @@ class crsvl(crsvlDefines):
             '''
             driver = self.driver
             reg_value = driver.read_phy_register(0x3, 0x0001, self.Phy_Address_dict[driver.port_number()])
-            PCSFault = _get_bit_value(reg_value, 7)
+            PCSFault = get_bit_value(reg_value, 7)
             return PCSFault
 
-    def GetPCSReceiveLinkStatus():
+    def GetPCSReceiveLinkStatus(self):
             '''this function return PCS Orca line receive link status
                     argument: None
                     return: 1 - PCS link is good
@@ -1999,10 +2002,10 @@ class crsvl(crsvlDefines):
             HostOrBaseTDirection(1)
             driver = self.driver
             reg_value = driver.read_phy_register(0x3, 0x0001, self.Phy_Address_dict[driver.port_number()])
-            PCSReceiveLinkStatus = _get_bit_value(reg_value, 2)
+            PCSReceiveLinkStatus = get_bit_value(reg_value, 2)
             return PCSReceiveLinkStatus
 
-    def ConfigDirection(direction):
+    def ConfigDirection(self, direction):
 
             driver = self.driver
             Phy_Address = self.Phy_Address_dict[driver.port_number()]
@@ -2015,7 +2018,7 @@ class crsvl(crsvlDefines):
                     driver.write_phy_register(0x1E, 0x4111, Phy_Address,0x2004)
                     driver.write_phy_register(0x1E, 0x4113, Phy_Address,0x2004)	
             
-    def HostOrBaseTDirection(direction):
+    def HostOrBaseTDirection(self, direction):
             '''this function set the direction to Host interface or BaseT side.
                     in BCM DS the Host and Line(BaseT) are the same MMD 1,3,7
                     to read/write from the side need to set few commande that define in BCM84888 DS Register Maps
@@ -2023,7 +2026,6 @@ class crsvl(crsvlDefines):
                                       0 -> Host interface
 
             '''	
-
             handler = get_handler()
                     
             if not 'HostOrBaseTDirection' in handler.custom_data:
@@ -2038,7 +2040,7 @@ class crsvl(crsvlDefines):
 
             handler.custom_data['HostOrBaseTDirection'] = direction	
 
-    def SetOrcaMonitorEnable(direction = 1):
+    def SetOrcaMonitorEnable(self, direction = 1):
             ''' argument : 1-> Monitoring Received packet from line side interface
                             0-> Monitoring Received packet from SerDes interface'''
             driver = self.driver
@@ -2054,7 +2056,7 @@ class crsvl(crsvlDefines):
             ''' Make a looop from the test'''
             ''' write-> tx-> read'''
 
-    def ReadOrcaMonitor():
+    def ReadOrcaMonitor(self):
             ''' This function returns Packet and Error counters of ORCA received Monitoring packets'''
 
             driver = self.driver
@@ -2077,7 +2079,7 @@ class crsvl(crsvlDefines):
 
 
 
-    def SetMdioBit(Page,Register,BitNum):
+    def SetMdioBit(self, Page,Register,BitNum):
             
             driver = self.driver
             reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
@@ -2086,7 +2088,7 @@ class crsvl(crsvlDefines):
             #print hex(reg_value)
             driver.write_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()], reg_value)
 
-    def ClearMdioBit(Page,Register,BitNum):
+    def ClearMdioBit(self, Page,Register,BitNum):
             
             driver = self.driver
             reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
@@ -2107,7 +2109,7 @@ class crsvl(crsvlDefines):
     ############# command handler section  								 ##########################
     ############# definition BCM84888 DS "MDIO COMMAND HANDLER FUNCTION" ##########################
 
-    def GetCommandHandler(opcode,SetOrGetFlag,Data1Reg,Data2Reg,Data3Reg,Data4Reg,Data5Reg):
+    def self.GetCommandHandler(self, opcode,SetOrGetFlag,Data1Reg,Data2Reg,Data3Reg,Data4Reg,Data5Reg):
             '''this function will execute command handler in BCM Phy
                     argument: opcode -> oopcode to execute
                                       SetOrGetFlag -> 1 for write (set)
@@ -2126,7 +2128,7 @@ class crsvl(crsvlDefines):
             ErrorFlag = False
             TimeOutCount = 0
             while (TimeOutCount < 20):
-                    val1,val2 = GetCommandHandlerStatus(1)
+                    val1,val2 = self.GetCommandHandlerStatus(1)
                     if not val1:
                             break
                     time.sleep(0.1)
@@ -2148,7 +2150,7 @@ class crsvl(crsvlDefines):
             # timout 2 sec
             TimeOutCount = 0
             while (TimeOutCount < 20):
-                    val1,val2 = GetCommandHandlerStatus(0)
+                    val1,val2 = self.GetCommandHandlerStatus(0)
                     if not val1:
                             break
                     time.sleep(0.1)
@@ -2167,7 +2169,7 @@ class crsvl(crsvlDefines):
             DataRegList.insert(0,ErrorFlag)
             return DataRegList
 
-    def GetCommandHandlerStatus(StatusFlag):
+    def GetCommandHandlerStatus(self, StatusFlag):
             '''this function return command handler status
                     argument: StatusFlag: 1 -> in progress/busy
                                                               0 -> in pass/error , from BCM84888 DS MDIO COMMAND HANDLER FUNCTION
@@ -2187,7 +2189,7 @@ class crsvl(crsvlDefines):
                     else:
                             return 1,reg_value
 
-    def SetGetDataReg(SetOrGetFlag,Data1Reg,Data2Reg,Data3Reg,Data4Reg,Data5Reg):
+    def SetGetDataReg(self, SetOrGetFlag,Data1Reg,Data2Reg,Data3Reg,Data4Reg,Data5Reg):
             '''this function will be writeing or reading from data registers in BCM Phy
                     argument: 
                                       SetOrGetFlag -> 1 for write (set)
@@ -2220,11 +2222,7 @@ class crsvl(crsvlDefines):
     ######################                                      #############################################
     #########################################################################################################
 
-
-    def calculate_port_offset(offset_base, mul, port_number):
-            return offset_base + mul * port_number
-
-    def _get_bit_value(value, bit_number):
+    def get_bit_value(value, bit_number):
             return (value >> bit_number) & 0x1
 
     def _get_bits_slice_value(value, bit_start_number, bit_end_number):
@@ -2279,7 +2277,7 @@ class crsvl(crsvlDefines):
 
 
 
-    def SetLinkSpeedAq(set_phy_type, set_phy_speed):
+    def SetLinkSpeedAq(self, set_phy_type, set_phy_speed):
             '''This function sets Phy type and speed
                     argument:
                             PhyType = 'SGMII'/'1000BASE-KX'/'10GBASE-KX4'/'10GBASE-KR'/'40GBASE-KR4'/'XAUI'/'XFI'/'SFI'/'XLAUI'/'XLPPI'/'40GBASE-CR4'/'10GBASE-CR1'/'100BASE-T'/'1000BASE-T'/'10GBASE-T'/'10GBASE-SR'/'10GBASE-LR'/'10GBASE-SFP+Cu'/'10GBASE-CR1'/'40GBASE-CR4'/'40GBASE-SR4'/'40GBASE-LR4'/'1000BASE-SX'/'1000BASE-LX'/'1000BASE-T-OPTICAL'/'20GBASE-KR2'
@@ -2327,7 +2325,7 @@ class crsvl(crsvlDefines):
                     raise RuntimeError(error_msg)	
             
 
-    def GetAbilitiesAq(GetBuffer = False):
+    def GetAbilitiesAq(self, GetBuffer = False):
             '''This function runs AQ Get PHY abilities command.
                     return:
                             GetBuffer = True : return buffer 
@@ -2381,9 +2379,7 @@ class crsvl(crsvlDefines):
     #########################################################################################################
 
     def AQ_Debug ():
-                    
                     driver = self.driver		
-
                     aq_desc = AqDescriptor()
                     aq_desc.opcode = 0xff04
                     aq_desc.param1 = 0x8c260
@@ -2407,17 +2403,13 @@ class crsvl(crsvlDefines):
                     print 'addr_low: ', hex(aq_desc.addr_low)
 
     def Mdio_Read_Debug(self, Page, Register):
-            
             driver = self.driver
             reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
-            #print hex(reg_value)
-            return hex(reg_value)
+            return reg_value
 
     def Mdio_Write_Debug(self, Page,Register,value):
-            
             driver = self.driver
             driver.write_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()], value)
-            #print hex(reg_value)
 
     def CSR_Write_Debug(self, Address,Value,Mul=0):
             driver = self.driver
@@ -2436,7 +2428,6 @@ class crsvl(crsvlDefines):
             return hex(reg_value)
 
     def ReadMdioRegister(self, Page,Register):
-            
             driver = self.driver
             reg_value = driver.read_phy_register(Page, Register, self.Phy_Address_dict[driver.port_number()])
             #print hex(reg_value)
@@ -2449,21 +2440,20 @@ class crsvl(crsvlDefines):
     def XFI_TX_prbs31_gen_config(self):
             ''' This function sets TX prbs31 according to "Advance Data Sheet 84892-DS102" pdf file section 2.7.1.11
             '''
-            ConfigDirection(0) # set MDIO direction to host interface
-            WriteMdioRegister(1,0xD0E1,0xB) # set XFI TX PRBS to PRBS31, and enable PRBS
-            
+            self.ConfigDirection(0) # set MDIO direction to host interface
+            self.WriteMdioRegister(1,0xD0E1,0xB) # set XFI TX PRBS to PRBS31, and enable PRBS
 
-    def XFI_RX_prbs31_chk_config():
+    def XFI_RX_prbs31_chk_config(self):
             ''' This function sets RX prbs31 according to "Advance Data Sheet 84892-DS102" pdf file section 2.7.1.12
             '''
-            ConfigDirection(0) # set MDIO direction to host interface
-            WriteMdioRegister(1,0xD0D1,0x2B) # set XFI RX PRBS to PRBS31, and enable PRBS
+            self.ConfigDirection(0) # set MDIO direction to host interface
+            self.WriteMdioRegister(1,0xD0D1,0x2B) # set XFI RX PRBS to PRBS31, and enable PRBS
             
-    def XFI_Set_prbs31_mode():
-            XFI_TX_prbs31_gen_config()
-            XFI_RX_prbs31_chk_config()
+    def XFI_Set_prbs31_mode(self):
+            self.XFI_TX_prbs31_gen_config()
+            self.XFI_RX_prbs31_chk_config()
 
-    def XFI_RX_prbs_chk_lock_status():
+    def XFI_RX_prbs_chk_lock_status(self):
             ''' This function check prbs lock RX status according to "Advance Data Sheet 84892-DS102" pdf file section 2.7.1.13
             '''
             prbs_chk_lock_status = ReadMdioRegister(1,0xD0D9)
@@ -2472,7 +2462,7 @@ class crsvl(crsvlDefines):
             else:
                     print "PRBS chacker is unlock state"
 
-    def XFI_RX_prbs_chk_err_cnt_status():
+    def XFI_RX_prbs_chk_err_cnt_status(self):
             ''' This function check prbs error count according to "Advance Data Sheet 84892-DS102" pdf file section 2.7.1.14/5
             '''
             prbs_chk_err_cnt_msb_status = ReadMdioRegister(1,0xD0DA)
@@ -2482,7 +2472,7 @@ class crsvl(crsvlDefines):
             prbs_chk_err_cnt_sum = (prbs_chk_err_cnt_msb_status << 16) | prbs_chk_err_cnt_lsb_status
             print "PRBS error count: ",prbs_chk_err_cnt_sum
 
-    def XFI_TX_inject_single_error():
+    def XFI_TX_inject_single_error(self):
             ''' This function inject single error "Advance Data Sheet 84892-DS102" pdf file section 2.7.1.11
             '''
             XFI_TX_prbs_gen_config = ReadMdioRegister(1,0xD0E1)
@@ -2491,7 +2481,7 @@ class crsvl(crsvlDefines):
             XFI_TX_prbs_gen_config = XFI_TX_prbs_gen_config | 0x20 # set 1 to bit 5 to inject error
             WriteMdioRegister(1,0xD0E1,XFI_TX_prbs_gen_config)
 
-    def Enable_line_side_pcs_loopback():
+    def Enable_line_side_pcs_loopback(self):
             ConfigDirection(1) # set MDIO direction to host interface
             XFI_pcs_control_register = ReadMdioRegister(3,0x0)
             print type(XFI_pcs_control_register)
@@ -2499,17 +2489,17 @@ class crsvl(crsvlDefines):
             WriteMdioRegister(3,0x0,XFI_pcs_control_register)
 
 
-    def Set_Host_side_link_to_10G_KR_mode():
+    def Set_Host_side_link_to_10G_KR_mode(self):
             # set Blackfin host interface to KR mode, "Advance Data Sheet 84892-DS102" pdf file section 1.23.1.16
-            GetCommandHandler(0x800f,1,1,0,0,0,0)
+            self.GetCommandHandler(0x800f,1,1,0,0,0,0)
 
-    def Set_Host_side_link_to_10G_SFI_mode():
+    def Set_Host_side_link_to_10G_SFI_mode(self):
             # set Blackfin host interface to XFI mode, "Advance Data Sheet 84892-DS102" pdf file section 1.23.1.16
-            GetCommandHandler(0x800f,1,0,0,0,0,0)
+            self.GetCommandHandler(0x800f,1,0,0,0,0,0)
 
     def Get_host_interface_link_mode():
             # get Blackfin host interface mode, "Advance Data Sheet 84892-DS102" pdf file section 1.23.1.15
-            CommandHandlerReturnValue = GetCommandHandler(0x800e,0,0,0,0,0,0)
+            CommandHandlerReturnValue = self.GetCommandHandler(0x800e,0,0,0,0,0,0)
             #print CommandHandlerReturnValue
             link_mode = CommandHandlerReturnValue[1]
             print "return value", link_mode
@@ -2526,8 +2516,13 @@ class crsvl(crsvlDefines):
 ###############################################################################
 #                                link configuration Commands                  #
 ###############################################################################
+    
+    sef SetLinkSpeed_AQ(self, phy_speed, an_mode):
 
-    def SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
+        config = dict()
+        config['phy_type'] = 
+    def _SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
+
         if (type(phy_type_list) == str ):
             tmp_str = phy_type_list
             phy_type_list = []
@@ -2686,7 +2681,7 @@ class crsvl(crsvlDefines):
         buffer.append(byte_3)
         byte_4 = config['link_speed']
         buffer.append(byte_4)
-        byte_5 = config['en_auto_link_update'] << 5 | config['an_mode'] << 4 | config['en_link'] << 3 | config['low_pwr_abil'] << 2 | config['pause_abil']
+        byte_5 = (config['en_auto_link_update'] << 5) | (config['an_mode'] << 4 | config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
         buffer.append(byte_5)
         byte_6 = config['EEE_capability_en'] & 0xff
         buffer.append(byte_6)
@@ -2704,7 +2699,7 @@ class crsvl(crsvlDefines):
         buffer.append(byte_12)
         byte_13 = config['phy_type_extension']
         buffer.append(byte_13)
-        byte_14 = config['en_auto_FEC_mode'] << 4 | config['RS_FEC_req'] << 3 | config['FC_FEC_req'] << 2 | config['RS_FEC_abil'] << 1 | config['FC_FEC_abil']
+        byte_14 = (config['en_auto_FEC_mode'] << 4) | (config['RS_FEC_req'] << 3) | (config['FC_FEC_req'] << 2) | (config['RS_FEC_abil'] << 1) | config['FC_FEC_abil']
         buffer.append(byte_14)
         byte_15 = 0
         buffer.append(byte_14)
@@ -3160,40 +3155,72 @@ class crsvl(crsvlDefines):
         return status
 
     def SetPhyDebug(self, debug_args,debug=False):
-        #Updated for HAS 1.3
         '''
             Description:  Resets PHYs or disables Link Management Firmware
             input:
-                debug_args -- type(dict)
-                    'port' : int[1 byte]
-                    'index' : int[1 byte]
-                    'cmd_flags' : int[1 byte] -- See Table 3-115 for bitfield description
+                debug_args -- type : dict
+                    'reset_internal_phy' : int[1 bit] -- Byte 16.1
+                    'reset_external_phy' : int[2 bit] -- Byte 16.2:16.3
+                    'disable_lm' : int[1 bit] -- Byte 16.4
             return:
-                status -- type(tuple) (bool, int)
+                status -- type : tuple (bool, int)
                     bool -- Indication if Admin command was successful, False if so, True if not
                     int -- if bool is False, None, else int is Admin command retval
         '''
-        # Generic AQ descriptor --> Set PHY Debug Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (cmd_flags + index + port)
-        # param1 = (0)
-        # addr_high = (0)
-        # addr_low = (0)
 
         driver = self.driver
-        opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-       # helper._debug('SetPhyDebug Admin Command')
-        data_len = 0x0
-        aq_desc.opcode = opCodes.set_phy_debug
-        aq_desc.datalen = data_len
-        buffer = [0] * data_len
-        aq_desc.param0 = (debug_args['cmd_flags'] << 24) | (debug_args['index'] << 16) | debug_args['port']
+        aq_desc.flags = 0x0
+        aq_desc.opcode = 0x0622
+        aq_desc.datalen = 0x0
+        aq_desc.param0 = (debug_args['disable_lm'] << 4) | (debug_args['reset_external_phy'] << 2) | (debug_args['reset_internal_phy'] << 1) | 0
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def SetPhyRegister(self, args, debug = False):
+        '''
+            Description:  This commad is used by the device driver to write to an internal or external PHY register
+            input:
+                args -- type : dict
+                    'interface_sel': int[1 byte] : -- Byte 16
+                    'dev_addr' : int[1 byte] -- Byte 17
+                    'recall_qsfp_page' : int[1 bit] -- Byte 18.0
+                    'reserved' : Byte 18.1:19 vlaue must be 0
+                    'reg_addr' : int[4 byte] -- Bytes 20:23
+                    'reg_w_data' : int[4 byte] -- Bytes 24-27
+                    'reserved' :Bytes 28:31 value must be 0
+            return:
+                data -- type : dict
+                    'interface_sel': int[1 byte] 
+                    'dev_addr' : int[1 byte] 
+                    'recall_qsfp_page' : int[1 bit] 
+                    'reg_addr' : int[4 byte]
+                    'reg_w_data' : int[4 byte]
+                status -- type : tuple (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool is False, None, else int is Admin command retval
+        '''
+
+        driver = self.driver
+        aq_desc = AqDescriptor()
         aq_desc.flags = 0x0
+        aq_desc.opcode = 0x0629
+        aq_desc.datalen = 0x0
+        aq_desc.param0 = (debug_args['cmd_flags'] << 24) | (debug_args['reset_external_phy'] << 2) | (debug_args['reset_internal_phy'] << 1) | 0
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
