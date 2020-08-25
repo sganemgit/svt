@@ -16,6 +16,20 @@ from core.structs.DeviceInfo import DeviceInfo
 from core.structs.AqDescriptor import AqDescriptor
 from core.drivers.svdriver.SvDriverCommands import *
 
+MDIO_REGS = {'fvl' : (0x8818C,0x8819C), 
+             'sgvl' : (0x425C,0x4260),
+             'fortpond' : (0x8818C,0x8819C), 
+             'crsvl' : (0x8818C,0x8819C), 
+             'elv' : (0x8818C,0x8819C), 
+             'tvl' : (0x425C,0x4260),
+             'cpk' : (0x0000,0x0000),
+             'cvl' : (0x0000,0x0000),
+             'cvl_sd' : (0x0000,0x0000),
+			 'fvl25' : (0x8818C,0x8819C),
+             'nnt' : (0x425C,0x4260),
+             'lbg' : (0x8818C,0x8819C),                 
+	         'mev' : (0x0000,0x0000)}
+
 ############################################################################################
 # driver api values
 
@@ -527,6 +541,66 @@ class SvDriver(object):
         self._driver_proxy.dispose_driver_config(driver_cfg)
         if result != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(result))
+
+	def read_phy_register(self, page, register_offset, phy_add):
+        ''' 
+        	This method reads phy register according to
+        	'page', 'register_offset' and 'phy_add' and returns register value.            
+        '''
+		mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
+        value = 0        
+        value = value | ((phy_add & 0x1f) << 21) # set phy address
+        value = value | ((page & 0x1F) << 16) # set phy page
+        value = value | (register_offset & 0xFFFF) # set phy page
+        value = value | 0x40000000 # set mdio cmd        
+
+        self.write_csr(mdio_cntrl, value)
+        while (self.read_csr(mdio_cntrl) & 0x40000000):
+            pass
+		
+        # read cycle        
+        value = value | (0x3 << 26)     # set opcode to read operation
+        value = value | 0x40000000         # set mdio cmd
+
+        self.write_csr(mdio_cntrl, value)
+
+        while (self.read_csr(mdio_cntrl) & 0x40000000):
+            pass    
+
+        value = self.read_csr(self._mdio_data)
+        value = (value & 0xffff0000) >> 16
+        return value  							      
+
+    def write_phy_register(self, page, register_offset, phy_add, write_value):
+        '''
+        	This method writes value specified in 'write_value' 
+        	to phy register according to 'page', 'register_offset' and 'phy_add'.
+        '''           
+    	mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
+        value = 0        
+        value = value | ((phy_add & 0x1f) << 21) # set phy address
+        value = value | ((page & 0x1F) << 16) # set phy page
+        value = value | (register_offset & 0xFFFF) # set phy page
+        value = value | 0x40000000 # set mdio cmd    
+
+
+        self.write_csr(mdio_cntrl, value)
+        while (self.read_csr(mdio_cntrl) & 0x40000000):
+            pass
+        # write data register
+		self.write_csr(mdio_cntrl, (write_value & 0xFFFF))
+
+        # write cycle        
+        value = value | (0x1 << 26)     # set opcode to read operation
+        value = value | 0x40000000         # set mdio cmd
+
+        self.write_csr(mdio_cntrl, value)
+
+        while (self.read_csr(mdio_cntrl) & 0x40000000):
+            pass    
+
+        #print 'finished writing mdio thread ' + key
+        pass
 
     def __del__(self):
         pass
