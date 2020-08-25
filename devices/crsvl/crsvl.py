@@ -39,7 +39,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x003006c4, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
             
     def GetPTC255(self):
             '''This function reads PTC255 FVL register
@@ -65,7 +65,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x00300704, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
             
     def GetPTC1023(self):
             '''This function reads PTC1023 FVL register
@@ -78,7 +78,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x00300724, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
             
     def GetPTC1522(self):
             '''This function reads PTC1522 FVL register
@@ -91,7 +91,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x00300744, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
 
     def GetPTC9522(self):
             '''This function reads PTC9522 FVL register
@@ -104,35 +104,23 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x00300764, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
 
     def GetPTC(self):
             '''This function reads all PTC FVL register
                     Total Packets Transmitted Counter (12.2.2.19.36 - 12.2.2.19.49)
             '''
-            PTC_Dict = {}
-
-            _GetPTC64   = self.GetPTC64()
-            _GetPTC127  = GetPTC127()
-            _GetPTC255  = GetPTC255()
-            _GetPTC511  = GetPTC511()
-            _GetPTC1023 = GetPTC1023()
-            _GetPTC1522 = GetPTC1522()
-            _GetPTC9522 = GetPTC9522()
-
-            PTC_Dict['GetPTC64']   = _GetPTC64
-            PTC_Dict['GetPTC127']  = _GetPTC127
-            PTC_Dict['GetPTC255']  = _GetPTC255
-            PTC_Dict['GetPTC511']  = _GetPTC511
-            PTC_Dict['GetPTC1023'] = _GetPTC1023
-            PTC_Dict['GetPTC1522'] = _GetPTC1522
-            PTC_Dict['GetPTC9522'] = _GetPTC9522
-
-            PTC_Dict['TotalPTC'] = _GetPTC64 + _GetPTC127 + _GetPTC255 + _GetPTC511 + _GetPTC1023 + _GetPTC1522 + _GetPTC9522
-
+            PTC_Dict = dict()
+            PTC_Dict['GetPTC64']   = self.GetPTC64()
+            PTC_Dict['GetPTC127']  = self.GetPTC127()
+            PTC_Dict['GetPTC255']  = self.GetPTC255()
+            PTC_Dict['GetPTC511']  = self.GetPTC511()
+            PTC_Dict['GetPTC1023'] = self.GetPTC1023()
+            PTC_Dict['GetPTC1522'] = self.GetPTC1522()
+            PTC_Dict['GetPTC9522'] = self.GetPTC9522()
+            PTC_sum = sum(PTC_Dict.values())
+            PTC_Dict['TotalPTC'] = PTC_sum
             return PTC_Dict
-            # sum_data = GetPTC64() + GetPTC127() + GetPTC255() + GetPTC511() + GetPTC1023() + GetPTC1522() + GetPTC9522()
-            # return sum_data
 
     def GetPRC64(self):
             '''This function reads PRC64 FVL register
@@ -145,7 +133,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x00300484, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
 
     def GetPRC127(self):
             '''This function reads PRC127 FVL register
@@ -158,7 +146,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x003004a4, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
 
     def GetPRC255(self):
             '''This function reads PRC255 FVL register
@@ -171,7 +159,7 @@ class crsvl(crsvlDefines):
             low_data = driver.read_csr(reg_addr)
             reg_addr = calculate_port_offset(0x003004c4, 0x8, driver.port_number())
             high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
+            return ((high_data & 0xffff) <<32) | low_data
             
     def GetPRC511(self):
             '''This function reads PRC511 FVL register
@@ -238,9 +226,7 @@ class crsvl(crsvlDefines):
             PRC_Dict['GetPRC1023'] = self.GetPRC1023()
             PRC_Dict['GetPRC1522'] = self.GetPRC1522()
             PRC_Dict['GetPRC9522'] = self.GetPRC9522()
-            PRC_sum = 0
-            for key, val in PRC_Dict.items():
-                PRC_sum += val 
+            PRC_sum = sum(PRC_Dict.values())
             PRC_Dict['TotalPRC'] = PRC_sum
             return PRC_Dict
             
@@ -1477,51 +1463,49 @@ class crsvl(crsvlDefines):
                     raise RuntimeError("Exception in crsvl_eth:SetForceLinkSpeed proclib Error")	
 
     def EthStartTraffic(self, packet_size = 512):
-            '''This function starts Tx and Rx.
-                    Default packet size is 512
+            '''
+                This function starts Tx and Rx.
+                Default packet size is 512
             '''
             driver = self.driver
-
             driver.start_rx(packet_size = packet_size)
-            #time.sleep(2)
             driver.start_tx(packet_size = packet_size)
 
     def EthStartRx(self, packet_size = 512):
-            '''This function starts Tx and Rx.
-                    Default packet size is 512
+            '''
+                This function starts Tx and Rx.
+                Default packet size is 512
             '''
             driver = self.driver
 
             driver.start_rx(packet_size = packet_size)
 
     def EthStartTx(self, packet_size = 512):
-            '''This function starts Tx and Rx.
-                    Default packet size is 512
+            '''
+                This function starts Tx and Rx.
+                Default packet size is 512
             '''
             driver = self.driver
-
             driver.start_tx(packet_size = packet_size)
+
     ###############################################################
 
     def GetCurrentThroughput(self, packet_size = 512):
             '''This function returns current Throughput 
                     Default packet size is 512''' 
-
-            driver = self.driver
-
-            samp_time = 3
-            start_PTC = GetPTC()
-            start_time = curr_time = time.time()
-            while ((curr_time - start_time) < samp_time):
-                    curr_time = time.time()
-            end_PTC = GetPTC()
-            return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
+            start_PTC = self.GetPTC()
+            start_time = time.time()
+            time.sleep(3)
+            end_PTC = self.GetPTC()
+            return int((end_PTC['TotalPTC'] - start_PTC['TotalPTC'])*8*packet_size/(time.time() - start_time))
             
     def GetThroughput(self, start,end,sample_time,packet_size = 512):
-            '''This function returns current Throughput 
+            '''
+            This function returns current Throughput 
                     Default packet size is 512''' 
 
             return int((end - start)*8*packet_size/sample_time)
+
     ################################################################
     def EthStopRx(self):
             '''This function stops Tx and Rx.
@@ -2109,7 +2093,7 @@ class crsvl(crsvlDefines):
     ############# command handler section  								 ##########################
     ############# definition BCM84888 DS "MDIO COMMAND HANDLER FUNCTION" ##########################
 
-    def self.GetCommandHandler(self, opcode,SetOrGetFlag,Data1Reg,Data2Reg,Data3Reg,Data4Reg,Data5Reg):
+    def GetCommandHandler(self, opcode,SetOrGetFlag,Data1Reg,Data2Reg,Data3Reg,Data4Reg,Data5Reg):
             '''this function will execute command handler in BCM Phy
                     argument: opcode -> oopcode to execute
                                       SetOrGetFlag -> 1 for write (set)
@@ -2517,10 +2501,9 @@ class crsvl(crsvlDefines):
 #                                link configuration Commands                  #
 ###############################################################################
     
-    sef SetLinkSpeed_AQ(self, phy_speed, an_mode):
-
+    def SetLinkSpeed_AQ(self, phy_speed, an_mode):
         config = dict()
-        config['phy_type'] = 
+
     def _SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
 
         if (type(phy_type_list) == str ):
