@@ -13,6 +13,7 @@ class crsvlBase:
         dervied classed define functionality
     '''
     def __init__(self, device_number, port_number, hostname="", driver_type = "sv"):
+        print('i am being called')
         self.project_name = "fvl"
         self.driver_type = driver_type
         self.device_number = device_number

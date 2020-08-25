@@ -1,7 +1,7 @@
 from crsvlDefines import crsvlDefines
 
-class crsvl(crsvlDefines)
-	'''this class defines all interfaces to the crsvl device'''
+class crsvl(crsvlDefines):
+    '''this class defines all interfaces to the crsvl device'''
 
     def GetPTC64(self):
             '''This function reads PTC64 FVL register
