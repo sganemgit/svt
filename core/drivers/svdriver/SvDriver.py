@@ -542,12 +542,12 @@ class SvDriver(object):
         if result != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(result))
 
-	def read_phy_register(self, page, register_offset, phy_add):
+    def read_phy_register(self, page, register_offset, phy_add):
         ''' 
         	This method reads phy register according to
         	'page', 'register_offset' and 'phy_add' and returns register value.            
-        '''
-		mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
+            '''
+        mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
         value = 0        
         value = value | ((phy_add & 0x1f) << 21) # set phy address
         value = value | ((page & 0x1F) << 16) # set phy page
@@ -557,7 +557,7 @@ class SvDriver(object):
         self.write_csr(mdio_cntrl, value)
         while (self.read_csr(mdio_cntrl) & 0x40000000):
             pass
-		
+                
         # read cycle        
         value = value | (0x3 << 26)     # set opcode to read operation
         value = value | 0x40000000         # set mdio cmd
@@ -567,7 +567,7 @@ class SvDriver(object):
         while (self.read_csr(mdio_cntrl) & 0x40000000):
             pass    
 
-        value = self.read_csr(self._mdio_data)
+        value = self.read_csr(mdio_data)
         value = (value & 0xffff0000) >> 16
         return value  							      
 
@@ -576,7 +576,7 @@ class SvDriver(object):
         	This method writes value specified in 'write_value' 
         	to phy register according to 'page', 'register_offset' and 'phy_add'.
         '''           
-    	mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
+        mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
         value = 0        
         value = value | ((phy_add & 0x1f) << 21) # set phy address
         value = value | ((page & 0x1F) << 16) # set phy page
@@ -588,7 +588,7 @@ class SvDriver(object):
         while (self.read_csr(mdio_cntrl) & 0x40000000):
             pass
         # write data register
-		self.write_csr(mdio_cntrl, (write_value & 0xFFFF))
+        self.write_csr(mdio_cntrl, (write_value & 0xFFFF))
 
         # write cycle        
         value = value | (0x1 << 26)     # set opcode to read operation
