@@ -2802,71 +2802,18 @@ class crsvl(crsvlDefines):
             status = (False, None)
         return status
 
-    def GetPhyAbilities(self, get_abils,debug=False):
+    def GetPhyAbilities(self, args,debug=False):
         '''
             Description:  Get various PHY abilities supported on the port.
             input:
-                get_abils -- type(dict)
-                    'port' : int[1 byte]
-                    'rep_qual_mod' : int[1 bit] -- 1 will report list of qualified modules, 0 will not
-                    'rep_mode' : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
+                args -- type(dict)
             return:
                 bool -- Indication if Admin command was successful, False if so, True if not
-                dict -- 
-                    'phy_type_0' : int[4 bytes] -- Bytes 3:0 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
-                    'pause_abil': int[1 bit] -- 1 if capable of PAUSE advertisement, 0 if not capable
-                    'asy_dir_abil' : int[1 bit] -- 1 if capable of ASY_DIR pause advertisement, 0 if not capable
-                    'low_pwr_abil': int[1 bit] -- 0 for high power mode, 1 for low power mode
-                    'link_mode' : int[1 bit] -- 1 if link is enabled, 0 if link is disabled
-                    'an_mode' : int[1 bit] -- 1 if AN is enabled, 0 if AN is disabled
-                    'en_mod_qual' : int[1 bit] -- 1 if Module or PHY qualification is enabled, 0 if not
-                    'lesm_en' : int[1 bit] -- 1 if LESM is enabled, 0 if disabled
-                    'auto_fec_en' : int[1 bit] -- 1 if AutoFEC is enabled, 0 if disabled
-                    'low_pwr_ctrl' : int[1 bit] -- 1 if LPLU is enabled, 0 if LPLU is disabled
-                    'eee_cap' : int[2 bytes] -- bitfied indicating which EEE capabilities are capable
-                    'eeer' : int[2 bytes] -- Content of the EEER MAC register
-                    'oui' : int[4 bytes] -- Current BASE-T PHY ID or Module Vendor ID
-                    'phy_fw_ver' : int[8 bytes] -- Outermost PHY FW version
-                    'fec_opt' : int[1 byte] -- Available FEC options for the link
-                    'fec_firecode_10g_abil' : int[1 bit] -- Enable advertisement of 10G Fire Code FEC ability, only applicable in 10GBASE-KR
-                    'fec_firecode_10g_req' : int[1 bit] -- Enable request for 10G Fire Code FEC, only applicable in 10GBASE-KR
-                    'fec_rs528_req' : int[1 bit] -- Enable request for RS-528 FEC
-                    'fec_firecode_25g_req' : int[1 bit] -- Enable request for 25G Fire Code FEC
-                    'fec_rs544_req' : int[1 bit] -- Enable requuest for RS-544 FEC
-                    'fec_rs528_abil' : int[1 bit] -- Enable advertisement of RS-528 FEC, only applicable for Consortium modes?
-                    'fec_firecode_25g_req' : int[1 bit] -- Enable advertisement of 25G Fire Code FEC, only applicable for Consortium modes?
-                    'mod_ext_comp_code' : int[1 byte] -- Extended compliance code of the attached external module, SFP+ (Addr 0xA0, Byte 36) 
-                    'mod_id' : int[1 byte] -- module identifier of current module, SFP+ (Addr 0xA0, Byte 0) or QSFP+ (Addr 128, page 0)
-                    'mod_sfp_cu_passive': int[1 bit] -- 1 if SFP+ Cu Passive is supported
-                    'mod_sfp_cu_active': int[1 bit] -- 1 if SFP+ Cu Active is supported
-                    'mod_10g_sr': int[1 bit] -- 1 if 10GBASE-SR is supported
-                    'mod_10g_lr': int[1 bit] -- 1 if 10GBASE-LR is supported
-                    'mod_10g_lrm': int[1 bit] -- 1 if 10GBASE-LRM is supported
-                    'mod_10g_er': int[1 bit] -- 1 if 10GBASE-ER is supported
-                    'mod_1g_comp_code' : int[1 byte] -- GbE compliance code of current module, SFP+ (Addr 0xA0, Byte 6) or QSFP+ (Addr 134, page0) 
-
-                    'qual_mod_count' : int[1 byte] -- Number of qualified modules in list(max: 16)
-                    'qual_mod_ids' : list[dicts] -- List of Qualified module IDs
-                        {'vendor_oui' : int[3 bytes], 'vendor_pn' : int[16 bytes], 'vendor_rev' : int[4 bytes]}
                     if bool is True, dict becomes in with Admin command retval
         '''
         
-        #Generic AQ descriptor --> Get PHY Abilities Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0(bytes 16-19) = (rep_mode + rep_qual_mod + reserved + logical_port_number)
-        # param1(bytes 20-23) = (0)
-        # addr_high(bytes 24-27) = (0)
-        # addr_low(bytes 28-31) = (0)
         driver = self.driver
-        opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        #helper._debug('GetPhyAbilities Admin Command')
-        #lvar assignment
         data_len = 0x1000
         aq_desc.opcode = opCodes.get_phy_abilities
         aq_desc.datalen = data_len
@@ -2941,153 +2888,72 @@ class crsvl(crsvlDefines):
             status = (False, data)
         return status
 
-    def GetLinkStatus(self, gls,debug=False):
-        #Updated for HAS 1.3
+    def GetLinkStatus(self, args, debug = False):
         '''
             Description:  Get link status of the port.
             input:
-                gls -- dict
-                    'port' : int[1 byte]
-                    'cmd_flag': int[2 bits] -- See description in Table 3-105 of CPK HAS
+                args -- dict
+                    'en_lse' : int[2 bits] -- Bytes 16.0:16.1
+                    '': int[2 bits] -- See description in Table 3-105 of CPK HAS
             return:
                 status -- type(tuple) (bool, dict)
                 bool -- Indication if Admin command was successful, False if so, True if not
                 dict -- 
-                    'lse_enabled' : int[1 bit] -- 1 if LSE is enabled, 0 if disabled
-                    'topo_conflict' : int[1 bit] -- 1 if topology conflict detect, 0 if not
-                    'media_conflict' : int[1 bit] -- 1 if media conflict detected, 0 if not
-                    'lom_topo_corrupt' : int[1 bit] -- 1 if LOM topology netlist is corrupted, 0 if not
-                    'link_sts': int[1 bit] -- 1 if link is up, 0 if down
-                    'link_fault': int[1 bit] -- 1 if PHY has detected a link fault condition
-                    'tx_link_fault': int[1 bit] -- 1 if a transmit link fault condition is detected 'rx_link_fault': int[1 bit] -- 1 if a receive link fault condition is detected 'remote_fault': int[1 bit] -- 1 if a remote fault condition is detected
-                    'ext_prt_sts' : int[1 bit] -- 1 if link up, 0 if down
-                    'media_avail' : int[1 bit] -- 1 if media is availble, 0 if not
-                    'sig_det' int[1 bit] -- 1 if signal detected, 0 if not
-                    'an_comp' : int[1 bit] -- 1 if AN completed successfully, 0 if not(only valid if PHY type supports AN)
-                    'lp_an_abil' : int[1 bit] -- 1 if LP supports AN, 0 if not(only valid if PHY type supports AN)
-                    'pd_fault' : int[1 bit] -- 1 if parallel detect fault occured, 0 if not(only valid if AN w/ pd support enabled)
-                    '10g_kr_fec' : int[1 bit] -- 1 if KR, KR4 or CR4 FEC is enabled, 0 if not(only valid if PHY supports FEC)
-                    'low_pwr_state' : int[1 bit] -- 1 if low power mode, 0 if high power mode
-                    'tx_pause' : int[1 bit] -- 1 if TX Pause is enabled
-                    'rx_pause' : int[1 bit] -- 1 if RX Pause is enabled
-                    'qual_mod' : int[1 bit] -- 1 if the module is qualified, 0 if not
-                    'temp_alarm' : int[1 bit] -- 1 if temp alarm is asserted by PHY, 0 if not
-                    'hi_err' : int[1 bit] -- 1 if high_ber reported by the PHY
-                    'tx_susp' : int[2 bits] -- Refer to Table 3-107 in HAS for bitfield definition
-                    'lcl_lpbk' : int[1 bit] -- Indicates that PHY local loopback is enabled
-                    'rem_lpbk' : int[1 bit] -- Indicates that PHY remote loopback is enabled
-                    'mac_lpbk' : int[1 bit] -- Indicates that MAC local loopback is enabled
-                    'max_frame' : int[2 bytes] -- Max frame size set on the port
-                    '25g_kr_fec' : int[1 bit] -- 1 if 25G KR FEC was negotiated on the link
-                    '25g_rs_528' : int[1 bit] -- 1 if 25G RS 528 FEC negotiated on the link
-                    'rs_544' : int[1 bit] -- 1 if RS 544 FEC was negotiated on the link
-                    'pacing_type' : int[1 bit] -- Determines if Inter-Packet Gap is used for rate pacing or data dependent
-                    'pacing_rate' : int[4 bits] -- Refer to Table 3-66 for bitfield definition
-                    'link_speed_10m' : int[1 bit] -- 1 if current link speed is 10 Mbps
-                    'link_speed_100m' : int[1 bit] -- 1 if current link speed is 100 Mbps
-                    'link_speed_1000m' : int[1 bit] -- 1 if current link speed is 1000 Mbps
-                    'link_speed_2p5g' : int[1 bit] -- 1 if current link speed is 2.5 Gbps
-                    'link_speed_5g' : int[1 bit] -- 1 if current link speed is 5 Gbps
-                    'link_speed_10g' : int[1 bit] -- 1 if current link speed is 10 Gbps
-                    'link_speed_20g' : int[1 bit] -- 1 if current link speed is 20 Gbps
-                    'link_speed_25g' : int[1 bit] -- 1 if current link speed is 25 Gbps
-                    'link_speed_40g' : int[1 bit] -- 1 if current link speed is 40 Gbps
-                    'link_speed_50g' : int[1 bit] -- 1 if current link speed is 50 Gbps
-                    'link_speed_100g' : int[1 bit] -- 1 if current link speed is 100 Gbps
-                    'link_speed_200g' : int[1 bit] -- 1 if current link speed is 200 Gbps
-                    'phy_type_0' : int[4 bytes] -- Bytes 3:0 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
                 if bool is True, dict becomes int with Admin command retval
         '''
-        #Generic AQ descriptor --> Get Link Status Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0(bytes 16-19) = (cmd_flag + reserved + logical_port_number)
-        # param1(bytes 20-23) = (0)
-        # addr_high(bytes 24-27) = (0)
-        # addr_low(bytes 28-31) = (0)
         driver = self.driver
-        opCodes = AqOpCodes()
         aq_desc = AqDescriptor()
-        data_len = 0x1000
-        aq_desc.opcode = opCodes.get_link_status
-        aq_desc.datalen = data_len
-        buffer = [0] * data_len
-        aq_desc.param0 = (gls['cmd_flag'] << 16) | gls['port']
+        aq_desc.flags = 0 #Set the buffer and long buffer flags
+        aq_desc.opcode = 0x0607 
+        aq_desc.datalen = 0 
+        buffer = [0]*100
+        aq_desc.param0 = args.get('en_lse',0)  
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
-        aq_desc.flags = 0x1200 #Set the buffer and long buffer flags
+
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
-            #The static section of Get PHY Abilities is 32 bytes
-            #ut.compose_num_from_array_slice(input, index, width)
-            if debug:
-                print(buffer)
             data = {}
-            data['lse_enabled'] = (aq_desc.param0 & 0x10000)
-            data['topo_conflict'] = compose_num_from_array_slice(buffer, 0, 1) & 0x1
-            data['media_conflict'] = (compose_num_from_array_slice(buffer, 0, 1) & 0x2) >> 1
-            data['lom_topo_corrupt'] = (compose_num_from_array_slice(buffer, 0, 1) & 0x4) >> 2
-            data['link_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x1)
-            data['link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x2) >> 1
-            data['tx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x4) >> 2
-            data['rx_link_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x8) >> 3
-            data['remote_fault'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x10) >> 4
-            data['ext_prt_sts'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x20) >> 5
-            data['media_avail'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x40) >> 6
-            data['sig_det'] = (compose_num_from_array_slice(buffer, 2, 1) & 0x80) >> 7
-            data['an_comp'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x1)
-            data['lp_an_abil'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x2) >> 1
-            data['pd_fault'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x4) >> 2
-            data['10g_kr_fec'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x8) >> 3
-            data['low_pwr_state'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x10) >> 4
-            data['tx_pause'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x20) >> 5
-            data['rx_pause'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x40) >> 6
-            data['qual_mod'] = (compose_num_from_array_slice(buffer, 3, 1) & 0x80) >> 7
-            data['temp_alarm'] = compose_num_from_array_slice(buffer, 4, 1) & 0x1
-            data['hi_err'] = (compose_num_from_array_slice(buffer, 4, 1) & 0x2) >> 1
-            data['tx_susp'] = (compose_num_from_array_slice(buffer, 4, 1) & 0xC) >> 2
-            data['lcl_lpbk'] = compose_num_from_array_slice(buffer, 5, 1) & 0x1
-            data['rem_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x2) >> 1
-            data['mac_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x4) >> 2
-            data['max_frame'] = compose_num_from_array_slice(buffer, 6, 2)
-            data['25g_kr_fec'] = compose_num_from_array_slice(buffer, 8, 1) & 0x1
-            data['25g_rs_528'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
-            data['rs_544'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x4) >> 2
-            data['pacing_type'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7
-            data['pacing_rate'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3
-            data['link_speed_10m'] = compose_num_from_array_slice(buffer, 10, 1) & 0x1
-            data['link_speed_100m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1
-            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2
-            data['link_speed_2p5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3
-            data['link_speed_5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4
-            data['link_speed_10g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5
-            data['link_speed_20g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6
-            data['link_speed_25g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7
-            data['link_speed_40g'] = compose_num_from_array_slice(buffer, 11, 1) & 0x1
-            data['link_speed_50g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1
-            data['link_speed_100g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2
-            data['link_speed_200g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3
-            data['phy_type_0'] = compose_num_from_array_slice(buffer, 16, 4)
-            data['phy_type_1'] = compose_num_from_array_slice(buffer, 20, 4)
-            data['phy_type_2'] = compose_num_from_array_slice(buffer, 24, 4)
-            data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
-
-            phy_type_list = []
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
-            data['phy_type_list'] = phy_type_list
-
+            data['en_lse'] = aq_desc.param0 & 0x1
+            data['phy_type'] = (aq_desc.param0 >> 16) & 0xff
+            data['link_speed'] = (aq_desc.param0 >> 24) & 0xff
+            data['link_status'] = aq_desc.param1 & 0x1
+            data['link_fault'] = (aq_desc.param1 & 0x1c) >> 1
+            data['ext_port_link_status'] = (aq_desc.param1 & 0x20) >> 5
+            data['media_avail'] = (aq_desc.param1 & 0x40) >> 6
+            data['signal_detect'] = (aq_desc.param1 & 0x80) >> 7
+            data['an_completed'] = (aq_desc.param1 >> 8) & 0x1
+            data['lp_an_abil'] = ((aq_desc.param1 >> 8) & 0x2) >> 1 
+            data['parallel_detection_fault'] = ((aq_desc.param1 >> 8) & 0x4) >> 2
+            data['fec_en'] = ((aq_desc.param1 >> 8) & 0x8) >> 3
+            data['low_pwr_state'] = ((aq_desc.param1 >> 8) & 0x10) >> 4
+            data['link_pause_status'] = ((aq_desc.param1 >> 8) & 0x60) >> 5
+            data['qualified_module'] = ((aq_desc.param1 >> 8) & 0x80) >> 7
+            data['phy_temp_alarm'] = (aq_desc.param1 >> 16) & 0x1
+            data['excessive_link_err'] = ((aq_desc.param1 >> 16) & 0x2) >> 1
+            data['port_tx_suspended'] = ((aq_desc.param1 >> 16) & 0xc0) >> 2
+            data['force_40g_en'] = ((aq_desc.param1 >> 16) & 0x10) >> 4
+            data['unionvale_err_code'] = ((aq_desc.param1 >> 16) & 0xe0) >> 5
+            data['lpbk_lvl'] = ((aq_desc.param1 >> 24) & 0xf)
+            data['lpbk_type_status'] = ((aq_desc.param1 >> 24) & 0x10) >> 4
+            data['reserved_5_5'] = ((aq_desc.param1 >> 24) & 0x20) >> 5
+            data['external_debice_pwr_abil'] = ((aq_desc.param1 >> 24) & 0xc0) >> 6
+            data['max_frame_size'] = aq_desc.addr_high & 0xffff
+            data['25g_kr_fec_en'] = ((aq_desc.addr_high >> 16) & 0x1)
+            data['25g_rs_fec_en'] = ((aq_desc.addr_high >> 16) & 0x2) >> 1
+            data['crc_en'] = ((aq_desc.addr_high >> 16) & 0x4) >> 2
+            data['pacing_cfg'] = ((aq_desc.addr_high >> 16) & 0x78) >> 3
+            data['reserved_8_7'] = ((aq_desc.addr_high >> 16) & 0x80) >> 7
+            data['link_type'] = (aq_desc.addr_low & 0xffffff) | ((aq_desc.addr_high >> 24) & 0xff)
+            data['link_type_ext'] = (aq_desc.addr_low >> 24) & 0xff
             status = (False, data)
         return status
 
