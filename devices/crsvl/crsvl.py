@@ -2345,22 +2345,23 @@ class crsvl(crsvlDefines):
 
                     return BufPhyType, BufSpeed, BufEEE	
 
-    def StopLLDP():
-            driver = self.driver
-            
-            aq_desc = AqDescriptor()	
-            aq_desc.flags = 0x0200 
-            aq_desc.opcode = 0x0A05
-            aq_desc.datalen = 0
-            aq_desc.param0 = 0
-            aq_desc.param1 = 0
-            aq_desc.addr_high = 0
-            aq_desc.addr_low = 0
+    def StopLLDP(self):
+        driver = self.driver
 
-            status = driver.send_aq_command(aq_desc)
-    #########################################################################################################
-    ######################           DEBUG SECTION              #############################################
-    #########################################################################################################
+        aq_desc = AqDescriptor()	
+        aq_desc.flags = 0x0200 
+        aq_desc.opcode = 0x0A05
+        aq_desc.datalen = 0
+        aq_desc.param0 = 0
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+
+        status = driver.send_aq_command(aq_desc)
+
+#########################################################################################################
+######################           DEBUG SECTION              #############################################
+#########################################################################################################
 
     def AQ_Debug ():
                     driver = self.driver		
@@ -2501,28 +2502,62 @@ class crsvl(crsvlDefines):
 #                                link configuration Commands                  #
 ###############################################################################
     
-    def SetLinkSpeed_AQ(self, phy_speed, an_mode):
-        config = dict()
-
-    def _SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
-
-        if (type(phy_type_list) == str ):
-            tmp_str = phy_type_list
-            phy_type_list = []
-            phy_type_list.append(tmp_str)
+    def SetLinkSpeed(self, speed, an_mode, debug = False):
+        
+        if speed in self.phy_speed_to_bit_dict:
+            link_speed = 1 << self.phy_speed_to_bit_dict.get(speed, 3)
         else:
-            pass
+            raise RuntimeError
 
-        config = {}
-        phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
-
-        if data[0]:
-            error_msg = 'Error _SetPhyConfigurationAQ: GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
+        status, data = self.GetPhyAbilities(dict()) 
+        print(data['phy_type'])
+        if status:
+            error_msg = 'Error - SetPhyConfiguration: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
 
-        abilities = data[1]
+        config = dict() 
+        config['phy_type'] = data['phy_type']
+        config['link_speed'] = link_speed
+        config['pause_abil'] = data['pause_abil']
+        config['low_pwr_abil'] = data['low_pwr_abil']
+        config['en_link'] = 1
+        config['an_mode'] = 1 if an_mode else 0
+        config['en_auto_link_update'] = 1
+        config['eee_capability'] = data['eee_capability']
+        config['eeer'] = data['eeer']
+        config['low_pwr_ctrl'] = data['low_pwr_ctrl']
+        config['phy_type_extension'] = data['phy_type_extension']
+        config['fc_fec_abil'] = data['fc_fec_abil']
+        config['rs_fec_abil'] = data['rs_fec_abil']
+        config['fc_fec_req'] = data['fc_fec_req']
+        config['rs_fec_req'] = data['rs_fec_req']
+        config['en_auto_fec_mode'] = data['en_auto_fec_mode']
 
+        status, data =  self.SetPhyConfig(config)
+
+        if debug == True:
+            if status == 0:
+                print("Admin command successded") #TODO print admin command message 
+            else:
+                print("Admin command failed")
+                print(config)
+        if status:
+            error_msg = 'Error - SetPhyConfig Admin command was not successful, retval {}'.format(data)
+            raise RuntimeError(error_msg)
+
+
+    def SetPhyConfiguration(self, PhyType, FEC_type, debug = False):
+        phy_type = 0
+        status, data = self.GetPhyAbilities(dict()) 
+        print(data)
+
+        if status:
+            error_msg = 'Error - SetPhyConfiguration: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
+            raise RuntimeError(error_msg)
+
+        abilities = data
+
+        config = {}
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['tx_pause_req'] = abilities['pause_abil']
         config['rx_pause_req'] = abilities['asy_dir_abil']
@@ -2550,67 +2585,16 @@ class crsvl(crsvlDefines):
         config['phy_type_2'] = get_bits_slice_value(phy_type,64,95)
         config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
 
-
-        if set_fec == 'NO_FEC':
-            config['fec_firecode_10g_abil'] = 0 #abilities['fec_firecode_10g_abil'] 
-            config['fec_firecode_10g_req'] = 0 
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 0 
-            config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0 #abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = 0 #abilities['fec_firecode_25g_abil']
-            
-        elif set_fec == '10G_KR_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
-            config['fec_firecode_10g_req'] = 1
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 0 
-            config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
-
-        elif set_fec == '25G_KR_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
-            config['fec_firecode_10g_req'] = 0 
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 1 
-            config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0
-            config['fec_firecode_25g_abil'] = 0
-            
-        elif set_fec == '25G_RS_528_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
-            config['fec_firecode_10g_req'] = 0 
-            config['fec_rs528_req'] = 1
-            config['fec_firecode_25g_req'] = 0 
-            config['fec_rs544_req'] = 0
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
-
-        elif set_fec == '25G_RS_544_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
-            config['fec_firecode_10g_req'] = 0 
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 0 
-            config['fec_rs544_req'] = 1
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
-            
-        else:
-            error_msg = 'Error _SetPhyConfigurationAQ: fec input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
-            raise RuntimeError(error_msg)
-
-        status = ()
-        status =  self.SetPhyConfig(config)
+        status, data =  self.SetPhyConfig(config)
 
         if debug == True:
-            if status[0] == 0:
+            if status == 0:
                 print("Admin command successded") #TODO print admin command message 
             else:
                 print("Admin command failed")
                 print(config)
-        if status[0] :
-            error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(status[1])
+        if status:
+            error_msg = 'Error - SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
 
 
@@ -2625,23 +2609,23 @@ class crsvl(crsvlDefines):
             input:
                 config -- type(dict)
                     'phy_type' : int[4 bytes] -- Bytes 3:0 of PHY capabilities
-					'link_speed' : int[1 byte]  -- Bytes 4 
-					'pause_abil' : int[2 bits] -- Bytes 5.0:5.1 
-					'low_pwr_abil': int[1 bit] -- Bytes 5.2
-					'en_link' : int[1 bit] -- Bytes 5.3
-					'an_mode' : int[1 bit] -- Bytes 5.4
-					'en_auto_link_update': int[1 bit] -- Bytes 5.5
-					'reserved' int[2 bit] -- Bytes 5.6:5.7
-					'EEE_capability_en' int[2 bytes] -- Bytes 6:7
-					'EEER' : int[4 bytes] -- Bytes 8:11
-					'low_pwr_ctrl' : int[1 byte] -- Bytes 12
-					'phy_type_extension': int[1 byte] -- Bytes 13
-					'FC_FEC_abil': int[1 bit] -- Bytes 14.0
-					'RS_FEC_abil': int[1 bit] -- Bytes 14.1
-					'FC_FEC_req' : int[1 bit] -- Bytes 14.2
-					'RS_FEC_req' : int[1 bit] -- Bytes 14.3
-					'en_auto_FEC_mode' : int[1 bit] -- Bytes 14.4
-					'reserved' : int[1 bytes 3 bit] -- Bytes 14.5:15
+                    'link_speed' : int[1 byte]  -- Bytes 4 
+                    'pause_abil' : int[2 bits] -- Bytes 5.0:5.1 
+                    'low_pwr_abil': int[1 bit] -- Bytes 5.2
+                    'en_link' : int[1 bit] -- Bytes 5.3
+                    'an_mode' : int[1 bit] -- Bytes 5.4
+                    'en_auto_link_update': int[1 bit] -- Bytes 5.5
+                    'reserved' int[2 bit] -- Bytes 5.6:5.7
+                    'EEE_capability_en' int[2 bytes] -- Bytes 6:7
+                    'EEER' : int[4 bytes] -- Bytes 8:11
+                    'low_pwr_ctrl' : int[1 byte] -- Bytes 12
+                    'phy_type_extension': int[1 byte] -- Bytes 13
+                    'fc_fec_abil': int[1 bit] -- Bytes 14.0
+                    'RS_FEC_abil': int[1 bit] -- Bytes 14.1
+                    'FC_FEC_req' : int[1 bit] -- Bytes 14.2
+                    'RS_FEC_req' : int[1 bit] -- Bytes 14.3
+                    'en_auto_FEC_mode' : int[1 bit] -- Bytes 14.4
+                    'reserved' : int[1 bytes 3 bit] -- Bytes 14.5:15
             return:
                 status -- type(tuple) (bool, int)
                     bool -- Indication if Admin command was successful, False if so, True if not
@@ -2666,23 +2650,23 @@ class crsvl(crsvlDefines):
         buffer.append(byte_4)
         byte_5 = (config['en_auto_link_update'] << 5) | (config['an_mode'] << 4 | config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
         buffer.append(byte_5)
-        byte_6 = config['EEE_capability_en'] & 0xff
+        byte_6 = config['eee_capability'] & 0xff
         buffer.append(byte_6)
         byte_7 = 0
         buffer.append(byte_7)
-        byte_8 = config['EEER'] & 0xff
+        byte_8 = config['eeer'] & 0xff
         buffer.append(byte_8)
-        byte_9 = (config['EEER'] >> 8) & 0xff
+        byte_9 = (config['eeer'] >> 8) & 0xff
         buffer.append(byte_9)
-        byte_10 = (config['EEER'] >> 16) & 0xff
+        byte_10 = (config['eeer'] >> 16) & 0xff
         buffer.append(byte_10)
-        byte_11 = (config['EEER'] >> 24) & 0xff
+        byte_11 = (config['eeer'] >> 24) & 0xff
         buffer.append(byte_11)
         byte_12 = config['low_pwr_ctrl']
         buffer.append(byte_12)
         byte_13 = config['phy_type_extension']
         buffer.append(byte_13)
-        byte_14 = (config['en_auto_FEC_mode'] << 4) | (config['RS_FEC_req'] << 3) | (config['FC_FEC_req'] << 2) | (config['RS_FEC_abil'] << 1) | config['FC_FEC_abil']
+        byte_14 = (config['en_auto_fec_mode'] << 4) | (config['rs_fec_req'] << 3) | (config['fc_fec_req'] << 2) | (config['rs_fec_abil'] << 1) | config['fc_fec_abil']
         buffer.append(byte_14)
         byte_15 = 0
         buffer.append(byte_14)
@@ -2705,7 +2689,6 @@ class crsvl(crsvlDefines):
         return status
 
     def SetMacConfig(self, config,debug=False):
-        #Update for HAS 1.3
         '''
             Description: Set various MAC configuration parameters on the port.
             input:
@@ -2721,13 +2704,6 @@ class crsvl(crsvlDefines):
                     bool -- Indication if Admin command was successful, False if so, True if not
                     int -- if bool True, value of Admin command retval, if false is None
         '''
-        #Generic AQ descriptor --> Set MAC Config Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (tx_priority + pacing + max_frame)
-        # param1 = (fc_refr_thresh + tx_value)
-        # addr_high = (0)
-        # addr_low = (0)
-        #Class instantiation
         driver = self.driver
         opCodes = AqOpCodes()
         aq_desc = AqDescriptor()
@@ -2753,7 +2729,6 @@ class crsvl(crsvlDefines):
         return status
 
     def SetupLink(self, slu_args,debug=False):
-        #Updated for HAS 1.3
         '''
             Description:  Sets up the link and restarts link auto-negotiation. This operation could bring down the link. This
                         command needs to be executed for other set link parameters to take effect on the link.
@@ -2767,21 +2742,9 @@ class crsvl(crsvlDefines):
                     bool -- Indication if Admin command was successful, False if so, True if not
                     int -- if bool True, value of Admin command retval, if false is None
         '''
-        #Generic AQ descriptor --> Setup Link and Retart Auto-negotiation Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (enable + restart + reserved + logical_port_number)
-        # param1 = (0)
-        # addr_high = (0)
-        # addr_low = (0)
-
-        
-        #Class instantiation
         driver = self.driver
         opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('SetupLink Admin Command')
-        #lvar assignment
         data_len = 0x0
         aq_desc.opcode = opCodes.setup_link
         aq_desc.datalen = data_len
@@ -2802,7 +2765,7 @@ class crsvl(crsvlDefines):
             status = (False, None)
         return status
 
-    def GetPhyAbilities(self, args,debug=False):
+    def GetPhyAbilities(self, args, debug = False):
         '''
             Description:  Get various PHY abilities supported on the port.
             input:
@@ -2810,81 +2773,54 @@ class crsvl(crsvlDefines):
             return:
                 bool -- Indication if Admin command was successful, False if so, True if not
                     if bool is True, dict becomes in with Admin command retval
+                dict -- data
         '''
-        
         driver = self.driver
+
         aq_desc = AqDescriptor()
         data_len = 0x1000
-        aq_desc.opcode = opCodes.get_phy_abilities
+        aq_desc.flags = 0x1200 #Set the buffer flag & long buffer flag
+        aq_desc.opcode = 0x0600 
         aq_desc.datalen = data_len
         buffer = [0] * data_len
-        aq_desc.param0 = (get_abils['rep_mode'] << 17) | (get_abils['rep_qual_mod'] << 16) | get_abils['port']
+        aq_desc.param0 = (args.get('rep_active',1) << 1) | args.get('report_qualified_modules',0)
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
-        aq_desc.flags = 0x1200 #Set the buffer flag & long buffer flag
+
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Get PHY Abilities Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+            print('Failed to send Get PHY Abilities Admin Command, status: {} FW ret value: {}'.format(status, aq_desc.retval))
+
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
-            #The static section of Get PHY Abilities is 32 bytes
-            #ut.compose_num_from_array_slice(input, index, width)
             data = {}
-            mod_ids = []
-            data['phy_type_0'] = compose_num_from_array_slice(buffer, 0, 4)
-            data['phy_type_1'] = compose_num_from_array_slice(buffer, 4, 4)
-            data['phy_type_2'] = compose_num_from_array_slice(buffer, 8, 4)
-            data['phy_type_3'] = compose_num_from_array_slice(buffer, 12, 4)
-            phy_type_list = []        
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
-            data['phy_type_list'] = phy_type_list
-
-            data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x1)
-            data['asy_dir_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x2) >> 1
-            data['low_pwr_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x4) >> 2
-            data['link_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x8) >> 3
-            data['an_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x10) >> 4
-            data['en_mod_qual'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x20) >> 5
-            data['lesm_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x40) >> 6
-            data['auto_fec_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x80) >> 7
-            lpc = compose_num_from_array_slice(buffer, 17, 1)
-            if lpc:
-                data['low_pwr_ctrl'] = 1
-            else:
-                data['low_pwr_ctrl'] = 0
-            #data['low_pwr_ctrl'] = ut.compose_num_from_array_slice(buffer, 17, 1) #if more bits end up being used, remove if/else above and uncomment this line
-            data['eee_cap'] = compose_num_from_array_slice(buffer, 18, 2)
-            data['eeer'] = compose_num_from_array_slice(buffer, 20, 2)
-            data['oui'] = compose_num_from_array_slice(buffer, 22, 4)
-            data['phy_fw_ver'] = compose_num_from_array_slice(buffer, 26, 8)
-            #data['fec_opt'] = ut.compose_num_from_array_slice(buffer, 34, 1)
-            data['fec_firecode_10g_abil'] = compose_num_from_array_slice(buffer, 34, 1) & 0x1
-            data['fec_firecode_10g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x2) >> 1
-            data['fec_rs528_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x4) >> 2
-            data['fec_firecode_25g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x8) >> 3
-            data['fec_rs544_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x10) >> 4
-            data['fec_rs528_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x40) >> 6
-            data['fec_firecode_25g_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x80) >> 7
-            data['mod_ext_comp_code'] = compose_num_from_array_slice(buffer, 36, 1)
-            data['mod_id'] = compose_num_from_array_slice(buffer, 37, 1)
-            data['mod_sfp_cu_passive'] = compose_num_from_array_slice(buffer, 38, 1) & 0x1
-            data['mod_sfp_cu_active'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x2) >> 1
-            data['mod_10g_sr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x10) >> 4     
-            data['mod_10g_lr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x20) >> 5
-            data['mod_10g_lrm'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x40) >> 6
-            data['mod_10g_er'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x80) >> 7
-            data['mod_1g_comp_code'] = compose_num_from_array_slice(buffer, 39, 1)
-            data['qual_mod_count'] = compose_num_from_array_slice(buffer, 40, 1)
-            #if data['qual_mod_count']:
-                #TODO: Implement function that slices the 32 byte sections from the buffer based on mod_count, then builds a list of dictionaries that deciphers the module info based on table in CPK HAS
-            #    data['qual_mod_ids'] = mod_ids
-            data['qual_mod_ids'] = 0
+            data['phy_type'] = compose_num_from_array_slice(buffer, 0, 4)
+            data['link_speed_abil'] = compose_num_from_array_slice(buffer, 4, 1) 
+            data['pause_abil'] = compose_num_from_array_slice(buffer, 5, 1) & 0x3
+            data['low_pwr_abil'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x4) >> 2
+            data['link_mode'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x8) >> 3
+            data['an_mode'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x10) >> 4
+            data['en_module_qualification'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x20) >> 5
+            data['reserved_5_6'] = (compose_num_from_array_slice(buffer, 5, 1) & 0xc0) >> 6
+            data['eee_capability'] = compose_num_from_array_slice(buffer, 6, 2) & 0xffff
+            data['eeer'] = compose_num_from_array_slice(buffer, 8, 4) 
+            data['low_pwr_ctrl'] = compose_num_from_array_slice(buffer, 12, 1)
+            data['phy_type_extension'] = compose_num_from_array_slice(buffer, 13, 1) 
+            data['fc_fec_abil'] = compose_num_from_array_slice(buffer, 14, 1) & 0x1 
+            data['rs_fec_abil'] = (compose_num_from_array_slice(buffer, 14, 1) & 0x2) >> 1
+            data['fc_fec_req'] = (compose_num_from_array_slice(buffer, 14, 1) & 0x4) >> 2
+            data['rs_fec_req'] = (compose_num_from_array_slice(buffer, 14, 1) & 0x8) >> 3
+            data['en_auto_fec_mode'] = (compose_num_from_array_slice(buffer, 14, 1) & 0x10) >> 4
+            data['current_module_type_ext'] = (compose_num_from_array_slice(buffer, 14, 1) & 0xe0) >> 2
+            data['current_module_type_compliance_code'] = compose_num_from_array_slice(buffer, 15, 1) 
+            data['current_phy_id_vendor'] = compose_num_from_array_slice(buffer, 16, 4) 
+            data['current_module_type'] = compose_num_from_array_slice(buffer, 20, 3) 
+            data['qualified_module_count'] = compose_num_from_array_slice(buffer, 23, 3) 
+            data['qualified_module_id_n'] = buffer[24:55] 
             status = (False, data)
         return status
 
@@ -2894,19 +2830,18 @@ class crsvl(crsvlDefines):
             input:
                 args -- dict
                     'en_lse' : int[2 bits] -- Bytes 16.0:16.1
-                    '': int[2 bits] -- See description in Table 3-105 of CPK HAS
             return:
                 status -- type(tuple) (bool, dict)
-                bool -- Indication if Admin command was successful, False if so, True if not
-                dict -- 
-                if bool is True, dict becomes int with Admin command retval
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                        if bool is True, dict becomes int with Admin command retval
+                    dict -- data
         '''
         driver = self.driver
         aq_desc = AqDescriptor()
         aq_desc.flags = 0 #Set the buffer and long buffer flags
         aq_desc.opcode = 0x0607 
         aq_desc.datalen = 0 
-        buffer = [0]*100
+        buffer = []
         aq_desc.param0 = args.get('en_lse',0)  
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
@@ -2914,7 +2849,7 @@ class crsvl(crsvlDefines):
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+            print('Failed to send Get Link Status Admin Command, status: {} FW ret value: {}'.format(status, aq_desc.retval))
 
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
 
@@ -2958,7 +2893,6 @@ class crsvl(crsvlDefines):
         return status
 
     def SetPhyLoopback(self,phy_lpbk_args,debug=False):
-        #Updated for HAS 1.3
         '''
             Description:  Sets various PHYs loopback modes of the link
             input:
@@ -2973,15 +2907,8 @@ class crsvl(crsvlDefines):
                     bool -- Indication if Admin command was successful, False if so, True if not
                     int -- if bool is False, None, else int is Admin command retval
         '''
-        #Generic AQ descriptor --> Set PHY Loopback Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (level + type + enable + phy_index + logical_port_number)
-        # param1 = (0)
-        # addr_high = (0)
-        # addr_low = (0)
         driver = self.driver
         opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor() # helper._debug('SetPhyLoopback Admin Command')
         data_len = 0x0
         aq_desc.opcode = opCodes.set_phy_loopback
@@ -3062,6 +2989,7 @@ class crsvl(crsvlDefines):
         '''
 
         driver = self.driver
+
         aq_desc = AqDescriptor()
         aq_desc.flags = 0x0
         aq_desc.opcode = 0x0629
