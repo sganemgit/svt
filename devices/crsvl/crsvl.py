@@ -2502,7 +2502,7 @@ class crsvl(crsvlDefines):
 #                                link configuration Commands                  #
 ###############################################################################
     
-    def SetLinkSpeed(self, speed, an_mode, debug = False):
+    def SetLinkSpeed(self, phy_type, speed, an_mode, debug = False):
         
         if speed in self.phy_speed_to_bit_dict:
             link_speed = 1 << self.phy_speed_to_bit_dict.get(speed, 3)
@@ -2602,8 +2602,7 @@ class crsvl(crsvlDefines):
 #                                Admin Queue Commands                         #
 ###############################################################################
 
-    def SetPhyConfig(self, config,debug=False):
-        #Updated for HAS 1.3
+    def SetPhyConfig(self, config, debug = False):
         '''
             Description:  Set various PHY configuration parameters on port. 
             input:
@@ -2631,13 +2630,10 @@ class crsvl(crsvlDefines):
                     bool -- Indication if Admin command was successful, False if so, True if not
                     int -- if bool True, value of Admin command retval, if false is None
         '''
-        #Generic AQ descriptor --> Set PHY Config Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
         driver = self.driver
        	opcode = 0x601
         aq_desc = AqDescriptor()
         buffer = []
-        #Add PHY Type to buffer
         byte_0 = config['phy_type'] & 0xff
         buffer.append(byte_0)
         byte_1 = (config['phy_type'] >> 8) & 0xff
@@ -2728,43 +2724,6 @@ class crsvl(crsvlDefines):
             status = (False, None)
         return status
 
-    def SetupLink(self, slu_args,debug=False):
-        '''
-            Description:  Sets up the link and restarts link auto-negotiation. This operation could bring down the link. This
-                        command needs to be executed for other set link parameters to take effect on the link.
-            input:
-                slu_args -- type(dict):
-                    'port' : int[1 byte]
-                    'restart' : int[1 bit] -- 1 to restart the link
-                    'enable' : int[1 bit] -- 1 to enable the link, 0 to disable the link
-            return:
-                status -- type(tuple) (bool, int)
-                    bool -- Indication if Admin command was successful, False if so, True if not
-                    int -- if bool True, value of Admin command retval, if false is None
-        '''
-        driver = self.driver
-        opCodes = AqOpCodes()
-        aq_desc = AqDescriptor()
-        data_len = 0x0
-        aq_desc.opcode = opCodes.setup_link
-        aq_desc.datalen = data_len
-        buffer = [0] * data_len
-        aq_desc.param0 = (slu_args['enable'] << 18) | (slu_args['restart'] << 17) | slu_args['port']
-        aq_desc.param1 = 0
-        aq_desc.addr_high = 0
-        aq_desc.addr_low = 0
-        aq_desc.flags = 0x0
-        
-        status = driver.send_aq_command(aq_desc, buffer, debug)
-        if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Setup Link Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
-        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
-        if status or err_flag:
-            status = (True, aq_desc.retval)
-        else:
-            status = (False, None)
-        return status
-
     def GetPhyAbilities(self, args, debug = False):
         '''
             Description:  Get various PHY abilities supported on the port.
@@ -2783,7 +2742,7 @@ class crsvl(crsvlDefines):
         aq_desc.opcode = 0x0600 
         aq_desc.datalen = data_len
         buffer = [0] * data_len
-        aq_desc.param0 = (args.get('rep_active',1) << 1) | args.get('report_qualified_modules',0)
+        aq_desc.param0 = (args.get('rep_active',1) << 1) | args.get('report_qualified_modules',1)
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -2891,6 +2850,26 @@ class crsvl(crsvlDefines):
             data['link_type_ext'] = (aq_desc.addr_low >> 24) & 0xff
             status = (False, data)
         return status
+
+    def _RestartAn(self, args, debug = False):
+        driver = self.driver
+        aq_desc = AqDescriptor()
+        aq_desc.flags = 0 
+        aq_desc.opcode = 0x0605 
+        aq_desc.datalen = 0 
+        buffer = []
+        aq_desc.param0 = args.get('en_link',1) | 1 << 1  
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Get Link Status Admin Command, status: {} FW ret value: {}'.format(status, aq_desc.retval))
+            return (True, aq_desc.retval)
+        else:
+            return (False, None)
 
     def SetPhyLoopback(self,phy_lpbk_args,debug=False):
         '''
@@ -3035,3 +3014,42 @@ class crsvl(crsvlDefines):
         else:
             status = (False, None)
         return status
+
+    def SetupLink(self, slu_args,debug=False):
+        '''
+            Description:  Sets up the link and restarts link auto-negotiation. This operation could bring down the link. This
+                        command needs to be executed for other set link parameters to take effect on the link.
+            input:
+                slu_args -- type(dict):
+                    'port' : int[1 byte]
+                    'restart' : int[1 bit] -- 1 to restart the link
+                    'enable' : int[1 bit] -- 1 to enable the link, 0 to disable the link
+            return:
+                status -- type(tuple) (bool, int)
+                    bool -- Indication if Admin command was successful, False if so, True if not
+                    int -- if bool True, value of Admin command retval, if false is None
+        '''
+        driver = self.driver
+        opCodes = AqOpCodes()
+        aq_desc = AqDescriptor()
+        data_len = 0x0
+        aq_desc.opcode = opCodes.setup_link
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (slu_args['enable'] << 18) | (slu_args['restart'] << 17) | slu_args['port']
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+        
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Setup Link Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+
