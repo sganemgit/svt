@@ -2260,105 +2260,6 @@ class crsvl(crsvlDefines):
 
 
 
-
-    def SetLinkSpeedAq(self, set_phy_type, set_phy_speed):
-            '''This function sets Phy type and speed
-                    argument:
-                            PhyType = 'SGMII'/'1000BASE-KX'/'10GBASE-KX4'/'10GBASE-KR'/'40GBASE-KR4'/'XAUI'/'XFI'/'SFI'/'XLAUI'/'XLPPI'/'40GBASE-CR4'/'10GBASE-CR1'/'100BASE-T'/'1000BASE-T'/'10GBASE-T'/'10GBASE-SR'/'10GBASE-LR'/'10GBASE-SFP+Cu'/'10GBASE-CR1'/'40GBASE-CR4'/'40GBASE-SR4'/'40GBASE-LR4'/'1000BASE-SX'/'1000BASE-LX'/'1000BASE-T-OPTICAL'/'20GBASE-KR2'
-                            PhySpeed = '2.5G'/'100M'/'1G'/'10G'/'40G'/'20G'/'25G'/'5G'
-            '''
-
-            driver = self.driver
-            
-            phy_type = 0
-            phy_speed = 0
-            
-            #TODO: Flip between key and value in Set_PhyType_dict and Phy_link_speed_fvl_dict
-            for i in range(len(Set_PhyType_dict)):
-                    if Set_PhyType_dict[i] == set_phy_type: 
-                            phy_type = 1 << i
-                            break
-                    
-            for i in range (0, len(Phy_link_speed_fvl_dict)):
-                    if Phy_link_speed_fvl_dict[i] == set_phy_speed:
-                            phy_speed = 1 << i
-                            break
-
-            
-            if phy_type == 0 or phy_speed == 0:
-                    error_msg = 'Error _SetLinkSpeedAq, phy type: {} phy speed: {}'.format(phy_type, phy_speed)
-                    raise RuntimeError(error_msg)
-            
-            abilitiesbuffer = GetAbilitiesAq(True)
-            print "param0: ",hex((abilitiesbuffer[3] << 24) | (abilitiesbuffer[2] << 16) | (abilitiesbuffer[1] << 8) | abilitiesbuffer[0])
-            print "param1: ", hex((((abilitiesbuffer[5] & 0x08) | 0x28) << 8) | phy_speed)
-            print "high: ",hex((abilitiesbuffer[11] << 24) | (abilitiesbuffer[10] << 16) | (abilitiesbuffer[9] << 8) | abilitiesbuffer[8])
-            print "low:", hex((abilitiesbuffer[15] << 24) | (abilitiesbuffer[14] << 16) | ((abilitiesbuffer[13] | 0xC0)  << 8) | abilitiesbuffer[12])
-            aq_desc = AqDescriptor()	
-            aq_desc.flags = 0x0200  
-            aq_desc.opcode = 0x601
-            aq_desc.datalen = 0
-            aq_desc.param0 = (abilitiesbuffer[3] << 24) | (abilitiesbuffer[2] << 16) | (abilitiesbuffer[1] << 8) | abilitiesbuffer[0]
-            aq_desc.param1 = (((abilitiesbuffer[5] & 0x0f) | 0x28) << 8) | phy_speed
-            aq_desc.addr_high = (abilitiesbuffer[11] << 24) | (abilitiesbuffer[10] << 16) | (abilitiesbuffer[9] << 8) | abilitiesbuffer[8]
-            aq_desc.addr_low = (abilitiesbuffer[15] << 24) | (abilitiesbuffer[14] << 16) | ((abilitiesbuffer[13] | 0xC0)  << 8) | abilitiesbuffer[12] #only with old image
-
-            status = driver.send_aq_command(aq_desc)
-            if status != 0 or aq_desc.retval != 0:
-                    error_msg = 'Error _SetLinkSpeedAq, status {} retval {}'.format(status, aq_desc.retval)
-                    raise RuntimeError(error_msg)	
-            
-
-    def GetAbilitiesAq(self, GetBuffer = False):
-            '''This function runs AQ Get PHY abilities command.
-                    return:
-                            GetBuffer = True : return buffer 
-                            GetBuffer = False : return Phy type, speed and EEE capability
-            '''
-            driver = self.driver
-
-            data_len = 1000
-
-            aq_desc = AqDescriptor()	
-            aq_desc.flags = 0x3200  # BUF flag - byte 1 bit 4
-            aq_desc.opcode = 0x600
-            aq_desc.datalen = data_len
-            aq_desc.param0 = 0
-            aq_desc.param1 = 0
-            aq_desc.addr_high = 0
-            aq_desc.addr_low = 0
-            
-            buffer = [0] * data_len
-
-            status = driver.send_aq_command(aq_desc, buffer)
-            if status != 0 or aq_desc.retval != 0:
-                    error_msg = 'Error GetPhyAbilitiesAq, status {} retval {}'.format(status, aq_desc.retval)
-                    raise RuntimeError(error_msg)	
-            
-            if GetBuffer == True:
-                    return buffer
-            
-            else:
-                    BufPhyType = (buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0]
-                    BufSpeed = buffer[4]
-                    BufEEE = (buffer[7] << 8) | buffer[6]
-
-                    return BufPhyType, BufSpeed, BufEEE	
-
-    def StopLLDP(self):
-        driver = self.driver
-
-        aq_desc = AqDescriptor()	
-        aq_desc.flags = 0x0200 
-        aq_desc.opcode = 0x0A05
-        aq_desc.datalen = 0
-        aq_desc.param0 = 0
-        aq_desc.param1 = 0
-        aq_desc.addr_high = 0
-        aq_desc.addr_low = 0
-
-        status = driver.send_aq_command(aq_desc)
-
 #########################################################################################################
 ######################           DEBUG SECTION              #############################################
 #########################################################################################################
@@ -2501,16 +2402,19 @@ class crsvl(crsvlDefines):
 ###############################################################################
 #                                link configuration Commands                  #
 ###############################################################################
-    
-    def SetLinkSpeed(self, phy_type, speed, an_mode, debug = False):
+
+    def SetLinkSpeed(self, speed, an_mode = True, debug = False):
         
-        if speed in self.phy_speed_to_bit_dict:
-            link_speed = 1 << self.phy_speed_to_bit_dict.get(speed, 3)
+        supported_speeds = self.GetSupportedSpeeds()
+
+        if speed in supported_speeds:
+            link_speed = 1 << self.phy_speed_to_bit_dict[speed]
+            print(hex(link_speed))
         else:
-            raise RuntimeError
+            msg = "provided speed is not supported"
+            raise RuntimeError(msg)
 
         status, data = self.GetPhyAbilities(dict()) 
-        print(data['phy_type'])
         if status:
             error_msg = 'Error - SetPhyConfiguration: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
@@ -2545,11 +2449,48 @@ class crsvl(crsvlDefines):
             error_msg = 'Error - SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
 
+    def GetPhyTypeAbilities(self):
+        status, data = self.GetPhyAbilities(dict())
+
+        if status:
+            error_msg = 'Error - GetPhyTypeAbilities: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
+            raise RuntimeError(error_msg)   
+
+        phy_type = data['phy_type']
+        phy_type_extension = data['phy_type_extension']
+        phytype_list = list()
+        for i in range(32):
+            mask = 1 << i 
+            if phy_type & mask:
+                phytype_list.append(self.get_Ability_PhyType_dict[i])
+
+        for i in range(8):
+            mask = 1 << i 
+            if phy_type_extension & mask:
+                phytype_list.append(self.get_Ability_PhyTypeExtension_dict[i])
+
+        return phytype_list
+
+    def GetSupportedSpeeds(self):
+        status, data = self.GetPhyAbilities(dict())
+
+        if status:
+            error_msg = 'Error - GetPhyAbilities: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
+            raise RuntimeError(error_msg)   
+
+        link_speed = data['link_speed_abil']
+
+        supported_speeds = list()
+        for i in range(8):
+            mask = 1 << i
+            if link_speed & mask:
+                supported_speeds.append(self.get_Ability_speed_dict[i])
+
+        return supported_speeds
 
     def SetPhyConfiguration(self, PhyType, FEC_type, debug = False):
         phy_type = 0
         status, data = self.GetPhyAbilities(dict()) 
-        print(data)
 
         if status:
             error_msg = 'Error - SetPhyConfiguration: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
@@ -2597,6 +2538,21 @@ class crsvl(crsvlDefines):
             error_msg = 'Error - SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
 
+    def GetLinkStatusField(self):
+        status, data = self.GetLinkStatus(dict())
+        return data['link_status']
+
+    def GetLinkSpeed(self):
+        status, data = self.GetLinkStatus(dict())
+
+        if status:
+            error_msg = 'Error - GetLinkSpeed: GetLinkStatus Admin command was not successful, retval {}'.format(data)
+            raise RuntimeError(error_msg)
+        link_speed_field = data['link_speed']
+        for i in range(8):
+            mask = 1 << i
+            if link_speed_field & mask:
+                return self.get_Ability_speed_dict[i]
 
 ###############################################################################
 #                                Admin Queue Commands                         #
@@ -3052,4 +3008,17 @@ class crsvl(crsvlDefines):
             status = (False, None)
         return status
 
+    def StopLLDP(self):
+        driver = self.driver
+
+        aq_desc = AqDescriptor()    
+        aq_desc.flags = 0x0200 
+        aq_desc.opcode = 0x0A05
+        aq_desc.datalen = 0
+        aq_desc.param0 = 0
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+
+        status = driver.send_aq_command(aq_desc)
 
