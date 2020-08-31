@@ -2432,7 +2432,6 @@ class crsvl(crsvlDefines):
     def SetLinkSpeed(self, speed, an_mode = True, debug = False):
         
         supported_speeds = self.GetSupportedSpeeds()
-        print(supported_speeds)
 
         if speed in supported_speeds:
             link_speed = 1 << self.phy_speed_to_bit_dict[speed]
