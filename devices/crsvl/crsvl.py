@@ -2398,6 +2398,32 @@ class crsvl(crsvlDefines):
             else:
                     print "unknown error occur"
 
+    def Reset(self, reset_type = 'pfr'):
+        '''This function performs resets
+            argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
+            return: None
+        '''
+        driver = self.driver
+        if reset_type ==  "globr":
+            driver.device_reset("GLOBAL")
+        elif reset_type ==  "pfr" :
+            driver.device_reset("PF")
+        elif reset_type == "corer" :
+            driver.device_reset("CORE")
+        elif reset_type == "empr":
+            driver.device_reset("EMP")
+        elif reset_type == "flr":
+            driver.device_reset("FL")
+        elif reset_type == "pcir":
+            driver.device_reset("PCI")
+        elif reset_type == "bmer":
+            driver.device_reset("BME")
+        elif reset_type ==  "vfr":
+            driver.device_reset("VF_SW")
+        elif reset_type ==   "vflr":
+            driver.device_reset("VFLR")
+        else:
+            print("could not identify reset type")
 
 ###############################################################################
 #                                link configuration Commands                  #
@@ -2406,15 +2432,16 @@ class crsvl(crsvlDefines):
     def SetLinkSpeed(self, speed, an_mode = True, debug = False):
         
         supported_speeds = self.GetSupportedSpeeds()
+        print(supported_speeds)
 
         if speed in supported_speeds:
             link_speed = 1 << self.phy_speed_to_bit_dict[speed]
-            print(hex(link_speed))
         else:
             msg = "provided speed is not supported"
             raise RuntimeError(msg)
-
-        status, data = self.GetPhyAbilities(dict()) 
+        args = dict()
+        args['rep_active'] = 1
+        status, data = self.GetPhyAbilities(args) 
         if status:
             error_msg = 'Error - SetPhyConfiguration: GetPhyAbilities Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
@@ -2422,12 +2449,12 @@ class crsvl(crsvlDefines):
         config = dict() 
         config['phy_type'] = data['phy_type']
         config['link_speed'] = link_speed
-        config['pause_abil'] = data['pause_abil']
-        config['low_pwr_abil'] = data['low_pwr_abil']
+        config['pause_abil'] = 0
+        config['low_pwr_abil'] = 0
         config['en_link'] = 1
         config['an_mode'] = 1 if an_mode else 0
         config['en_auto_link_update'] = 1
-        config['eee_capability'] = data['eee_capability']
+        config['eee_capability'] = (0X3 << 8) | data['eee_capability']
         config['eeer'] = data['eeer']
         config['low_pwr_ctrl'] = data['low_pwr_ctrl']
         config['phy_type_extension'] = data['phy_type_extension']
@@ -2437,14 +2464,8 @@ class crsvl(crsvlDefines):
         config['rs_fec_req'] = data['rs_fec_req']
         config['en_auto_fec_mode'] = data['en_auto_fec_mode']
 
-        status, data =  self.SetPhyConfig(config)
+        status, data =  self.SetPhyConfig(config, debug)
 
-        if debug == True:
-            if status == 0:
-                print("Admin command successded") #TODO print admin command message 
-            else:
-                print("Admin command failed")
-                print(config)
         if status:
             error_msg = 'Error - SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
@@ -2502,7 +2523,7 @@ class crsvl(crsvlDefines):
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['tx_pause_req'] = abilities['pause_abil']
         config['rx_pause_req'] = abilities['asy_dir_abil']
-        config['low_pwr_abil'] = abilities['low_pwr_abil']
+        config['low_pwr_abil'] = 0
         config['en_link'] = 1
         config['en_auto_update'] = 1
         config['lesm_en'] = 0
@@ -2587,53 +2608,45 @@ class crsvl(crsvlDefines):
                     int -- if bool True, value of Admin command retval, if false is None
         '''
         driver = self.driver
-       	opcode = 0x601
         aq_desc = AqDescriptor()
+        data_len = 0
         buffer = []
-        byte_0 = config['phy_type'] & 0xff
-        buffer.append(byte_0)
-        byte_1 = (config['phy_type'] >> 8) & 0xff
-        buffer.append(byte_1)
-        byte_2 = (config['phy_type'] >> 16) & 0xff
-        buffer.append(byte_2)
-        byte_3 = (config['phy_type'] >> 24) & 0xff
-        buffer.append(byte_3)
-        byte_4 = config['link_speed']
-        buffer.append(byte_4)
-        byte_5 = (config['en_auto_link_update'] << 5) | (config['an_mode'] << 4 | config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
-        buffer.append(byte_5)
-        byte_6 = config['eee_capability'] & 0xff
-        buffer.append(byte_6)
-        byte_7 = 0
-        buffer.append(byte_7)
-        byte_8 = config['eeer'] & 0xff
-        buffer.append(byte_8)
-        byte_9 = (config['eeer'] >> 8) & 0xff
-        buffer.append(byte_9)
-        byte_10 = (config['eeer'] >> 16) & 0xff
-        buffer.append(byte_10)
-        byte_11 = (config['eeer'] >> 24) & 0xff
-        buffer.append(byte_11)
-        byte_12 = config['low_pwr_ctrl']
-        buffer.append(byte_12)
-        byte_13 = config['phy_type_extension']
-        buffer.append(byte_13)
-        byte_14 = (config['en_auto_fec_mode'] << 4) | (config['rs_fec_req'] << 3) | (config['fc_fec_req'] << 2) | (config['rs_fec_abil'] << 1) | config['fc_fec_abil']
-        buffer.append(byte_14)
-        byte_15 = 0
-        buffer.append(byte_14)
 
-        aq_desc.opcode = 0x601
-        aq_desc.flags = 0x1400 #Include buffer and read flags for this command
-        aq_desc.param0 = 0
-        aq_desc.param1 = 0
-        aq_desc.addr_high = 0
-        aq_desc.addr_low = 0
-        aq_desc.datalen = len(buffer)
+        byte_0 = config['phy_type'] & 0xff
+        byte_1 = (config['phy_type'] >> 8) & 0xff
+        byte_2 = (config['phy_type'] >> 16) & 0xff
+        byte_3 = (config['phy_type'] >> 24) & 0xff
+        byte_4 = config['link_speed']
+        byte_5 = (config['en_auto_link_update'] << 5) | (config['an_mode'] << 4 | config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
+        byte_6 = config['eee_capability'] & 0xff
+        byte_7 = (config['eee_capability'] >> 8) & 0xff
+        byte_8 = config['eeer'] & 0xff
+        byte_9 = (config['eeer'] >> 8) & 0xff
+        byte_10 = (config['eeer'] >> 16) & 0xff
+        byte_11 = (config['eeer'] >> 24) & 0xff
+        byte_12 = config['low_pwr_ctrl']
+        byte_13 = config['phy_type_extension']
+        byte_14 = (config.get('en_auto_fec_mode',1) << 4) | (config['rs_fec_req'] << 3) | (config['fc_fec_req'] << 2) | (config['rs_fec_abil'] << 1) | config['fc_fec_abil']
+        byte_15 = 0
+
+        aq_desc.opcode = 0x0601
+        aq_desc.flags = 0x2000 #Do not interrupt 
+        # bytes 16-19
+        aq_desc.param0 = config['phy_type']
+        # bytes 20-23
+        aq_desc.param1 = (byte_7 << 24) | (byte_6 << 16) | (byte_5 << 8) | byte_4
+        # bytes 24-27
+        aq_desc.addr_high = (byte_11) | (byte_10 << 16) | (byte_9 << 8) | byte_8
+        # bytes 28-31
+        aq_desc.addr_low = (byte_15) | (byte_14 << 16) | (byte_13 << 8) | byte_12
+        aq_desc.datalen = data_len
+
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,aq_desc.retval))
+
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
@@ -2685,6 +2698,7 @@ class crsvl(crsvlDefines):
             Description:  Get various PHY abilities supported on the port.
             input:
                 args -- type(dict)
+                    rep_active -- int[1 bit] -- report the active values.
             return:
                 bool -- Indication if Admin command was successful, False if so, True if not
                     if bool is True, dict becomes in with Admin command retval

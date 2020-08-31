@@ -431,7 +431,7 @@ class SvDriver(object):
 
         buffer_size = aq_descriptor.datalen
         if debug_print:
-          print("admin queue desciptor response:\n")
+          print("admin queue desciptor command:\n")
           # print admin queue desciptor
           print("flags: %s" % (hex(desc.flags)))
           print("opcode: %s" % (hex(desc.opcode)))
