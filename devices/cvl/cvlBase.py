@@ -4,6 +4,7 @@
 #--------------------------------------------
 
 from core.drivers.DriverFactory import DriverFactory
+from core.devices.deviceBase import deviceBase
 import sys
 
 class cvlBase:

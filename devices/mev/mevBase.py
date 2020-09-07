@@ -1,6 +1,7 @@
 
 
 from core.drivers.DevieFactory import DeviceFactory
+from core.devices.deviceBase import deviceBase
 
 class mevBase:
 
