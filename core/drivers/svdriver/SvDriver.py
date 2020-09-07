@@ -1,7 +1,6 @@
 
 #--------------------------------------------
 # @author Shady Ganem <shady.ganem@intel.com>
-# @name   SvDriver.py
 #--------------------------------------------
 
 import libSvPython
