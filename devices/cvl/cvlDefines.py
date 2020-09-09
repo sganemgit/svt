@@ -5,9 +5,43 @@
 
 import sys
 import os
-from cvlBase import cvlBase
+
+from devices.cvl.cvlBase import cvlBase
+
 
 class cvlDefines(cvlBase):
+    # list should hold the high values before the low
+    reg_dict = {"PTC64": [0x00380B84, 0x00380B80],
+                "PTC127": [0x00380BC4, 0x00380BC0],
+                "PTC255": [0x00380C04, 0x00380C00],
+                "PTC511": [0x00380C44, 0x00380C40],
+                "PTC1023": [0x00380C84, 0x00380C80],
+                "PTC1522": [0x00380CC4, 0x00380CC0],
+                "PTC9522": [0x00380D04, 0x00380D00],
+                "PRC64": [0x00380904, 0x00380900],
+                "PRC127": [0x00380944, 0x00380940],
+                "PRC255": [0x00380984, 0x00380980],
+                "PRC511": [0x003809C4, 0x003809C0],
+                "PRC1023": [0x00380A04, 0x00380A00],
+                "PRC1522": [0x00380A44, 0x00380A40],
+                "PRC9522": [0x00380A84, 0x00380A80],
+                "CRCERRS": [0x00380104, 0x00380100],
+                "ILLERRC": [0x003801C4, 0x003801C0],
+                "ERRBC": [0x00380184, 0x00380180],
+                "MLFC": [0x00380044, 0x00380040],
+                "MRFC":  [0x00380084, 0x00380080],
+                "RLEC": [0x00380144, 0x00380140],
+                "RUC": [0x00380204, 0x00380200],
+                "RFC": [0x00380AC4, 0x00380AC0],
+                "ROC": [0x00380244, 0x00380240],
+                "RJC": [0x00380B04, 0x00380B00],
+                "MSPDC": [0x003800C4, 0x003800C0],
+                "LDPC": [0x003800C4, 0x000AC280], 
+                "GLPRT_PXOFFRXC": [0x00380500],
+                "PRTMAC_LINK_DOWN_COUNTER[PRT]": [0x001E47C0]}
+
+    reset_type_dict = {"globr": "GLOBAL", "pfr": "PF", "corer": "CORE", "empr": "EMP", "flr": "FL", "pcir": "PCI",
+                       "bmer": "BME", "vfr": "VF_SW", "vflr": "VFLR"}
 
     fec_dict = {"400G-AUI8": ['25G_RS_544_FEC'],
                 "400G-AUI8-AOC-ACC":['25G_RS_544_FEC'],

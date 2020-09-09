@@ -4,12 +4,15 @@
 #--------------------------------------------
 
 import sys
+import threading
+
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
-from temp import *
+from devices.cvl.temp import *
 import time
 
-from cvlDefines import *
+from devices.cvl.cvlDefines import cvlDefines, cvl_structs
+
 
 class cvl(cvlDefines):
     'This class contains all the methods to interface with a cvl pf'
@@ -22,9 +25,8 @@ class cvl(cvlDefines):
             return:
                 None
         '''
-        driver = self.driver
-        port = driver.port_number()
-        device_number = driver.device_number()
+        port = self.driver.port_number()
+        device_number = self.driver.device_number()
         print("######################################")
         print("CVL port {}".format(port))
         print("CVL device {}".format(device_number))
@@ -53,97 +55,18 @@ class cvl(cvlDefines):
 ###############################################################################
 #                        Register reading section                             #
 ###############################################################################
-
-    def GetPTC64(self):
-        '''This function reads PTC64 CVL register
-            Packets Transmitted [64 Bytes] Counter (13.2.2.24.59/60)
-            GLPRT_PTC64L = 0x00380B80
-            GLPRT_PTC64H = 0x00380B84
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380B80, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380B84, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPTC127(self):
-        '''This function reads PTC127 CVL register
-            Packets Transmitted [65-127 Bytes] Counter (13.2.2.24.61/62)
-            GLPRT_PTC127L = 0x00380BC0
-            GLPRT_PTC127H = 0x00380BC4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380BC0, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380BC4, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPTC255(self):
-        '''This function reads PTC255 CVL register
-            Packets Transmitted [128-255 Bytes] Counter (13.2.2.24.63/64)
-            GLPRT_PTC255L = 0x00380C00
-            GLPRT_PTC255H = 0x00380C04
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380C00, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380C04, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPTC511(self):
-        '''This function reads PTC511 CVL register
-            Packets Transmitted [256-511 Bytes] Counter (13.2.2.24.65/66)
-            GLPRT_PTC511L = 0x00380C40
-            GLPRT_PTC511H = 0x00380C44
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380C40, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380C44, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPTC1023(self):
-        '''This function reads PTC1023 CVL register
-            Packets Transmitted [512-1023 Bytes] Counter (13.2.2.24.67/66)
-            GLPRT_PTC1023L = 0x00380C80
-            GLPRT_PTC1023H = 0x00380C84
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380C80, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380C84, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPTC1522(self):
-        '''This function reads PTC1522 CVL register
-            Packets Transmitted [1024-1522 Bytes] Counter (13.2.2.24.69/70)
-            GLPRT_PTC1522L = 0x00380CC0
-            GLPRT_PTC1522H = 0x00380CC4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380CC0, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380CC4, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPTC9522(self):
-        '''This function reads PTC9522 CVL register
-            Packets Transmitted [1523-9522 bytes] Counter (13.2.2.24.71/72)
-            GLPRT_PTC9522L = 0x00380D00
-            GLPRT_PTC9522H = 0x00380D04
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380D00, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380D04, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
+    def read_register(self, register_name, mul = 0x8, size = 0xff):
+       """
+       This function reads CVL register
+       :param register_name: Defined in reg_dict in cvlDefines
+       :return: int
+       """
+       reg_data = 0
+       for addr in self.reg_dict[register_name]:
+           reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
+           temp_data = self.driver.read_csr(reg_addr)
+           reg_data = ((reg_data & size) << 32) | temp_data
+       return reg_data
 
     def GetPTC(self):
         '''This function reads all PTC CVL register
@@ -158,146 +81,37 @@ class cvl(cvlDefines):
                         'GetPTC9522'
                         'TotalPTC' - sum of all PTC registers
         '''
+        PTC_registers_list = ["PTC64", "PTC127", "PTC255", "PTC511", "PTC1023", "PTC1522", "PTC9522"]
         PTC_Dict = {}
-        _GetPTC64   = self.GetPTC64()
-        _GetPTC127  = self.GetPTC127()
-        _GetPTC255  = self.GetPTC255()
-        _GetPTC511  = self.GetPTC511()
-        _GetPTC1023 = self.GetPTC1023()
-        _GetPTC1522 = self.GetPTC1522()
-        _GetPTC9522 = self.GetPTC9522()
-
-        PTC_Dict['GetPTC64']   = _GetPTC64
-        PTC_Dict['GetPTC127']  = _GetPTC127
-        PTC_Dict['GetPTC511']  = _GetPTC511
-        PTC_Dict['GetPTC1023'] = _GetPTC1023
-        PTC_Dict['GetPTC1522'] = _GetPTC1522
-        PTC_Dict['GetPTC9522'] = _GetPTC9522
-        PTC_Dict['TotalPTC'] = _GetPTC64 + _GetPTC127 + _GetPTC255 + _GetPTC511 + _GetPTC1023 + _GetPTC1522 + _GetPTC9522
+        PTC_Dict['TotalPTC'] = 0
+        for reg in PTC_registers_list:
+            PTC_Dict[reg] = self.read_register(reg)
+            PTC_Dict['TotalPTC'] = PTC_Dict['TotalPTC'] + self.read_register(reg)
         return PTC_Dict
 
-    def GetPRC64(self):
-        '''This function reads PRC64 CVL register
-            Packets Received [64 Bytes] Counter (13.2.2.24.45/46)
-            GLPRT_PRC64L = 0x00380900
-            GLPRT_PRC64H = 0x00380904
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380900, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380904, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPRC127(self):
-        '''This function reads PRC127 CVL register
-            Packets Received [65-127 Bytes] Counter (13.2.2.24.47/48)
-            GLPRT_PRC127L = 0x00380940
-            GLPRT_PRC127H = 0x00380944
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380940, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380944, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPRC255(self):
-        '''This function reads PRC255 CVL register
-            Packets Received [128-255 Bytes] Counter (13.2.2.24.49/48)
-            GLPRT_PRC255L = 0x00380980
-            GLPRT_PRC255H = 0x00380984
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380980, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380984, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPRC511(self):
-        '''This function reads PRC511 CVL register
-            Packets Received [256-511 Bytes] Counter (13.2.2.24.51/52)
-            GLPRT_PRC511L = 0x003809C0
-            GLPRT_PRC511H = 0x003809C4
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x003809C0, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x003809C4, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPRC1023(self):
-        '''This function reads PRC1023 CVL register
-            Packets Received [512-1023 Bytes] Counter (13.2.2.24.53/52)
-            GLPRT_PRC1023L = 0x00380A00
-            GLPRT_PRC1023H = 0x00380A04
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380A00, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380A04, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPRC1522(self):
-        '''This function reads PRC1522 CVL register
-            Packets Received [1024-1522 Bytes] Counter (13.2.2.24.55/56)
-            GLPRT_PRC1522L = 0x00380A40
-            GLPRT_PRC1522H = 0x00380A44
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380A40, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380A44, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
-
-    def GetPRC9522(self):
-        '''This function reads PRC9522 CVL register
-            Packets Received [1523-9522 Bytes] Counter (13.2.2.24.57/58)
-            GLPRT_PRC9522L = 0x00380A80
-            GLPRT_PRC9522H = 0x00380A84
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380A80, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380A84, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xff) << 32) | low_data)
 
     def GetPRC(self):
-        '''This function reads all PRC CVL registers
+        """
+        This function reads all PRC CVL registers
             Total Packets Received Counter (13.2.2.24.45-13.2.2.24.58)
             return: dict--
-                        'GetPRC64'
-                        'GetPRC127'
-                        'GetPRC255'
-                        'GetPRC511'
-                        'GetPRC1023'
-                        'GetPRC1522'
-                        'GetPRC9522'
+                        'PRC64'
+                        'PRC127'
+                        'PRC255'
+                        'PRC511'
+                        'PRC1023'
+                        'PRC1522'
+                        'PRC9522'
                         'TotalPRC' - sum of all PRC registers
-        '''
+        """
         #sum_data = GetPRC64() + GetPRC127() + GetPRC255() + GetPRC511() + GetPRC1023() + GetPRC1522() + GetPRC9522()
         #return sum_data
+        PRC_registers_list = ["PRC64", "PRC127", "PRC255", "PRC511", "PRC1023", "PRC1522", "PRC9522"]
         PRC_Dict = {}
-        _GetPRC64   = self.GetPRC64()
-        _GetPRC127  = self.GetPRC127()
-        _GetPRC255  = self.GetPRC255()
-        _GetPRC511  = self.GetPRC511()
-        _GetPRC1023 = self.GetPRC1023()
-        _GetPRC1522 = self.GetPRC1522()
-        _GetPRC9522 = self.GetPRC9522()
-        PRC_Dict['GetPRC64']   = _GetPRC64
-        PRC_Dict['GetPRC127']  = _GetPRC127
-        PRC_Dict['GetPRC255']  = _GetPRC255
-        PRC_Dict['GetPRC511']  = _GetPRC511
-        PRC_Dict['GetPRC1023'] = _GetPRC1023
-        PRC_Dict['GetPRC1522'] = _GetPRC1522
-        PRC_Dict['GetPRC9522'] = _GetPRC9522
-        PRC_Dict['TotalPRC'] = _GetPRC64 + _GetPRC127 + _GetPRC255 + _GetPRC511 + _GetPRC1023 + _GetPRC1522 + _GetPRC9522
+        PRC_Dict['TotalPRC'] = 0
+        for reg in PRC_registers_list:
+            PRC_Dict[reg] = self.read_register(reg)
+            PRC_Dict['TotalPRC'] = PRC_Dict['TotalPRC'] + self.read_register(reg)
         return PRC_Dict
 
     def GetPRCByPacketSize(self, Packet_size):
@@ -306,19 +120,19 @@ class cvl(cvlDefines):
             return: PRC (int)
         '''
         if Packet_size <= 64:
-            return self.GetPRC64()
+            return self.read_register("PRC64")
         elif (Packet_size >= 65) and (Packet_size <= 127):
-            return self.GetPRC127()
+            return self.read_register("PRC127")
         elif (Packet_size >= 128) and (Packet_size <= 255):
-            return self.GetPRC255()
+            return self.read_register("PRC255")
         elif (Packet_size >= 256) and (Packet_size <= 511):
-            return self.GetPRC511()
+            return self.read_register("PRC511")
         elif (Packet_size >= 512) and (Packet_size <= 1023):
-            return self.GetPRC1023()
+            return self.read_register("PRC1023")
         elif (Packet_size >= 1024) and (Packet_size <= 1522):
-            return self.GetPRC1522()
+            return self.read_register("PRC1522")
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
-            return self.GetPRC9522()
+            return self.read_register("PRC9522")
 
     def GetPTCByPacketSize(self, Packet_size):
         '''This function return PTC according to packet size
@@ -326,19 +140,19 @@ class cvl(cvlDefines):
             return: PTC (int)
         '''
         if Packet_size <= 64:
-            return self.GetPTC64()
+            return self.read_register("PTC64")
         elif (Packet_size >= 65) and (Packet_size <= 127):
-            return self.GetPTC127()
+            return self.read_register("PTC127")
         elif (Packet_size >= 128) and (Packet_size <= 255):
-            return self.GetPTC255()
+            return self.read_register("PTC255")
         elif (Packet_size >= 256) and (Packet_size <= 511):
-            return self.GetPTC511()
+            return self.read_register("PTC511")
         elif (Packet_size >= 512) and (Packet_size <= 1023):
-            return self.GetPTC1023()
+            return self.read_register("PTC1023")
         elif (Packet_size >= 1024) and (Packet_size <= 1522):
-            return self.GetPTC1522()
+            return self.read_register("PTC1522")
         elif (Packet_size >= 1523) and (Packet_size <= 9522):
-            return self.GetPTC9522()
+            return self.read_register("PTC9522")
 
     def GetTrafficStats(self):
         '''This function returns a dictionary contains all PRC and PTC registers:
@@ -356,529 +170,37 @@ class cvl(cvlDefines):
         ''' This function counts the number link drop, clear by globr (13.2.2.4.80)
             return: number of link drop
         '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x001E47C0, 0x4, driver.port_number())
-        reg_data = driver.read_csr(reg_addr)
-        Link_drop_counter = get_bits_slice_value(reg_data,0,15)
+        reg_data = self.read_register("PRTMAC_LINK_DOWN_COUNTER[PRT]", mul=0x4)
+        Link_drop_counter = get_bits_slice_value(reg_data, 0, 15)
         return Link_drop_counter
 
-    def GetCRCERRS(self):
-        ''' This function counts the number of receive packets with CRC error, this includes
-            packets that are also counted by other error registers. (13.2.2.24.93/94)
-            GLPRT_CRCERRS   = 0x00380100
-            GLPRT_CRCERRS_H = 0x00380104
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380100, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380104, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetILLERRC(self):
-        ''' This function counts the number of receive packets with Illegal bytes errors. (13.2.2.24.95/96)
-            GLPRT_ILLERRC   = 0x003801C0
-            GLPRT_ILLERRC_H = 0x003801C4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x003801C0, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x003801C4, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetERRBC(self):
-        ''' This function counts the number of receive packets with Error bytes.
-            This counter is only active when in 10G mode (13.2.2.24.97/98)
-            GLPRT_ERRBC   = 0x00380180 
-            GLPRT_ERRBC_H = 0x00380184
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380180, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380184, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetMLFC(self):
-        ''' This function count the number of faults in the local MAC. (13.2.2.24.99/100)
-            GLPRT_MLFC   = 0x00380040
-            GLPRT_MLFC_H = 0x00380044
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380040, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380044, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetMRFC(self):
-        ''' This function count the number of faults in the remote MAC. (13.2.2.24.101/102)
-            GLPRT_MRFC   = 0x00380080
-            GLPRT_MRFC_H = 0x00380084
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380080, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380084, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetRLEC(self):
-        ''' This function counts the number of packets with receive length errors.
-            A length error occurs if an incoming packet length field in the MAC header doesn't match the packet length. (13.2.2.24.103/104)
-            GLPRT_RLEC   = 0x00380140
-            GLPRT_RLEC_H = 0x00380144
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380140, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380144, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetRUC(self):
-        ''' Receive Undersize Error. This function counts the number of received frames that are shorter than
-            minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had a valid CRC. (13.2.2.24.105/106)
-            GLPRT_RUC   = 0x00380200
-            GLPRT_RUC_H = 0x00380204
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380200, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380204, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetRFC(self):
-        '''Receive Fragments Count. This function counts the number of received frames that are shorter than
-            minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (13.2.2.24.107/108)
-            GLPRT_RFC   = 0x00380AC0
-            GLPRT_RFC_H = 0x00380AC4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380AC0, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380AC4, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetROC(self):
-        '''Receive oversize Error. This function counts the number of received frames that are longer than
-            maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
-            inclusively) and have valid CRC. (13.2.2.24.109/110)
-            GLPRT_ROC   = 0x00380240
-            GLPRT_ROC_H = 0x00380244
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380240, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380244, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetRJC(self):
-        '''Receive jabber errors. This function counts the number of received packets that passed address filtering,
-            and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
-            The packets length is counted from <Destination Address> through <CRC>, inclusively. (13.2.2.24.111/112)
-            GLPRT_RJC   = 0x00380B00
-            GLPRT_RJC_H = 0x00380B04
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380B00, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x00380B04, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)    
-
-    def GetMSPDC(self):
-        '''This function counts the number of MAC short Packets Discarded. This counter is only active when in 10G mode. (13.2.2.24.113/114)
-            GLPRT_MSPDC   = 0x003800C0
-            GLPRT_MSPDC_H = 0x003800C4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x003800C0, 0x8, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x003800C4, 0x8, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
-
-    def GetLDPC(self):
-        '''This function counts the number of VM to VM loopback packets discarded. (12.2.2.19.70)
-            GLPRT_LDPC = 0x000AC280
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x000AC280, 0x4, driver.port_number())
-        low_data = driver.read_csr(reg_addr)
-        reg_addr = calculate_port_offset(0x000AC260, 0x4, driver.port_number())
-        high_data = driver.read_csr(reg_addr)
-        return (((high_data & 0xffff) << 32) | low_data)
 
     def GetMacCounters(self):
+        counters_list = ["MSPDC", "CRCERRS", "ILLERRC", "ERRBC", "MLFC", "MRFC", "RLEC", "RUC", "RFC", "ROC", "RJC"]
         counter_dict = dict()
-        counter_dict['LDPC'] =  self.GetLDPC()
-        counter_dict['MSPDC'] = self.GetMSPDC()
-        counter_dict['RJC'] = self.GetRJC()
-        counter_dict['ROC'] = self.GetROC()
-        counter_dict['RFC'] = self.GetRFC()
-        counter_dict['CRCERRS'] = self.GetCRCERRS()
+        counter_dict['LDPC'] = self.read_register("LDPC", mul=0x4, size=0xffff)
+        for reg in counters_list:
+            counter_dict[reg] = self.read_register(reg, size=0xffff)
         counter_dict['link Down Counter'] = self.GetLinkDownCounter()
-        counter_dict['MLFC'] = self.GetMLFC()
-        counter_dict['MRFC'] = self.GetMRFC()
-        counter_dict['ILLERRC'] = self.GetILLERRC()
-        counter_dict['ERRBC'] = self.GetERRBC()
-        counter_dict['RLEC'] = self.GetRLEC()
-        counter_dict['RUC'] = self.GetRUC()
         return counter_dict
 
-    def GetPF(self):
-        '''this function returns the physical function number currently running
-            arguments : None
-            return    : string PF
-        '''
-        driver = self.driver
-        dev_info_dict = driver.get_device_info()
-        return dev_info_dict["f"]
-
-    def ClearPTC64(self):
-        '''This function clears PTC64 CVL register
-            Clear Packets Transmitted [64 Bytes] Counter (13.2.2.24.59/60)
-            GLPRT_PTC64L = 0x00380B80
-            GLPRT_PTC64H = 0x00380B84
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380B80, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380B84, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPTC127(self):
-        '''This function clears PTC127 CVL register
-            Clear Packets Transmitted [65-127 Bytes] Counter (13.2.2.24.61/62)
-            GLPRT_PTC127L = 0x00380BC0
-            GLPRT_PTC127H = 0x00380BC4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380BC0, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380BC4, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPTC255(self):
-        '''This function clears PTC255 CVL register
-            Clear Packets Transmitted [128-255 Bytes] Counter (13.2.2.24.63/64)
-            GLPRT_PTC255L = 0x00380C00
-            GLPRT_PTC255H = 0x00380C04
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380C00, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380C04, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPTC511(self):
-        '''This function clears PTC511 CVL register
-            Clear Packets Transmitted [256-511 Bytes] Counter (13.2.2.24.65/66)
-            GLPRT_PTC511L = 0x00380C40
-            GLPRT_PTC511H = 0x00380C44
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380C40, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380C44, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPTC1023(self):
-        '''This function clears PTC1023 CVL register
-            Clear Packets Transmitted [512-1023 Bytes] Counter (13.2.2.24.67/66)
-            GLPRT_PTC1023L = 0x00380C80
-            GLPRT_PTC1023H = 0x00380C84
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380C80, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380C84, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPTC1522(self):
-        '''This function clears PTC1522 CVL register
-            Clear Packets Transmitted [1024-1522 Bytes] Counter (13.2.2.24.69/70)
-            GLPRT_PTC1522L = 0x00380CC0
-            GLPRT_PTC1522H = 0x00380CC4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380CC0, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380CC4, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPTC9522():
-        '''This function clears PTC9522 CVL register
-            Clear Packets Transmitted [1523-9522 bytes] Counter (13.2.2.24.71/72)
-            GLPRT_PTC9522L = 0x00380D00
-            GLPRT_PTC9522H = 0x00380D04
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380D00, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380D04, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPRC64(self):
-        '''This function clears PRC64 CVL register
-            Clear Packets Received [64 Bytes] Counter (13.2.2.24.45/46)
-            GLPRT_PRC64L = 0x00380900
-            GLPRT_PRC64H = 0x00380904
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x00380900, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x00380904, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPRC127(self):
-        '''This function clears PRC127 CVL register
-            Clear Packets Received [65-127 Bytes] Counter (13.2.2.24.47/48)
-            GLPRT_PRC127L = 0x00380940
-            GLPRT_PRC127H = 0x00380944
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x00380940, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x00380944, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPRC255(self):
-        '''This function clears PRC255 CVL register
-            Clear Packets Received [128-255 Bytes] Counter (13.2.2.24.49/48)
-            GLPRT_PRC255L = 0x00380980
-            GLPRT_PRC255H = 0x00380984
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x00380980, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x00380984, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPRC511(self):
-        '''This function clears PRC511 CVL register
-            Clear Packets Received [256-511 Bytes] Counter (12.2.2.19.51/52)
-            GLPRT_PRC511L = 0x003809C0
-            GLPRT_PRC511H = 0x003809C4
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x003809C0, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x003809C4, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPRC1023(self):
-        '''This function clears PRC1023 CVL register
-            Clear Packets Received [512-1023 Bytes] Counter (13.2.2.24.53/52)
-            GLPRT_PRC1023L = 0x00380A00
-            GLPRT_PRC1023H = 0x00380A04
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x00380A00, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x00380A04, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        pass
-
-    def ClearPRC1522(self):
-        '''This function clears PRC1522 CVL register
-            Clear Packets Received [1024-1522 Bytes] Counter (12.2.2.19.55/56)
-            GLPRT_PRC1522L = 0x00380A40
-            GLPRT_PRC1522H = 0x00380A44
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x00380A40, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x00380A44, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearPRC9522(self):
-        '''This function clears PRC9522 CVL register
-            Clear Packets Received [1523-9522 Bytes] Counter (13.2.2.24.57/58)
-            GLPRT_PRC9522L = 0x00380A80
-            GLPRT_PRC9522H = 0x00380A84
-        '''
-        driver= self.driver
-        reg_addr= calculate_port_offset(0x00380A80, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr= calculate_port_offset(0x00380A84, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearCRCERRS(self):
-        ''' This function clears the count of receive packets with CRC error, this includes
-            packets that are also counted by other error registers. (13.2.2.24.93/94)
-            GLPRT_CRCERRS   = 0x00380100
-            GLPRT_CRCERRS_H = 0x00380104
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380100, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380104, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearILLERRC(self):
-        ''' This function clears the count of receive packets with Illegal bytes errors. (13.2.2.24.95/96)
-            GLPRT_ILLERRC   = 0x003801C0
-            GLPRT_ILLERRC_H = 0x003801C4
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x003801C0, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x003801C4, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearERRBC(self):
-        ''' This function clears the count of receive packets with Error bytes.
-            This counter is only active when in 10G mode (13.2.2.24.97/98)
-            GLPRT_ERRBC   = 0x00380180 
-            GLPRT_ERRBC_H = 0x00380184
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380180, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380184, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearMLFC(self):
-        ''' This function clears the count of faults in the local MAC. (13.2.2.24.99/100)
-            GLPRT_MLFC   = 0x00380040
-            GLPRT_MLFC_H = 0x00380044
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380040, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380044, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearMRFC(self):
-        ''' This function clears the count of faults in the remote MAC. (12.2.2.19.101/102)
-            GLPRT_MRFC   = 0x00380080
-            GLPRT_MRFC_H = 0x00380084
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380080, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380084, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearRLEC(self):
-        ''' This function clears the count of packets with receive length errors.
-            A length error occurs if an incoming packet length field in the MAC header doesn't match the packet length. (13.2.2.24.103/104)
-            GLPRT_RLEC   = 0x00380140
-            GLPRT_RLEC_H = 0x00380144
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x00380140, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380144, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearRUC(self):
-        ''' Receive Undersize Error. This function clears the count of received frames that are shorter than
-            minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had a valid CRC. (13.2.2.24.105/106)
-            GLPRT_RUC   = 0x00380200
-            GLPRT_RUC_H = 0x00380204
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380200, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380204, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearRFC(self):
-        '''Receive Fragments Count. This function clears the count of received frames that are shorter than
-            minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (13.2.2.24.107/108))
-            GLPRT_RFC   = 0x00380AC0
-            GLPRT_RFC_H = 0x00380AC4
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380AC0, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380AC4, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearROC(self):
-        '''Receive oversize Error. This function clears the count of received frames that are longer than
-            maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
-            inclusively) and have valid CRC. (13.2.2.24.109/110)
-            GLPRT_ROC   = 0x00380240
-            GLPRT_ROC_H = 0x00380244
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380240, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380244, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearRJC(self):
-        '''Receive jabber errors. This function clears the count of received packets that passed address filtering,
-            and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
-            The packets length is counted from <Destination Address> through <CRC>, inclusively. (13.2.2.24.111/112)
-            GLPRT_RJC   = 0x00380B00
-            GLPRT_RJC_H = 0x00380B04
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x00380B00, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x00380B04, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearMSPDC(self):
-        '''This function clears the count of MAC short Packets Discarded. This counter is only active when in 10G mode. (13.2.2.24.113/114)
-            GLPRT_MSPDC   = 0x003800C0
-            GLPRT_MSPDC_H = 0x003800C4
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x003800C0, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x003800C4, 0x8, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-
-    def ClearLDPC(self):
-        '''This function clears the count of VM to VM loopback packets discarded. (12.2.2.19.70)
-            GLPRT_LDPC = 0x00300620
-        '''
-        driver= self.driver
-        reg_addr = calculate_port_offset(0x000AC280, 0x4, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
-        reg_addr = calculate_port_offset(0x000AC260, 0x4, driver.port_number())
-        driver.write_csr(reg_addr, 0xffffffff)
+    def Clear_register(self, register_name, mul=0x8):
+        """
+        This function clears CVL register
+        :param register_name: Defined in reg_dict in cvlDefines
+        """
+        for addr in self.reg_dict[register_name]:
+            reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
+            self.driver.write_csr(reg_addr, 0xffffffff)
 
     def ClearMACstat(self):
         '''This function clears following MAC statistics registers.
             clear: PTC, PRC, CRCERRS, ILLERRC, ERRBC, MLFC, MRFC, RLEC, RUC, RFC, ROC, RJC, MSPDC, LDPC.
             (12.2.2.19)
         '''
-        self.ClearPTC64()
-        self.ClearPTC127()
-        self.ClearPTC255()
-        self.ClearPTC511()
-        self.ClearPTC1023()
-        self.ClearPTC1522()
-        self.ClearPTC9522()
-        self.ClearPRC64()
-        self.ClearPRC127()
-        self.ClearPRC255()
-        self.ClearPRC511()
-        self.ClearPRC1023()
-        self.ClearPRC1522()
-        self.ClearPRC9522()
-        self.ClearCRCERRS()
-        self.ClearILLERRC()
-        self.ClearERRBC()
-        self.ClearMLFC()
-        self.ClearMRFC()
-        self.ClearRLEC()
-        self.ClearRUC()
-        self.ClearRFC()
-        self.ClearROC()
-        self.ClearRJC()
-        self.ClearMSPDC()
+        for reg in self.reg_dict:
+            self.Clear_register(register_name=reg, mul=0x4) if reg == "LDPC" else self.Clear_register(register_name=reg)
+
 
 ###############################################################################
 #                       Traffic Section                                       #
@@ -894,37 +216,55 @@ class cvl(cvlDefines):
         time.sleep(2)
         driver.start_tx(packet_size = packet_size)
 
-    def EthStartRx(self, packet_size = 512):
-        '''This function starts Tx and Rx.
-            argument: packet size - Default is 512
-            return: None
-        '''
-        driver = self.driver
-        driver.start_rx(packet_size = packet_size)
+    def EthStartRxOrTx(self, type, packet_size=512):
+        """
+        This function starts Tx or Rx
+        :param type: Tx or Rx
+        :param packet_size: packet size - Default is 512
+        :return: None
+        """
+        self.driver.start_tx(packet_size=packet_size) if type =="tx" else self.driver.start_rx(packet_size = packet_size)
 
-    def EthStartTx(self, packet_size = 512):
-        '''This function starts Tx and Rx.
-            argument: packet size - Default is 512
-            return: None
-        '''
-        driver = self.driver
-        driver.start_tx(packet_size = packet_size)
 
-    def EthStopRx(self):
-        '''This function stops Tx and Rx.
-            argument: None
-            return: None
-        '''
-        driver = self.driver
-        driver.stop_rx()
+    # def EthStartRx(self, packet_size = 512):
+    #     '''This function starts Tx and Rx.
+    #         argument: packet size - Default is 512
+    #         return: None
+    #     '''
+    #     driver = self.driver
+    #     driver.start_rx(packet_size = packet_size)
+    #
+    # def EthStartTx(self, packet_size = 512):
+    #     '''This function starts Tx and Rx.
+    #         argument: packet size - Default is 512
+    #         return: None
+    #     '''
+    #     driver = self.driver
+    #     driver.start_tx(packet_size = packet_size)
 
-    def EthStopTx(self):
-        '''This function stops Tx and Rx.
-            argument: None
-            return: None
-        '''
-        driver = self.driver
-        driver.stop_tx()
+    def EthStopRxOrTx(self,type):
+        """
+        This function stops Tx or Rx.
+        :param type: Tx or Rx
+        :return: None
+        """
+        self.driver.stop_tx() if type == "tx" else self.driver.stop_rx()
+
+    # def EthStopRx(self):
+    #     '''This function stops Tx and Rx.
+    #         argument: None
+    #         return: None
+    #     '''
+    #     driver = self.driver
+    #     driver.stop_rx()
+    #
+    # def EthStopTx(self):
+    #     '''This function stops Tx and Rx.
+    #         argument: None
+    #         return: None
+    #     '''
+    #     driver = self.driver
+    #     driver.stop_tx()
 
     def EthStopTraffic(self):
         '''This function stops Tx and Rx.
@@ -936,21 +276,21 @@ class cvl(cvlDefines):
         time.sleep(3)
         driver.stop_rx()
 
-    def GetCurrentThroughput(self, packet_size = 512):
+    def GetCurrentThroughput(self, packet_size=512):
         '''This function returns current Throughput
             argument: packet size - Default is 512
             return: Transmit throughput
         '''
         driver = self.driver
         samp_time = 3
-        start_PTC = GetPTC()['TotalPTC']
+        start_PTC = self.GetPTC()['TotalPTC']
         start_time = curr_time = time.time()
         while ((curr_time - start_time) < samp_time):
             curr_time = time.time()
-        end_PTC = GetPTC()['TotalPTC']
+        end_PTC = self.GetPTC()['TotalPTC']
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
 
-    def GetRXThroughput(self, packet_size = 512, samp_time = 3):
+    def GetRXThroughput(self, packet_size=512, samp_time = 3):
         '''This function returns current RX Throughput
             input:
                 packet_size (int) - Default packet size is 512
@@ -1001,10 +341,10 @@ class cvl(cvlDefines):
                argument: None
                return: True/false
         '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
-        reg_data = driver.read_csr(reg_addr)
-        LinkStatus = get_bit_value(reg_data,30)
+        # driver = self.driver
+        reg_addr = calculate_port_offset(0x001E47A0, 0x4, self.driver.port_number())
+        reg_data = self.driver.read_csr(reg_addr)
+        LinkStatus = get_bit_value(reg_data, 30)
         return LinkStatus
 
     def _GetMacLinkStatusAq(self):
@@ -1017,7 +357,7 @@ class cvl(cvlDefines):
         gls['cmd_flag'] = 1
         result = self.GetLinkStatus(gls)
 
-        if not result[0]: # if Admin command was successful - False
+        if not result[0]:  # if Admin command was successful - False
             data = result[1]
         else:
             raise RuntimeError("Error _GetMacLinkStatusAQ: Admin command was not successful")
@@ -1033,7 +373,7 @@ class cvl(cvlDefines):
         if not result[0]:
             data = result[1]
         else:
-            raise RuntimeError("Error {}: Admin command was not successful".format(GetLinkStatusFields.__name__))
+            raise RuntimeError("Error {}: Admin command was not successful".format(self.GetLinkStatusFields.__name__))
         print()
         print(data)
         print()
@@ -1069,48 +409,54 @@ class cvl(cvlDefines):
         reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
         reg_data = driver.read_csr(reg_addr)
         LinkSpeed = get_bits_slice_value(reg_data,26,29)
-        return Mac_link_speed_dict[LinkSpeed]
+        return self.Mac_link_speed_dict[LinkSpeed]
 
     def _GetMacLinkSpeedAq(self):
-        '''This function return Mac Link Speed using Get link status AQ.
+        """This function return Mac Link Speed using Get link status AQ.
             return:
-                '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G' 
-        '''
-        gls = {}
-        gls['port'] = 0 #not relevant for CVL according to CVL Spec
-        gls['cmd_flag'] = 1
+                '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G'
+        """
+        # gls['port'] = 0 not relevant for CVL according to CVL Spec
+        gls = {"port": 0, "cmd_flag": 1}
+        # gls['port'] = 0
+        # gls['cmd_flag'] = 1
         result = self.GetLinkStatus(gls)
 
-        if not result[0]: # if Admin command was successful - False
+        if not result[0]:  # if Admin command was successful - False
             data = result[1]
         else:
             raise RuntimeError("Error _GetMacLinkSpeedAq: Admin command was not successful")
 
-        if Get_Speed_Status_dict:
-            if data['link_speed_10m']:
-                return Get_Speed_Status_dict[0]
-            elif data['link_speed_100m']:
-                return Get_Speed_Status_dict[1]
-            elif data['link_speed_1000m']:
-                return Get_Speed_Status_dict[2]
-            elif data['link_speed_2p5g']:
-                return Get_Speed_Status_dict[3]
-            elif data['link_speed_5g']:
-                return Get_Speed_Status_dict[4]
-            elif data['link_speed_10g']:
-                return Get_Speed_Status_dict[5]
-            elif data['link_speed_20g']:
-                return Get_Speed_Status_dict[6]
-            elif data['link_speed_25g']:
-                return Get_Speed_Status_dict[7]
-            elif data['link_speed_40g']:
-                return Get_Speed_Status_dict[8]
-            elif data['link_speed_50g']:
-                return Get_Speed_Status_dict[9]
-            elif data['link_speed_100g']:
-                return Get_Speed_Status_dict[10]
-            elif data['link_speed_200g']:
-                return Get_Speed_Status_dict[11]
+        curent_link_speed = {key:value for key,value in data.items() if "link_speed" in key and value}
+        if curent_link_speed:
+            curent_link_speed= list(curent_link_speed.keys())
+            curent_link_speed = curent_link_speed[0].strip("link_speed_")
+            return "2.5G" if curent_link_speed == '2p5g' else curent_link_speed
+        # if self.Get_Speed_Status_dict:
+        #     if data['link_speed_10m']:
+        #         return self.Get_Speed_Status_dict[0]
+        #     elif data['link_speed_100m']:
+        #         return self.Get_Speed_Status_dict[1]
+        #     elif data['link_speed_1000m']:
+        #         return self.Get_Speed_Status_dict[2]
+        #     elif data['link_speed_2p5g']:
+        #         return self.Get_Speed_Status_dict[3]
+        #     elif data['link_speed_5g']:
+        #         return self.Get_Speed_Status_dict[4]
+        #     elif data['link_speed_10g']:
+        #         return self.Get_Speed_Status_dict[5]
+        #     elif data['link_speed_20g']:
+        #         return self.Get_Speed_Status_dict[6]
+        #     elif data['link_speed_25g']:
+        #         return self.Get_Speed_Status_dict[7]
+        #     elif data['link_speed_40g']:
+        #         return self.Get_Speed_Status_dict[8]
+        #     elif data['link_speed_50g']:
+        #         return self.Get_Speed_Status_dict[9]
+        #     elif data['link_speed_100g']:
+        #         return self.Get_Speed_Status_dict[10]
+        #     elif data['link_speed_200g']:
+        #         return self.Get_Speed_Status_dict[11]
         else:
             raise RuntimeError("Error _GetMacLinkSpeedAq_D: Get_Speed_Status_dict is not defined")
 
@@ -1139,7 +485,7 @@ class cvl(cvlDefines):
         args['port'] = 0 #not relevant for CVL according to CVL Spec
         args['restart'] = 1 #to restart the link
         args['enable'] = 1 #to enable the link
-        status = SetupLink(args)
+        status = self.SetupLink(args)
 
         if status[0]:
             error_msg = 'Error _RestartAnAq: Admin command was not successful, retval {}'.format(status[1])
@@ -1150,29 +496,31 @@ class cvl(cvlDefines):
             argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
             return: None
         '''
-        driver = self.driver
-        if reset_type ==  "globr":
-            driver.device_reset("GLOBAL")
-        elif reset_type ==  "pfr" :
-            driver.device_reset("PF")
-        elif reset_type == "corer" :
-            driver.device_reset("CORE")
-        elif reset_type == "empr":
-            driver.device_reset("EMP")
-        elif reset_type == "flr":
-            driver.device_reset("FL")
-        elif reset_type == "pcir":
-            driver.device_reset("PCI")
-        elif reset_type == "bmer":
-            driver.device_reset("BME")
-        elif reset_type ==  "vfr":
-            driver.device_reset("VF_SW")
-        elif reset_type ==   "vflr":
-            driver.device_reset("VFLR")
+        # driver = self.driver
+        if reset_type in self.reset_type_dict:
+            self.driver.device_reset(self.reset_type_dict[reset_type])
+        # if reset_type ==  "globr":
+        #     driver.device_reset("GLOBAL")
+        # elif reset_type ==  "pfr" :
+        #     driver.device_reset("PF")
+        # elif reset_type == "corer" :
+        #     driver.device_reset("CORE")
+        # elif reset_type == "empr":
+        #     driver.device_reset("EMP")
+        # elif reset_type == "flr":
+        #     driver.device_reset("FL")
+        # elif reset_type == "pcir":
+        #     driver.device_reset("PCI")
+        # elif reset_type == "bmer":
+        #     driver.device_reset("BME")
+        # elif reset_type ==  "vfr":
+        #     driver.device_reset("VF_SW")
+        # elif reset_type ==   "vflr":
+        #     driver.device_reset("VFLR")
         else:
             print("could not identify reset type")
 
-    def Reset2(Reset, Location = "REG"):
+    def Reset2(self,Reset, Location = "REG"):
         '''This function performs reset to CVL
             argument:
                 Location = "REG" / "AQ"
@@ -1181,13 +529,14 @@ class cvl(cvlDefines):
                         2 - for EMP reset
         '''
         if Location == "REG":
-            _ResetReg(Reset)
+            self._ResetReg(Reset)
         elif Location == "AQ":
-            _ResetAq(Reset)
+            self._ResetAq()
+            # self._ResetAq(Reset)
         else:
             raise RuntimeError("Err Reset: Error Location, please insert location REG/AQ")
 
-    def _ResetReg(Reset):
+    def _ResetReg(self, Reset):
         ''' RESET GLGEN_RTRIG (0x000B8190)
             argument:
                 Reset = 0 - for core reset
@@ -1403,7 +752,7 @@ class cvl(cvlDefines):
         #print EEE_list
         return EEE_list
 
-    def GetFecAbilities(rep_mode = 1, Location = "AQ"):
+    def GetFecAbilities(self,rep_mode = 1, Location = "AQ"):
         '''This function return list of FEC abilities
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
@@ -1412,21 +761,21 @@ class cvl(cvlDefines):
                 FEC_list - contain FEC options by str
         '''
         if Location == "REG":
-            _GetFecAbilitiesReg()
+            self._GetFecAbilitiesReg()
         elif Location == "AQ":
-            FEC_list = _GetFecAbilitiesAq(rep_mode)
+            FEC_list = self._GetFecAbilitiesAq(rep_mode)
         else:
             raise RuntimeError("Err GetFecAbilities: Error Location, please insert location REG/AQ")    
        
         return FEC_list
 
-    def _GetFecAbilitiesReg():
+    def _GetFecAbilitiesReg(self):
         '''This function return list of FEC abilities
             for debug only because FecAbilities by REG is not implimented.
         '''
         raise RuntimeError("Get FEC Abilities by Reg is not implimented")
 
-    def _GetFecAbilitiesAq(rep_mode):
+    def _GetFecAbilitiesAq(self,rep_mode):
         ''' Description: Get available FEC options for the link
             input:
                 rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
@@ -1439,7 +788,7 @@ class cvl(cvlDefines):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = GetPhyAbilities(get_abils)
+        result = self.GetPhyAbilities(get_abils)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -1448,25 +797,25 @@ class cvl(cvlDefines):
             
         FEC_list = []
         if data['fec_firecode_10g_abil']:
-            FEC_list.append(get_Ability_FEC_dict[0])
+            FEC_list.append(self.get_Ability_FEC_dict[0])
         
         if data['fec_firecode_10g_req']:
-            FEC_list.append(get_Ability_FEC_dict[1])
+            FEC_list.append(self.get_Ability_FEC_dict[1])
         
         if data['fec_rs528_req']:
-            FEC_list.append(get_Ability_FEC_dict[2])
+            FEC_list.append(self.get_Ability_FEC_dict[2])
             
         if data['fec_firecode_25g_req']:
-            FEC_list.append(get_Ability_FEC_dict[3])
+            FEC_list.append(self.get_Ability_FEC_dict[3])
             
         if data['fec_rs544_req']:
-            FEC_list.append(get_Ability_FEC_dict[4])
+            FEC_list.append(self.get_Ability_FEC_dict[4])
             
         if data['fec_rs528_abil']:
-            FEC_list.append(get_Ability_FEC_dict[6])
+            FEC_list.append(self.get_Ability_FEC_dict[6])
             
         if data['fec_firecode_25g_abil']:
-            FEC_list.append(get_Ability_FEC_dict[7])
+            FEC_list.append(self.get_Ability_FEC_dict[7])
                 
         #print FEC_list
         return FEC_list
@@ -1539,7 +888,7 @@ class cvl(cvlDefines):
             reg_addr = calculate_port_offset(offset_base, 0x100, quad)  
             value = self.ReadEthwRegister(reg_addr)
             link_speed_from_reg = get_bits_slice_value(int(value,16), 2, 3)
-            link_speed_from_reg_dict = {1:"100M",2:"1G"}
+            link_speed_from_reg_dict = {1: "100M", 2: "1G"}
             
             if link_speed == link_speed_from_reg_dict[link_speed_from_reg]:
                 link_status = get_bit_value(int(value,16), 0)
@@ -1558,7 +907,7 @@ class cvl(cvlDefines):
         
         return link_status
 
-    def DisableLldp(self,shutdown = 0 , persistent = 0, debug = 0):
+    def DisableLldp(self, shutdown=0 , persistent=0, debug=0):
         driver = self.driver
         aq_desc = AqDescriptor()
         data_len = 0x0
@@ -1677,7 +1026,7 @@ class cvl(cvlDefines):
         '''
         config = {}
         phy_type = 0
-        data = GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
 
         if data[0]:
             error_msg = 'Error DisableLESM: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -1709,7 +1058,7 @@ class cvl(cvlDefines):
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
 
         status = ()
-        status =  SetPhyConfig(config)
+        status =  self.SetPhyConfig(config)
         print(status)
 
         if status[0]:
@@ -1947,7 +1296,7 @@ class cvl(cvlDefines):
         result = self.GetPhyAbilities(args) 
         
         if result[0]:
-            error_msg = 'Error _SetPhyTypeAq: GetPhyAbilities Admin command was not successful, retval {}'.format(status[1])
+            error_msg = 'Error _SetPhyTypeAq: GetPhyAbilities Admin command was not successful, retval {}'.format(result[1])
             raise RuntimeError(error_msg)
             
         abilities = result[1]
@@ -1992,7 +1341,7 @@ class cvl(cvlDefines):
             raise RuntimeError(error_msg)   
             
 
-    def SetFecSetting(set_fec, AmIDut,rep_mode =1 , Location = "AQ"):
+    def SetFecSetting(self,set_fec, AmIDut,rep_mode =1 , Location = "AQ"):
         '''This function configure the FEC option for the link
             argument:
                 set_fec - 'NO_FEC'/'25G_KR_FEC'/'25G_RS_528_FEC'/'25G_RS_544_FEC' (string) -- Enables or disables FEC Options on the link, bitfield defined in Section 3.4.4.1.3 of CVL HAS
@@ -2002,32 +1351,32 @@ class cvl(cvlDefines):
             return: None
         '''
         if Location == "REG":
-            _SetFecSettingReg()
+            self._SetFecSettingReg()
         elif Location == "AQ":
-            _SetFecSettingAq(set_fec, AmIDut, rep_mode)
+            self._SetFecSettingAq(set_fec, AmIDut, rep_mode)
         else:
             raise RuntimeError("Err SetFecSetting: Error Location, please insert location REG/AQ")  
      
-    def _SetFecSettingReg():
+    def _SetFecSettingReg(self):
         '''This function configures the fec option
             for debug only because SetFecSetting by REG is not implimented.
         '''     
         raise RuntimeError("Set FEC by Reg is not implimented") 
      
-    def _SetFecSettingAq(set_fec, AmIDut, rep_mode):
+    def _SetFecSettingAq(self,set_fec, AmIDut, rep_mode):
         '''This function configure the FEC option for the link
             input: 
                 set_fec: NO_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC (string) -- Enables or disables FEC Options on the link, bitfield defined in Section 3.4.4.1.3 of CVL HAS
         '''
         config = {}
 
-        data = GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
         abilities = data[1]
         
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         
         if AmIDut:
-            link_status = GetLinkStatus({'port':0, 'cmd_flag':1})
+            link_status = self.GetLinkStatus({'port':0, 'cmd_flag':1})
             phy_type = link_status[1]
             
             config['phy_type_0'] = phy_type['phy_type_0']
@@ -2100,7 +1449,7 @@ class cvl(cvlDefines):
             raise RuntimeError(error_msg)
 
 
-    def GetPhytuningParams(debug = False):
+    def GetPhytuningParams(self,debug = False):
         '''This function returns dict of phy tuning info 
             return: dictinary of opcode 9 from CVL-DFT-D8.*EX
         '''
@@ -2120,7 +1469,7 @@ class cvl(cvlDefines):
             serdes_sel.append(0)
 
         if number_of_ports == 2:        
-            phy_type = GetPhyType()
+            phy_type = self.GetPhyType()
             
             if phy_type in NRZ_100G_phytype_list:
                 serdes_sel = serdeses_per_portnum_4_dict[port_num] #serdes_sel = [1,2,3,4] for 100G-KR4 
@@ -2132,7 +1481,7 @@ class cvl(cvlDefines):
                 serdes_sel.append(Serdes_mapping_per_pf_2_ports[port_num])
 
         elif number_of_ports == 4:   
-            if GetMuxStatus():
+            if self.GetMuxStatus():
                 serdes_sel.append(Serdes_mapping_per_pf_4_ports_mux[port_num])
             else:
                 serdes_sel.append(Serdes_mapping_per_pf_4_ports[port_num])
@@ -2147,7 +1496,7 @@ class cvl(cvlDefines):
 
             for key,val in Phy_tuning_params_dict.iteritems():
                 #args opcode,serdes_sel,data_in,debug=False
-                ret_val = DnlCvlDftTest(0x9,current_serdes,val,debug=False)
+                ret_val = self.DnlCvlDftTest(0x9, current_serdes, val, debug=False)
                 #print key,ret_val
                 if ((int(ret_val,16) >> 15) == 1):# negative number
                     ret_val = '-' + hex(2**16 - int(ret_val,16))
@@ -2166,15 +1515,15 @@ class cvl(cvlDefines):
 
         return Phytuning_final_dict
 
-    def GetMuxStatus():
+    def GetMuxStatus(self):
         '''This function return True/False according to signal controlling external mux (bit 2) - cvl spec 13.2.2.1.228
             input: None
             return:
                 True - mux in used
                 False - mux not in used
         '''
-        driver = self.driver
-        reg_data = driver.read_csr(0xb81e0)
+        # driver = self.driver
+        reg_data = self.driver.read_csr(0xb81e0)
         mux_status = get_bit_value(reg_data,2)
         return mux_status
 
@@ -2280,7 +1629,7 @@ class cvl(cvlDefines):
         FEC_Counter_dict['RS_FEC_corrected_symbol_lane3'] = self.get_rsfec_corrected_symbol_lane3(quad)  
         return FEC_Counter_dict
 
-    def get_kr_fec_corrected(quad = None):
+    def get_kr_fec_corrected(self, quad = None):
         '''This function returns the kr fec corrected counter see Section 13.6.2.1.119 of CVL HAS
             Warning: the reg that is read here is "clear on read" this reg is also read in the proclib get_kr_fec_uncorrected
             argument:
@@ -2289,12 +1638,12 @@ class cvl(cvlDefines):
                 kr fec corrected counter
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
         reg_addr = calculate_port_offset(0x0300010c, 0x100, quad)
-        value = ReadEthwRegister(reg_addr)
+        value = self.ReadEthwRegister(reg_addr)
         return get_bits_slice_value(int(value,16), 6, 11)  
 
-    def get_kr_fec_uncorrected(quad = None):
+    def get_kr_fec_uncorrected(self,quad = None):
         '''This function returns the kr fec uncorrected counter see Section 13.6.2.1.119 of CVL HAS
             Warning:  the reg that is read here is "clear on read" this reg is also read in the proclib get_kr_fec_corrected
             argument:
@@ -2303,12 +1652,12 @@ class cvl(cvlDefines):
                 kr fec uncorrected counter
         '''
         if quad == None:
-            quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
+            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
         reg_addr = calculate_port_offset(0x0300010c, 0x100, quad)
-        value = ReadEthwRegister(reg_addr)
+        value = self.ReadEthwRegister(reg_addr)
         return get_bits_slice_value(int(value,16), 12, 17)
 
-    def GetKRFecCounters(quad = None):
+    def GetKRFecCounters(self, quad = None):
         '''This function returns the kr fec corrected counter and uncorrected counter see Section 13.6.2.1.119 of CVL HAS
             argument:
                 quad num according the pf number
@@ -2319,12 +1668,12 @@ class cvl(cvlDefines):
         '''
         FEC_Counter_dict = {}
         if quad == None:
-            quad ,pmd_num = _GetQuadAndPmdNumAccordingToPf()
-        FEC_Counter_dict['KR_FEC_Corrected_Counter'] = get_kr_fec_corrected(quad)
-        FEC_Counter_dict['KR_FEC_Uncorrected_Counter'] = get_kr_fec_uncorrected(quad)
+            quad ,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
+        FEC_Counter_dict['KR_FEC_Corrected_Counter'] = self.get_kr_fec_corrected(quad)
+        FEC_Counter_dict['KR_FEC_Uncorrected_Counter'] = self.get_kr_fec_uncorrected(quad)
         return FEC_Counter_dict
 
-    def GetFECCounter(current_fec_stat = None,debug = False):
+    def GetFECCounter(self,current_fec_stat = None,debug = False):
         '''This function returns all of the fec counters
             argument:
                 quad num according the pf number
@@ -2340,15 +1689,15 @@ class cvl(cvlDefines):
                             "RS_FEC_corrected_symbol_lane1":"N/A",
                             "RS_FEC_corrected_symbol_lane2":"N/A",
                             "RS_FEC_corrected_symbol_lane3":"N/A"}
-        quad,pmd_num = _GetQuadAndPmdNumAccordingToPf()
+        quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
         #print "quad ",quad
         if current_fec_stat == None:
-            current_fec_stat = GetCurrentFECStatus()
+            current_fec_stat = self.GetCurrentFECStatus()
 
         if current_fec_stat == '25G_RS_528_FEC' or current_fec_stat == '25G_RS_544_FEC':
-            FEC_Counter_dict.update(GetRSFecCounters(quad))
+            FEC_Counter_dict.update(self.GetRSFecCounters(quad))
         elif current_fec_stat == '25G_KR_FEC' or current_fec_stat == '10G_KR_FEC':
-            FEC_Counter_dict.update(GetKRFecCounters(quad))
+            FEC_Counter_dict.update(self.GetKRFecCounters(quad))
         elif current_fec_stat == 'NO_FEC' or current_fec_stat == 'N/A':
             pass
 
@@ -2465,18 +1814,18 @@ class cvl(cvlDefines):
 #       Work arounds sections                                                 #
 ###############################################################################
 
-    def Reset_WA(reset = "corer",PF = "00"):
+    def Reset_WA(self,reset = "corer",PF = "00"):
         '''This function is a work around for performing resets 
             arguments: string reset = "pfr, corer, globr, empr, flr, pcir, bmer, vfr, vflr" 
                        string PF (physical function) = "00-08"
         '''
         driver = self.driver
         command = "svdt -r cvl:"+PF+" "+reset
-        _ExecuteLinuxCommand(command)
+        self._ExecuteLinuxCommand(command)
 
 
     # all 3 func below is work around for PCIe indication reading
-    def _ExecuteLinuxCommand(command):
+    def _ExecuteLinuxCommand(self, command):
         '''This function execute linux command
             argument: command (str)
             return: output (str)
@@ -2485,7 +1834,7 @@ class cvl(cvlDefines):
         (output, err) = p.communicate()
         return output
 
-    def GetPCIECurrentLinkSpeed_WA():
+    def GetPCIECurrentLinkSpeed_WA(self):
         '''This function returns PCIE link speed from linux command.
             argument: None
             return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
@@ -2495,13 +1844,13 @@ class cvl(cvlDefines):
 
         tmp_str = "lspci | grep " + dev_info_dict['dev_id']
         #print tmp_str
-        tmp = _ExecuteLinuxCommand(tmp_str)
+        tmp = self._ExecuteLinuxCommand(tmp_str)
         tmp = tmp.split(" ")
 
 
         comm = "ls -la /sys/bus/pci/devices | grep " + tmp[0]
 
-        tmp = _ExecuteLinuxCommand(comm)
+        tmp = self._ExecuteLinuxCommand(comm)
         tmp = tmp.split("/")
 
 
@@ -2509,7 +1858,7 @@ class cvl(cvlDefines):
         domain = domain[1] + ":" + domain[2]
 
         comm = "sudo lspci -vvv -s " + domain + " | grep LnkSta"
-        tmp = _ExecuteLinuxCommand(comm)
+        tmp = self._ExecuteLinuxCommand(comm)
 
 
         if "16GT/s" in tmp:
@@ -2538,13 +1887,13 @@ class cvl(cvlDefines):
 
         tmp_str = "lspci | grep " + dev_info_dict['dev_id']
         #print tmp_str
-        tmp = _ExecuteLinuxCommand(tmp_str)
+        tmp = self._ExecuteLinuxCommand(tmp_str)
         tmp = tmp.split(" ")
 
 
         comm = "ls -la /sys/bus/pci/devices | grep " + tmp[0]
 
-        tmp = _ExecuteLinuxCommand(comm)
+        tmp = self._ExecuteLinuxCommand(comm)
         tmp = tmp.split("/")
 
 
@@ -2552,7 +1901,7 @@ class cvl(cvlDefines):
         domain = domain[1] + ":" + domain[2]
 
         comm = "sudo lspci -vvv -s " + domain + " | grep LnkSta"
-        tmp = _ExecuteLinuxCommand(comm)
+        tmp = self._ExecuteLinuxCommand(comm)
 
 
         if "Width x16" in tmp:
@@ -2631,34 +1980,34 @@ class cvl(cvlDefines):
         config['fec_opt'] = abilities['fec_opt']
         
         status = ()
-        status =  SetPhyConfig(config)
+        status =  self.SetPhyConfig(config)
         
         if status[0]:
             error_msg = 'Error _SetEEESetting: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
         
 
-    def LinkManagementDisable():
+    def LinkManagementDisable(self):
         '''This function disable firmware's link managment. 
             argument: none
             return: none
         '''
 
         args = {'port':0, 'index':0, 'cmd_flags':0x10}
-        status = SetPhyDebug(args)
+        status = self.SetPhyDebug(args)
 
         if status[0]: 
             error_msg = 'Error LinkManagementDisable: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def LinkManagementEnable():
+    def LinkManagementEnable(self):
         '''This function enable firmware's link managment. 
             argument: none
             return: none
         '''
 
         args = {'port':0, 'index':0, 'cmd_flags':0}
-        status = SetPhyDebug(args)
+        status = self.SetPhyDebug(args)
 
         if status[0]: 
             error_msg = 'Error LinkManagementEnable: Admin command was not successful, retval {}'.format(status[1])
@@ -2690,7 +2039,7 @@ class cvl(cvlDefines):
         '''
         _DnlWriteStore(context, store_type, store_index, value,debug) 
      
-    def AQ_Debug (flags,opcode,param0,param1):
+    def AQ_Debug (self,flags,opcode,param0,param1):
         '''This function is for debug only.
             arguments:
                 flags - 2 bytes (hex)
@@ -2951,32 +2300,32 @@ class cvl(cvlDefines):
     ######################           Support SECTION               ##########################################
     #########################################################################################################
      
-    def GetPortNumber():
+    def GetPortNumber(self):
         '''This function return port number
             argument: None
             return: port number (int)
         '''
-        driver = self.driver
-        return driver.port_number()
+        # driver = self.driver
+        return self.driver.port_number()
 
-    def ReadCsrRegister(offset):
+    def ReadCsrRegister(self,offset):
         '''This function return CSR register value according to CSR register address.
             argument: offset - CSR register address
             return: value - CSR register value
         '''
-        driver = self.driver
-        reg_value = driver.read_csr(offset)
+        # driver = self.driver
+        reg_value = self.driver.read_csr(offset)
         print("Register Value: ",hex(reg_value))
 
-    def WriteCsrRegister(offset,value):
+    def WriteCsrRegister(self,offset,value):
         '''This function write value to CSR register address.
             arguments: 
                 offset - CSR register address
                 value - value to write
             return: None
         '''
-        driver = self.driver
-        driver.write_csr(offset, value)
+        # driver = self.driver
+        self.driver.write_csr(offset, value)
 
     def ReadEthwRegister(self, address):
         '''This function support read from ethw.
@@ -2989,14 +2338,14 @@ class cvl(cvlDefines):
         return_val = self.NeighborDeviceRead(0x2,0,1, address)
         return return_val
 
-    def WriteEthwRegister(address,data):
+    def WriteEthwRegister(self,address,data):
         '''this function support write to ethw.
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 address - address to write in the neighbor device CSRs.
                 data - data to write in the neighbor device CSRs.
         ''' 
-        NeighborDeviceWrite(0x2,1,1, address,data)
+        self.NeighborDeviceWrite(0x2,1,1, address,data)
         pass
 
     def ReadMTIPRegister(self, offset,address,debug = False):
@@ -3016,7 +2365,7 @@ class cvl(cvlDefines):
             print("return value: ", ret_val)
         return ret_val
 
-    def NeighborDeviceWrite(dest,opcode,addrlen,address,data):
+    def NeighborDeviceWrite(self,dest,opcode,addrlen,address,data):
         '''this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
             arguments: 
@@ -3081,7 +2430,7 @@ class cvl(cvlDefines):
 
         #print [hex(x) for x in buffer]
 
-        return_buffer = _NeighborDeviceRequestAq(0,buffer)
+        return_buffer = self._NeighborDeviceRequestAq(0,buffer)
         #print "return_buffer: ",return_buffer
         pass
 
@@ -3212,32 +2561,32 @@ class cvl(cvlDefines):
     def SetMdioBit(self, Page,Register,BitNum):
         '''This function set MDIO bit.
         '''
-        driver = self.driver
-        reg_value = driver.read_phy_register(Page, Register, driver.port_number())
+        # driver = self.driver
+        reg_value = self.driver.read_phy_register(Page, Register, self.driver.port_number())
         print(hex(reg_value))
         reg_value = reg_value | (1 << BitNum)
         print(hex(reg_value))
-        driver.write_phy_register(Page, Register, driver.port_number(), reg_value)
+        self.driver.write_phy_register(Page, Register, driver.port_number(), reg_value)
      
-    def ClearMdioBit(Page,Register,BitNum):
+    def ClearMdioBit(self,Page,Register,BitNum):
         '''This function clear MDIO bit.
         '''
-        driver = self.driver
-        reg_value = driver.read_phy_register(Page, Register, driver.port_number())
+        # driver = self.driver
+        reg_value = self.driver.read_phy_register(Page, Register, self.driver.port_number())
         print(hex(reg_value))
         reg_value = reg_value & ~(1 << BitNum)
         print(hex(reg_value))
-        driver.write_phy_register(Page, Register, driver.port_number(), reg_value)
+        self.driver.write_phy_register(Page, Register, self.driver.port_number(), reg_value)
 
-    def CheckDeviceAliveness():
+    def CheckDeviceAliveness(self):
         '''This function returns true if the device is alive or false otherwise
             it's done for PCIe issue .
                return: True/false
         '''
-        driver = self.driver
+        # driver = self.driver
 
-        reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
-        reg_data = driver.read_csr(reg_addr)
+        reg_addr = calculate_port_offset(0x001E47A0, 0x4, self.driver.port_number())
+        reg_data = self.driver.read_csr(reg_addr)
         if ( reg_data == 0xffffffff or reg_data == 0xdeadbeef):
             return False
         else:
@@ -3419,7 +2768,7 @@ class cvl(cvlDefines):
             quad = self.quad_for_2_ports_dict[port_num]        
             pmd_num = self.pmd_num_for_2_ports_dict[port_num]
         elif number_of_ports == 4:     
-            if GetMuxStatus():
+            if self.GetMuxStatus():
                 quad = self.quad_for_4_ports_mux_dict[port_num]
                 pmd_num = self.pmd_num_for_4_ports_mux_dict[port_num]
             else:
@@ -3445,24 +2794,24 @@ class cvl(cvlDefines):
         #print "quad:",quad
         #print "pmd_num:",pmd_num
 
-        link_speed = GetMacLinkSpeed()
+        link_speed = self.GetMacLinkSpeed()
         #print "link_speed: ",link_speed
 
         if link_speed == "100G":
-            pcs_offset = MTIP_100_PCS_Addr_Dict[quad]
+            pcs_offset = self.MTIP_100_PCS_Addr_Dict[quad]
 
         elif (link_speed == "10G" or link_speed == "25G" or link_speed == "40G" or link_speed == "50G"):
             if quad == 0:
-                pcs_offset = MTIP_10_25_40_50_PCS_Quad_0_Addr_Dict[pmd_num]
+                pcs_offset = self.MTIP_10_25_40_50_PCS_Quad_0_Addr_Dict[pmd_num]
             elif quad == 1:
-                pcs_offset = MTIP_10_25_40_50_PCS_Quad_1_Addr_Dict[pmd_num]
+                pcs_offset = self.MTIP_10_25_40_50_PCS_Quad_1_Addr_Dict[pmd_num]
             
         elif link_speed == "1G":
             pcs_offset = None
         #print "PCS offset ", hex(pcs_offset)
         return pcs_offset
 
-    def GetPcsAdvencedInfo(debug = 0):
+    def GetPcsAdvencedInfo(self,debug = 0):
         '''This function print PCS Advenced info 
             input: debug -- if true, print the return list
             return: list -- 
@@ -3472,28 +2821,28 @@ class cvl(cvlDefines):
         '''
         return_list = []
         # get the real PCS address according to pf number
-        pcs_offset = _GetPcsOffset()
+        pcs_offset = self._GetPcsOffset()
 
         #pcs_link_status_1 = ReadMTIPRegister(pcs_offset,1)#PCS link status 1
         return_list.append("")
-        pcs_link_status_2 = int(ReadMTIPRegister(pcs_offset,8),16)#PCS link status 2
+        pcs_link_status_2 = int(self.ReadMTIPRegister(pcs_offset,8),16)#PCS link status 2
         return_list.append("#####  pcs link status 2  #####")
         for i in range(6):
             pcs_link_status_2_run_bit = (pcs_link_status_2 >> i) & 1
             if  pcs_link_status_2_run_bit == 1:
-                return_list.append(pcs_link_status_2_dict[i])
+                return_list.append(self.pcs_link_status_2_dict[i])
         return_list.append("Receive fault: " + str(get_bit_value(pcs_link_status_2,10)))
         return_list.append("Transmit fault: " + str(get_bit_value(pcs_link_status_2,11)))
 
         return_list.append("")
-        pcs_baser_status_1 = int(ReadMTIPRegister(pcs_offset,32),16)#PCS BaseR status 1
+        pcs_baser_status_1 = int(self.ReadMTIPRegister(pcs_offset,32),16)#PCS BaseR status 1
         return_list.append("#####  PCS BaseR status 1  #####")
         return_list.append("Receive link status: " + str(get_bit_value(pcs_baser_status_1,12)))
         return_list.append("High BER: " + str(get_bit_value(pcs_baser_status_1,1)))
         return_list.append("Block lock: " + str(get_bit_value(pcs_baser_status_1,0)))
 
         return_list.append("")
-        pcs_baser_status_2 = int(ReadMTIPRegister(pcs_offset,33),16)#PCS BaseR status 2
+        pcs_baser_status_2 = int(self.ReadMTIPRegister(pcs_offset,33),16)#PCS BaseR status 2
         return_list.append("#####  PCS BaseR status 2  #####")
         return_list.append("Latched block lock. (LL): " + str(get_bit_value(pcs_baser_status_1,15)))
         return_list.append("Latched high BER. (LH): " + str(get_bit_value(pcs_baser_status_1,14)))
@@ -3501,12 +2850,12 @@ class cvl(cvlDefines):
         #print "pcs_link_status_2 ",hex(pcs_link_status_2)
         #print "pcs_baser_status_1 ",hex(pcs_baser_status_1)
         #print "pcs_baser_status_2 ",hex(pcs_baser_status_2)
-        current_fec_stat = GetCurrentFECStatus()
+        current_fec_stat = self.GetCurrentFECStatus()
         if current_fec_stat == '25G_RS_528_FEC_Enabled' or current_fec_stat == 'RS_544_FEC_Enabled': 
             return_list.append("")
             return_list.append("#####  PCS FEC conters  #####")
             return_list.append("FEC: " + current_fec_stat)
-            FEC_counter_dict = GetFECCounter(current_fec_stat)
+            FEC_counter_dict = self.GetFECCounter(current_fec_stat)
             for key,val in FEC_counter_dict.iteritems():
                 #print key, ":", val
                 return_list.append(key + ": " + str(val))   
@@ -3649,7 +2998,7 @@ class cvl(cvlDefines):
         #print 'rx events queue empty'
         #print 'finished cearing rx events queue'
 
-    def Write_logger_file(logger_list,file_name):
+    def Write_logger_file(self,logger_list,file_name):
         '''This function Write dnllogger log to file 
             argument:
                 logger_list- a list containing the lines to write in the file
@@ -3673,7 +3022,7 @@ class cvl(cvlDefines):
         except Exception as e:
             print("Exception in Write_logger_file " + str(e))
 
-    def GetFWEvent(driver,debug=False):
+    def GetFWEvent(self,driver,debug=False):
         '''This function should get FW events
             argument:
                 driver - driver instance
@@ -3691,13 +3040,13 @@ class cvl(cvlDefines):
         status = driver.receive_aq_command(aq_desc, buffer, debug)
         if status == 0 and aq_desc.retval == 0 and aq_desc.opcode == 0xff09:
             for i in range(aq_desc.datalen):
-                ret_buf.append(_to_unsigned(buffer[i]))
+                ret_buf.append(self._to_unsigned(buffer[i]))
             status = (status, ret_buf)
         else:
             status = (status, None)
         return status
 
-    def logger_grabber_loop(return_list,driver):
+    def logger_grabber_loop(self, return_list, driver):
         '''This function is performing logger_grabber_loop
             argument:
                 return_list
@@ -3708,14 +3057,14 @@ class cvl(cvlDefines):
         start_time = curr_time = time.time()
         
         while (True):
-            st = GetFWEvent(driver)
+            st = self.GetFWEvent(driver)
             if stop_polling_event.is_set() and st[0] == 1020:# error queue empty 
                 #print str(time.time()) + "Got queue empty!"
                 break
             else:
                 return_list.append(st[1])
 
-    def StartDnlLogging():
+    def StartDnlLogging(self):
         '''This function Start the Dnl Logging
             argument:
                 None
@@ -3725,20 +3074,20 @@ class cvl(cvlDefines):
         stop_polling_event.clear()
         handler = get_handler()
         driver = self.driver
-        configure_logging_dnl(True)
+        self.configure_logging_dnl(True)
         print("start dnl logging")
-        clear_rx_events_queue()
+        self.clear_rx_events_queue()
         time.sleep(0.1)
         manager = mp.Manager()
         return_list = manager.list()    
-        p = threading.Thread(target=logger_grabber_loop, args=(return_list,driver))
+        p = threading.Thread(target=self.logger_grabber_loop, args=(return_list, driver))
         p.daemon = True
         p.start()
         handler.custom_data["DnlLoggingRawDataList"] = return_list
         handler.custom_data["DnlLoggingProccessHandle"] = p
 
 
-    def StopDnlLogging(LoggerFileName,SaveRawDataFlag,manual = 0):
+    def StopDnlLogging(self,LoggerFileName,SaveRawDataFlag,manual = 0):
         '''This function StopDnlLogging
             argument:
                 LoggerFileName
@@ -3749,7 +3098,7 @@ class cvl(cvlDefines):
         '''
         driver = self.driver
         print("stop dnl logging")
-        configure_logging_dnl(False)
+        self.configure_logging_dnl(False)
         stop_polling_event.set()
         handler = get_handler()
         p = handler.custom_data["DnlLoggingProccessHandle"]
@@ -3758,7 +3107,7 @@ class cvl(cvlDefines):
         if SaveRawDataFlag:
             if not manual:
                 LoggerFileName = handler.create_file_name(LoggerFileName, 'txt', handler.get_device_key())
-            Write_logger_file(return_list,LoggerFileName)
+            self.Write_logger_file(return_list, LoggerFileName)
             if not manual:      
                 handler.send_file(LoggerFileName)
         return True
@@ -3769,18 +3118,18 @@ class cvl(cvlDefines):
             return: None    
         '''
         ttl_timeout = 10
-        configure_logging_dnl(True)
-        clear_rx_events_queue()
+        self.configure_logging_dnl(True)
+        self.clear_rx_events_queue()
         time.sleep(0.1)
         log_file = 'raw_data_file.txt'
         q = mp.Queue()
-        p = mp.Process(target=logger_grabber_loop,args= (q,log_file))
+        p = mp.Process(target=self.logger_grabber_loop, args= (q, log_file))
         p.start()
         
-        RestartAn()
+        self.RestartAn()
         #start counter
         start_time = curr_time = time.time()
-        while (GetMacLinkStatus() == True ):
+        while (self.GetMacLinkStatus() == True):
             #print 'waiting for link down'
             if ((curr_time - start_time) > ttl_timeout):
                 print("link is down for 15s")
@@ -3790,7 +3139,7 @@ class cvl(cvlDefines):
         #wait for link up
         while ((curr_time - start_time) < ttl_timeout):
             curr_time = time.time()
-            if GetMacLinkStatus('REG'):
+            if self.GetMacLinkStatus('REG'):
                 curr_time = time.time()
                 print('link up')
                 break
@@ -3800,7 +3149,7 @@ class cvl(cvlDefines):
         print(ttl_time)
 
         time.sleep(1)
-        configure_logging_dnl(False)
+        self.configure_logging_dnl(False)
         msg = q.get()
         while not msg == "queue empty":
             msg = q.get()
@@ -3837,32 +3186,34 @@ class cvl(cvlDefines):
             return: None
         '''
         Phytuning_dict = {}
-        for key,val in Phy_tuning_params_dict.iteritems():
-
+        # for key,val in Phy_tuning_params_dict.iteritems():
+        for key, val in self.Phy_tuning_params_dict.items():  # Python 3
             # args opcode,serdes_sel,data_in,debug=False
-            ret_val = DnlCvlDftTest(0x9,serdes_sel,val,debug=False)
+            ret_val = self.DnlCvlDftTest(0x9, serdes_sel, val, debug=False)
             #print key,ret_val
             Phytuning_dict[key] = ret_val
         if debug:
-            keylist = Phytuning_dict.keys()
-            keylist.sort()
+            keylist = Phytuning_dict.keys()  # The keys() method returns a view object
+            list(keylist).sort()
             for key in keylist:
                print(key,Phytuning_dict[key])
 
-            print('#############################################################################')
+            # to print dict in Python 3 : print(Phytuning_dict)
+
+            print('#' *80)
             print("RxFFE_pre2  |RxFFE_pre1  |RxFFE_post1 |RxFFE_Bflf  |RxFFE_Bfhf  |RxFFE_Drate ")
             #print '{0:9s} | {1:9s} | {2:10s} | {3:9s} | {4:9s} | {5:9s}'.format(Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
             print('%-12s|%-12s|%-12s|%-12s|%-12s|%-12s'% (Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"]))
             print()
-            print('#######################################################')
+            print('#' *80)
             print("CTLE_HF |CTLE_LF |CTLE_DC |CTLE_BW |CTLE_gs1|CTLE_gs2")
             print('%-8s|%-8s|%-8s|%-8s|%-8s|%-8s'%(Phytuning_dict["CTLE_HF"], Phytuning_dict["CTLE_LF"], Phytuning_dict["CTLE_DC"],Phytuning_dict["CTLE_BW"], Phytuning_dict["CTLE_gs1"], Phytuning_dict["CTLE_gs2"]))
             print()
-            print('############################################################################################################################################')
+            print('#' * 100)
             print("DFE_GAIN |DFE_GAIN2|DFE_2    |DFE_3    |DFE_4    |DFE_5    |DFE_6    |DFE_7    |DFE_8    |DFE_9    |DFE_A    |DFE_B    |DFE_C    |CTLE_gs2 ")
             print('%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s|%-9s'%(Phytuning_dict["DFE_GAIN"], Phytuning_dict["DFE_GAIN2"], Phytuning_dict["DFE_2"],Phytuning_dict["DFE_3"], Phytuning_dict["DFE_4"], Phytuning_dict["DFE_5"], Phytuning_dict["DFE_6"], Phytuning_dict["DFE_7"], Phytuning_dict["DFE_8"], Phytuning_dict["DFE_9"], Phytuning_dict["DFE_A"], Phytuning_dict["DFE_B"], Phytuning_dict["DFE_C"], Phytuning_dict["CTLE_gs2"]))
             print()
-            print('#####################################################################################################')
+            print('#' * 80)
             print("Eye height_thle |Eye height_thme |Eye height_thue |Eye height_thlo |Eye height_thmo |Eye height_thuo ")
             print('%-16s|%-16s|%-16s|%-16s|%-16s|%-16s'%(Phytuning_dict["Eye height_thle"], Phytuning_dict["Eye height_thme"], Phytuning_dict["Eye height_thue"],Phytuning_dict["Eye height_thlo"], Phytuning_dict["Eye height_thmo"], Phytuning_dict["Eye height_thuo"]))
             print()
@@ -3874,8 +3225,8 @@ class cvl(cvlDefines):
             print("---------------  DUT  --------------------   ")
             print("###########################################  ")
             print()
-            print("PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE))
-            print("PRT State Machine: ",PRT_STATE_MACHINE_AN[get_bits_slice_value(PRT_STATE_MACHINE,0,7)])
+            print("PRT State Machine PSTO: ", hex(self.PRT_STATE_MACHINE))
+            print("PRT State Machine: ", PRT_STATE_MACHINE_AN[get_bits_slice_value(self.PRT_STATE_MACHINE, 0, 7)])
 
 
         elif not PRT_AN_ENABLED and not link_up_flag:# force mode and link down
@@ -3884,11 +3235,11 @@ class cvl(cvlDefines):
             print("---------------  DUT  --------------------   ")
             print("###########################################  ")
             print()
-            print("PRT State Machine PSTO: ",hex(PRT_STATE_MACHINE))
-            print("PRT State Machine: ",PRT_STATE_MACHINE_FM[get_bits_slice_value(PRT_STATE_MACHINE,0,7)])
+            print("PRT State Machine PSTO: ", hex(self.PRT_STATE_MACHINE))
+            print("PRT State Machine: ", PRT_STATE_MACHINE_FM[get_bits_slice_value(self.PRT_STATE_MACHINE, 0, 7)])
 
             # print pcs advanced info
-            get_pcs_advenced_info = GetPcsAdvencedInfo()
+            get_pcs_advenced_info = self.GetPcsAdvencedInfo()
             print()
             print()
             print("###########################################  ")
@@ -4571,10 +3922,10 @@ class cvl(cvlDefines):
         driver = self.driver
         if self.GetLcbPortLockStatus() == 1:
             print(" lock was on 1 at the beginning")
-            driver.write_csr(0x0009E944, _GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port 
+            driver.write_csr(0x0009E944, self._GetValAddrLCB(offset))# write the LCB reg address in the PCIe LCB Address Port
             driver.read_csr(0x0009E940) #read the reg data from the PCIe LCB Data Port
             time.sleep(0.5)
-        driver.write_csr(0x0009E944, _GetValAddrLCB(offset)) # write the LCB reg address to the PCIe LCB Address Port   
+        driver.write_csr(0x0009E944, self._GetValAddrLCB(offset)) # write the LCB reg address to the PCIe LCB Address Port
         driver.write_csr(0x0009E940, data) #write the reg data to the PCIe LCB Data Port
 
     def GetPCIECurrentLinkSpeed(self):
@@ -4607,9 +3958,9 @@ class cvl(cvlDefines):
             2: "x2",
             4: "x4",
             8: "x8",
-            16:"x16"
+            16: "x16"
         }
-        return link_width.get(val,"Wrong")
+        return link_width.get(val, "Wrong")
 
     def GetDevicePowerState(self):
         '''This function returns Device power state: 
@@ -4684,7 +4035,7 @@ class cvl(cvlDefines):
         print("Link speed: ",self.GetMacLinkSpeed())
         for i in range(num_of_iteration):       
             print("globr num: ",i)
-            Reset(1)
+            self.Reset(1)
             while (self.GetMacLinkStatus("REG")):
                 pass
             start_time = curr_time = time.time()
@@ -4715,17 +4066,17 @@ class cvl(cvlDefines):
 
         ttl_list = []
         avg_ttl = 0
-        print("Link speed: ",GetMacLinkSpeed())
+        print("Link speed: ", self.GetMacLinkSpeed())
         for i in range(num_of_iteration):       
             print("Restart AN num: ",i)
-            RestartAn()
-            while (GetMacLinkStatus("REG")):
+            self.RestartAn()
+            while (self.GetMacLinkStatus("REG")):
                 pass
             start_time = curr_time = time.time()
             link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):       
+            while ((curr_time - start_time) < ttl_timeout):
                 curr_time = time.time()
-                if GetMacLinkStatus("REG"):
+                if self.GetMacLinkStatus("REG"):
                     curr_time = time.time()
                     link_flag = False
                     print('link up')
@@ -4754,20 +4105,19 @@ class cvl(cvlDefines):
         stamp = str(ts.tm_year)+str(ts.tm_mon)+str(ts.tm_mday)+'_'+str(ts.tm_hour)+str(ts.tm_min)+str(ts.tm_sec)
         return stamp
 
-    def create_log_name(path,iter,ttl):
+    def create_log_name(self,path,iter,ttl):
         '''This function create log name according to path, port number, ttl, number of iteration, date and time.
             argument:
                 Path - log location
                 Iter - num of iteration
-                ttl 
+                ttl
             return:
                 Fullname of file
         '''
-
         driver = self.driver
         port = driver.port_number()
         p = path
-        fullname = p + str(port) + "_" + str(round(ttl)) + "_" + str(iter) + "_" + GetTimeStamp() + ".txt"
+        fullname = p + str(port) + "_" + str(round(ttl)) + "_" + str(iter) + "_" + self.GetTimeStamp() + ".txt"
         return fullname
 
     def DBG_restartAN_test(self, num_of_iteration,ttl_timeout,enable_logger = 0,logger_low_limit_ttl = 2):#TODO add link stability check and link drop source
@@ -4783,16 +4133,16 @@ class cvl(cvlDefines):
         ttl_list = []
         avg_ttl = 0
 
-        print("Link speed: ",GetMacLinkSpeed())
+        print("Link speed: ",self.GetMacLinkSpeed())
         for i in range(num_of_iteration):
             SaveRawDataFlag = False     
             
             if enable_logger:
                 print('logger is enabled')
-                StartDnlLogging()   
+                self.StartDnlLogging()
         
             print("Restart AN num: ",i)
-            RestartAn()
+            self.RestartAn()
             while (self.GetMacLinkStatus("REG")):
                 pass
             start_time = curr_time = time.time()
@@ -4810,16 +4160,17 @@ class cvl(cvlDefines):
             print("TTL: ",ttl)
 
             if enable_logger:
-                LoggerFileName = create_log_name("/home/laduser/LoggerRawData/RawData_IterationNum_",i,ttl)
+                LoggerFileName = self.create_log_name("/home/laduser/LoggerRawData/RawData_IterationNum_", i, ttl)
                 if ttl > logger_low_limit_ttl:
                     SaveRawDataFlag = True
                     #print "rad data file saved to: ",LoggerFileName
                 print('logger is disable')
-                StopDnlLogging(LoggerFileName,SaveRawDataFlag,1)
+                self.StopDnlLogging(LoggerFileName, SaveRawDataFlag, 1)
 
             time.sleep(3)
             if (link_flag):
-                raw_input("Press enter to continue")
+                # raw_input("Press enter to continue")
+                input("Press enter to continue")   # Python 3
                 return(0)
 
         print()
@@ -4828,7 +4179,7 @@ class cvl(cvlDefines):
         print("AVG TTL: ", sum(ttl_list)/len(ttl_list))
 
 
-    def DBG_traffic_test(num_of_iteration,ber_timeout,packet_size):
+    def DBG_traffic_test(self, num_of_iteration,ber_timeout,packet_size):
         '''This function performs traffic test for debug and prints trafic stats.
             The function checks stability during trafic in MAC and PHY
             argument:
@@ -4844,12 +4195,12 @@ class cvl(cvlDefines):
 
         for iter_num in range(num_of_iteration):
 
-            ClearMACstat()
-            CurrentMacLinkStatus_old_value = GetMacLinkStatus()
-            CurrentPhyLinkStatus_old_value = GetPhyLinkStatus()
+            self.ClearMACstat()
+            CurrentMacLinkStatus_old_value = self.GetMacLinkStatus()
+            CurrentPhyLinkStatus_old_value = self.GetPhyLinkStatus()
             #phy_tuning_paraps_dict = GetPhytuningParams()
-            new_PTC_Dict = GetPTC()
-            new_PRC_Dict = GetPRC()
+            new_PTC_Dict = self.GetPTC()
+            new_PRC_Dict = self.GetPRC()
             print("Iteration: ",iter_num)
             print("PTC: " ,new_PTC_Dict['TotalPTC'])
             print("PRC: ", new_PRC_Dict['TotalPRC'])
@@ -4860,8 +4211,8 @@ class cvl(cvlDefines):
             while (curr_time < ber_timeout):
                 curr_time = time.time() - start_time
 
-                CurrentMacLinkStatus = GetMacLinkStatus()
-                CurrentPhyLinkStatus = GetPhyLinkStatus()
+                CurrentMacLinkStatus = self.GetMacLinkStatus()
+                CurrentPhyLinkStatus = self.GetPhyLinkStatus()
                 #print "curr time ",curr_time
                 if (CurrentMacLinkStatus == False or CurrentPhyLinkStatus == False):
                     print("link drop event")
@@ -4899,7 +4250,7 @@ class cvl(cvlDefines):
             for key in keylist:
                 print(key,new_PRC_Dict[key])
 
-    def DBG_globr_test_4_ports(num_of_iteration,ttl_timeout):
+    def DBG_globr_test_4_ports(self,num_of_iteration,ttl_timeout):
         '''This function performs  TTL test after performing global reset for 4 ports.
             The function prints the TTL time for each port in case linke is up, otherwise prints error 
             argument:
@@ -4909,11 +4260,11 @@ class cvl(cvlDefines):
                 None
         '''
         driver = self.driver    
-        print("Link speed: ",GetMacLinkSpeed())
+        print("Link speed: ", self.GetMacLinkSpeed())
         
         for i in range(num_of_iteration):       
             print("globr iteration: ", i+1)
-            Reset(1)
+            self.Reset(1)
             link_flag_port0 = True
             link_flag_port1 = True
             link_flag_port2 = True
@@ -4939,8 +4290,8 @@ class cvl(cvlDefines):
 
                 if link_flag_port1:
                     reg_addr1 = calculate_port_offset(0x001E47A0, 0x4, 1)
-                    reg_data1 = driver.read_csr(reg_addr0)
-                    LinkStatus1 = get_bit_value(reg_data0,30)       
+                    reg_data1 = driver.read_csr(reg_addr1)
+                    LinkStatus1 = get_bit_value(reg_data1,30)
                     if LinkStatus1:
                         curr_time_port1 = time.time()
                         print('link up on port 1')
