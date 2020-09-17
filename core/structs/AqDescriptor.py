@@ -15,8 +15,8 @@ class AqDescriptor(object):
             cookie_low:   bytes 12-15
             param0:       bytes 16-19
             param1:       bytes 20-23
-            addr_high: bytes 24-27
-            addr_low:  bytes 28-31 
+            addr_high:    bytes 24-27
+            addr_low:     bytes 28-31 
     """
     
     def __init__(self):

@@ -3,6 +3,8 @@
 # @author Shady Ganem <shady.ganem@intel.com>
 #--------------------------------------------
 
+import math 
+
 def compose_num_from_array_slice(buffer, start_index, length):
     ''' 
         This function builds number from bytes in array and returns it
@@ -58,3 +60,16 @@ def intgerTo4ByteList(I):
         data[2] = (I&0xff0000)>>16
         data[3] = (I&0xff000000)>>24
         return data
+
+def turn_arg_to_bytes(number):
+    '''
+        param arg: int[4 bytes]
+        return: list of all  bytes
+    '''
+    byte_list = list()
+    if number:
+        temp_inp = number
+        for i in range(int(math.log(number,256))+1):
+            byte_list.append(temp_inp & 0xFF)
+            temp_inp = temp_inp >> 8
+    return byte_list

@@ -8,7 +8,8 @@ from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
 import time
 
-from crsvlDefines import crsvlDefines
+from devices.crsvl.crsvlDefines import crsvlDefines
+
 
 class crsvl(crsvlDefines):
     '''
@@ -2616,7 +2617,7 @@ class crsvl(crsvlDefines):
         byte_2 = (config['phy_type'] >> 16) & 0xff
         byte_3 = (config['phy_type'] >> 24) & 0xff
         byte_4 = config['link_speed']
-        byte_5 = (config['en_auto_link_update'] << 5) | (config['an_mode'] << 4 | config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
+        byte_5 = (config['en_auto_link_update'] << 5) | (config['an_mode'] << 4) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
         byte_6 = config['eee_capability'] & 0xff
         byte_7 = (config['eee_capability'] >> 8) & 0xff
         byte_8 = config['eeer'] & 0xff

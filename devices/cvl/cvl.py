@@ -11,7 +11,7 @@ from core.utilities.BitManipulation import *
 from devices.cvl.temp import *
 import time
 
-from devices.cvl.cvlDefines import cvlDefines, cvl_structs
+from devices.cvl.cvlDefines import cvlDefines, cvl_structs, AqOpCodes
 
 
 class cvl(cvlDefines):
@@ -55,12 +55,13 @@ class cvl(cvlDefines):
 ###############################################################################
 #                        Register reading section                             #
 ###############################################################################
-    def read_register(self, register_name, mul = 0x8, size = 0xff):
-       """
-       This function reads CVL register
-       :param register_name: Defined in reg_dict in cvlDefines
-       :return: int
-       """
+
+    def read_register(self, register_name, mul = 0x8, size = 0xffffffff):
+       '''
+            This function reads CVL register
+            :param register_name: Defined in reg_dict in cvlDefines
+            :return: int
+       '''
        reg_data = 0
        for addr in self.reg_dict[register_name]:
            reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
@@ -69,9 +70,10 @@ class cvl(cvlDefines):
        return reg_data
 
     def GetPTC(self):
-        '''This function reads all PTC CVL register
-            Total Packets Transmitted Counter (13.2.2.24.59 - 13.2.2.24.72)
-            return: dict--
+        '''
+            This function reads all PTC CVL register
+                Total Packets Transmitted Counter (13.2.2.24.59 - 13.2.2.24.72)
+                return: dict--
                         'GetPTC64'
                         'GetPTC127'
                         'GetPTC255'
@@ -89,10 +91,9 @@ class cvl(cvlDefines):
             PTC_Dict['TotalPTC'] = PTC_Dict['TotalPTC'] + self.read_register(reg)
         return PTC_Dict
 
-
     def GetPRC(self):
-        """
-        This function reads all PRC CVL registers
+        '''
+            This function reads all PRC CVL registers
             Total Packets Received Counter (13.2.2.24.45-13.2.2.24.58)
             return: dict--
                         'PRC64'
@@ -103,11 +104,9 @@ class cvl(cvlDefines):
                         'PRC1522'
                         'PRC9522'
                         'TotalPRC' - sum of all PRC registers
-        """
-        #sum_data = GetPRC64() + GetPRC127() + GetPRC255() + GetPRC511() + GetPRC1023() + GetPRC1522() + GetPRC9522()
-        #return sum_data
+        '''
         PRC_registers_list = ["PRC64", "PRC127", "PRC255", "PRC511", "PRC1023", "PRC1522", "PRC9522"]
-        PRC_Dict = {}
+        PRC_Dict = dict()
         PRC_Dict['TotalPRC'] = 0
         for reg in PRC_registers_list:
             PRC_Dict[reg] = self.read_register(reg)
@@ -167,13 +166,13 @@ class cvl(cvlDefines):
         return MacStatistics
 
     def GetLinkDownCounter(self):
-        ''' This function counts the number link drop, clear by globr (13.2.2.4.80)
+        '''
+            This function counts the number link drop, clear by globr (13.2.2.4.80)
             return: number of link drop
         '''
         reg_data = self.read_register("PRTMAC_LINK_DOWN_COUNTER[PRT]", mul=0x4)
         Link_drop_counter = get_bits_slice_value(reg_data, 0, 15)
         return Link_drop_counter
-
 
     def GetMacCounters(self):
         counters_list = ["MSPDC", "CRCERRS", "ILLERRC", "ERRBC", "MLFC", "MRFC", "RLEC", "RUC", "RFC", "ROC", "RJC"]
@@ -216,55 +215,37 @@ class cvl(cvlDefines):
         time.sleep(2)
         driver.start_tx(packet_size = packet_size)
 
-    def EthStartRxOrTx(self, type, packet_size=512):
-        """
-        This function starts Tx or Rx
-        :param type: Tx or Rx
-        :param packet_size: packet size - Default is 512
-        :return: None
-        """
-        self.driver.start_tx(packet_size=packet_size) if type =="tx" else self.driver.start_rx(packet_size = packet_size)
+    def EthStartRx(self, packet_size = 512):
+        '''This function starts Tx and Rx.
+            argument: packet size - Default is 512
+            return: None
+        '''
+        driver = self.driver
+        driver.start_rx(packet_size = packet_size)
+    
+    def EthStartTx(self, packet_size = 512):
+        '''This function starts Tx and Rx.
+            argument: packet size - Default is 512
+            return: None
+        '''
+        driver = self.driver
+        driver.start_tx(packet_size = packet_size)
 
-
-    # def EthStartRx(self, packet_size = 512):
-    #     '''This function starts Tx and Rx.
-    #         argument: packet size - Default is 512
-    #         return: None
-    #     '''
-    #     driver = self.driver
-    #     driver.start_rx(packet_size = packet_size)
-    #
-    # def EthStartTx(self, packet_size = 512):
-    #     '''This function starts Tx and Rx.
-    #         argument: packet size - Default is 512
-    #         return: None
-    #     '''
-    #     driver = self.driver
-    #     driver.start_tx(packet_size = packet_size)
-
-    def EthStopRxOrTx(self,type):
-        """
-        This function stops Tx or Rx.
-        :param type: Tx or Rx
-        :return: None
-        """
-        self.driver.stop_tx() if type == "tx" else self.driver.stop_rx()
-
-    # def EthStopRx(self):
-    #     '''This function stops Tx and Rx.
-    #         argument: None
-    #         return: None
-    #     '''
-    #     driver = self.driver
-    #     driver.stop_rx()
-    #
-    # def EthStopTx(self):
-    #     '''This function stops Tx and Rx.
-    #         argument: None
-    #         return: None
-    #     '''
-    #     driver = self.driver
-    #     driver.stop_tx()
+    def EthStopRx(self):
+        '''This function stops Tx and Rx.
+            argument: None
+            return: None
+        '''
+        driver = self.driver
+        driver.stop_rx()
+    
+    def EthStopTx(self):
+        '''This function stops Tx and Rx.
+            argument: None
+            return: None
+        '''
+        driver = self.driver
+        driver.stop_tx()
 
     def EthStopTraffic(self):
         '''This function stops Tx and Rx.
@@ -385,23 +366,24 @@ class cvl(cvlDefines):
         print()
 
 
-    def GetMacLinkSpeed(self, Location = "AQ"):
+    def GetCurrentLinkSpeed(self, Location = "AQ"):
         '''This function return Mac Link Speed.
             argument: "REG" / "AQ"
             return: 
                 '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G'
         '''
         if Location == "REG":
-            LinkSpeed = self._GetMacLinkSpeedReg()
+            LinkSpeed = self._GetCurrentLinkSpeedReg()
         elif Location == "AQ":
-            LinkSpeed = self._GetMacLinkSpeedAq()
+            LinkSpeed = self._GetCurrentLinkSpeedAq()
         else:
             raise RuntimeError("Error GetMacLinkSpeed: Error Location, please insert location REG/AQ")  
         return LinkSpeed
 
-    def _GetMacLinkSpeedReg(self):
-        '''This function returns the link speed (13.2.2.4.78).
-           PRTMAC_LINKSTA 0x001E47A0
+    def _GetCurrentLinkSpeedReg(self):
+        '''
+            This function returns the link speed (13.2.2.4.78).
+            PRTMAC_LINKSTA 0x001E47A0
                argument: none
                return: link speed in str, for exmp: "40G"
         '''
@@ -411,54 +393,27 @@ class cvl(cvlDefines):
         LinkSpeed = get_bits_slice_value(reg_data,26,29)
         return self.Mac_link_speed_dict[LinkSpeed]
 
-    def _GetMacLinkSpeedAq(self):
-        """This function return Mac Link Speed using Get link status AQ.
+    def _GetCurrentLinkSpeedAq(self):
+        '''
+            This function return Mac Link Speed using Get link status AQ.
             return:
                 '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G'
-        """
-        # gls['port'] = 0 not relevant for CVL according to CVL Spec
+        '''
+        
         gls = {"port": 0, "cmd_flag": 1}
-        # gls['port'] = 0
-        # gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
+        status, data = self.GetLinkStatus(gls)
 
-        if not result[0]:  # if Admin command was successful - False
-            data = result[1]
-        else:
-            raise RuntimeError("Error _GetMacLinkSpeedAq: Admin command was not successful")
+        if status:
+            raise RuntimeError("Error _GetCurrentLinkSpeedAq: Admin command was not successful")
 
-        curent_link_speed = {key:value for key,value in data.items() if "link_speed" in key and value}
-        if curent_link_speed:
-            curent_link_speed= list(curent_link_speed.keys())
-            curent_link_speed = curent_link_speed[0].strip("link_speed_")
-            return "2.5G" if curent_link_speed == '2p5g' else curent_link_speed
-        # if self.Get_Speed_Status_dict:
-        #     if data['link_speed_10m']:
-        #         return self.Get_Speed_Status_dict[0]
-        #     elif data['link_speed_100m']:
-        #         return self.Get_Speed_Status_dict[1]
-        #     elif data['link_speed_1000m']:
-        #         return self.Get_Speed_Status_dict[2]
-        #     elif data['link_speed_2p5g']:
-        #         return self.Get_Speed_Status_dict[3]
-        #     elif data['link_speed_5g']:
-        #         return self.Get_Speed_Status_dict[4]
-        #     elif data['link_speed_10g']:
-        #         return self.Get_Speed_Status_dict[5]
-        #     elif data['link_speed_20g']:
-        #         return self.Get_Speed_Status_dict[6]
-        #     elif data['link_speed_25g']:
-        #         return self.Get_Speed_Status_dict[7]
-        #     elif data['link_speed_40g']:
-        #         return self.Get_Speed_Status_dict[8]
-        #     elif data['link_speed_50g']:
-        #         return self.Get_Speed_Status_dict[9]
-        #     elif data['link_speed_100g']:
-        #         return self.Get_Speed_Status_dict[10]
-        #     elif data['link_speed_200g']:
-        #         return self.Get_Speed_Status_dict[11]
-        else:
-            raise RuntimeError("Error _GetMacLinkSpeedAq_D: Get_Speed_Status_dict is not defined")
+        current_link_speed = data['current_link_speed']
+        for key, val in self.Get_Speed_Status_dict.items():
+            mask = 1 << key
+            if current_link_speed & mask:
+                return val
+        else: 
+            return None
+
 
     def RestartAn(self, Location = "AQ"):
         '''This function performs restart autoneg
@@ -554,6 +509,44 @@ class cvl(cvlDefines):
             for debug only because reset by AQ is not implimented.
         '''
         raise RuntimeError("Reset by AQ is not implimented")
+
+    def GetCurrentModuleInfo(self):
+        '''
+            This method retrieves the current module info based on the "current module type" field from GetPhyAbilities
+            @input: None
+            @output: dict
+                    Module_ID - int
+                    supported_tecknologies - list
+                    GBE_compliance_code - int
+        '''
+        get_abils = dict()
+        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
+        get_abils['rep_qual_mod'] = 0
+        get_abils['rep_mode'] = 1
+        
+        result = self.GetPhyAbilities(get_abils)
+        
+        if not result[0]: 
+            data = result[1]
+        else:
+            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
+        
+        module_type_info_dict = dict()    
+        current_module_type = data['current_module_type']
+
+        module_type_info_dict['Module_ID'] = current_module_type & 0xFF
+
+        byte1 = (current_module_type >> 8) & 0xFF
+        supported_tecknologies_list = list()
+        for key, val in self.suppoted_module_technologies_dict.items():
+            mask = 1 << key
+            if byte1 & mask: 
+                supported_tecknologies_list.append(val)
+
+        module_type_info_dict['supported_tecknologies'] = supported_tecknologies_list
+
+        module_type_info_dict['GBE_compliance_code'] = (current_module_type >> 16) & 0xFF
+        return module_type_info_dict
 
     def GetPhyType(self, Location = "AQ"):
         '''This function return Phy type
@@ -689,16 +682,14 @@ class cvl(cvlDefines):
         else:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
             
-        phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0'] 
-        #print hex(phy_type)
+        phy_type = data['phy_type']
         
-        phy_type_list = []
+        phy_type_list = list()
         
         for i in range(len(self.get_Ability_Phy_Type_dict)):
             if ((phy_type >> i) & 0x1):
                 phy_type_list.append(self.get_Ability_Phy_Type_dict[i])
-        
-        #print phy_type_list        
+               
         return phy_type_list
 
     def GetEEEAbilities(self, rep_mode, Location = "AQ"):
@@ -1447,7 +1438,6 @@ class cvl(cvlDefines):
         if status[0]:
             error_msg = 'Error _SetFecSetting: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
-
 
     def GetPhytuningParams(self,debug = False):
         '''This function returns dict of phy tuning info 
@@ -2618,7 +2608,6 @@ class cvl(cvlDefines):
 
         #TODO print the PHY index that performs the loopback 0 = outermost
 
-
     def GetLinkStatusAfterParsing(self):
         '''This function return dictionary that contain phy and mac link status and speed, fec mode.
             arguments: None
@@ -3254,7 +3243,7 @@ class cvl(cvlDefines):
 #                                Admin Queue Commands                         #
 ###############################################################################
 
-    def SetPhyConfig(self, config,debug=False):
+    def SetPhyConfig(self, config, debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Set various PHY configuration parameters on port. 
@@ -3288,69 +3277,38 @@ class cvl(cvlDefines):
                     int -- if bool True, value of Admin command retval, if false is None
         '''
         #Generic AQ descriptor --> Set PHY Config Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (port)
-        # param1 = (reserved)
-        # addr_high = (reserved)
-        # addr_low = (reserved)
-        driver = self.driver
-        opCodes = AqOpCodes()
-        currOpCode = opCodes.set_phy_config
         aq_desc = AqDescriptor()
-        #helper._debug('SetPhyConfig Admin Command')
-        #buffer structure
-        #turn args to bytes
-        buffer = []
-        #Add PHY Type to buffer
-        temp_inp = config['phy_type_0']
-        for i in range(4):
-            buffer.append(temp_inp & 0xFF)
-            temp_inp = temp_inp >> 8
-        temp_inp = config['phy_type_1']
-        for i in range(4):
-            buffer.append(temp_inp & 0xFF)
-            temp_inp = temp_inp >> 8
-        temp_inp = config['phy_type_2']
-        for i in range(4):
-            buffer.append(temp_inp & 0xFF)
-            temp_inp = temp_inp >> 8
-        temp_inp = config['phy_type_3']
-        for i in range(4):
-            buffer.append(temp_inp & 0xFF)
-            temp_inp = temp_inp >> 8
-        #Add misc to buffer
+        buffer = list()
+        # Add PHY Type to buffer (bytes 0-15)
+        buffer.extend(turn_arg_to_bytes(config['phy_type_0']))
+        buffer.extend(turn_arg_to_bytes(config['phy_type_1']))
+        buffer.extend(turn_arg_to_bytes(config['phy_type_2']))
+        buffer.extend(turn_arg_to_bytes(config['phy_type_3']))
         byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (config.get('an_mode', 0) << 4) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | (config['rx_pause_req'] << 1) | config['tx_pause_req']
+        byte_17 = config['low_pwr_ctrl'] & 0xff
+        byte_18 = config['eee_cap_en'] & 0xff
+        byte_19 = (config['eee_cap_en'] >> 8) & 0xff
+        byte_20 = config['eeer'] & 0xff
+        byte_21 = (config['eeer'] >> 8) & 0xff
+        byte_22 = (config['fec_firecode_25g_abil'] << 7) | (config['fec_rs528_abil'] << 6) | (config['fec_rs544_req'] << 4) | (config['fec_firecode_25g_req'] << 3) | (config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config['fec_firecode_10g_abil']
+        byte_23 = 0 & 0xFF  # FW requires buffer to be 24 bytes long, appending empty byte at the end of data structure to achieve this
         buffer.append(byte_16)
-        #Add low_pwr_ctrl to buffer, as of HAS 1.3, Enable = set bit 1 to 1, Disable = Set bit 0 to 1
-        if config['low_pwr_ctrl']:
-            buffer.append(2 & 0xFF) #Append 0x02 to the buffer
-        else:
-            buffer.append(1 & 0xFF) #Append 0x01 to the buffer
-        #buffer.append(config['low_pwr_ctrl']) #If HAS changes to reduce low_pwr_ctrl to 1 bit, remove if/else above and uncomment this line
-        #Add EEE capabilities
-        temp_inp = config['eee_cap_en']
-        for i in range(2):
-            buffer.append(temp_inp & 0xFF)
-            temp_inp = temp_inp >> 8
-        #add EEER to buffer
-        temp_inp = config['eeer']
-        for i in range(2):
-            buffer.append(temp_inp & 0xFF)
-            temp_inp = temp_inp >> 8
-        #add FEC options to buffer
-        #buffer.append(config['fec_opt'])
-        byte_22 = (config['fec_firecode_25g_abil'] << 7 ) |(config['fec_rs528_abil'] << 6 ) |  (config['fec_rs544_req'] << 4 ) | (config['fec_firecode_25g_req'] << 3) | (config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config['fec_firecode_10g_abil']
-
+        buffer.append(byte_17)
+        buffer.append(byte_18)
+        buffer.append(byte_19)
+        buffer.append(byte_20)
+        buffer.append(byte_21)
         buffer.append(byte_22)
-        buffer.append(0 & 0xFF) # FW requires buffer to be 24 bytes long, appending empty byte at the end of data structure to achieve this
-        aq_desc.opcode = currOpCode
+        buffer.append(byte_23)
+        buffer.extend([0]*(0x100 - len(buffer)))
+        aq_desc.opcode = 0x0601
         aq_desc.flags = 0x1400 #Include buffer and read flags for this command
         aq_desc.param0 = config['port']
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.datalen = len(buffer)
-        status = driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
@@ -3361,14 +3319,14 @@ class cvl(cvlDefines):
         
         return status
 
-    def SetMacConfig(self, config,debug=False):
+    def SetMacConfig(self, config, debug = False):
         #Update for HAS 1.3
         '''
             Description: Set various MAC configuration parameters on the port.
             input:
                 config -- type(dict):
                     'max_frame' : int[2 bytes]  -- Sets the maximum ethernet frame size on a port
-                    'pacing_type' : int[1 bit] -- 1 enables fixed IPG rate pacing, 0 is  data-based rate pacing
+                    'pacing_type' : int[1 bit] -- 1 enables fixed IPG rate pacing, 0 is  data-based rate pacing -- Bytes 2.7
                     'pacing_rate' : int[4 bits] -- bitfield sets either the IPG words or the data pacing rate depending on state of pacing_type
                     'tx_priority' : int[1 byte]
                     'tx_value' : int[2 bytes]
@@ -3378,30 +3336,38 @@ class cvl(cvlDefines):
                     bool -- Indication if Admin command was successful, False if so, True if not
                     int -- if bool True, value of Admin command retval, if false is None
         '''
-        #Generic AQ descriptor --> Set MAC Config Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (tx_priority + pacing + max_frame)
-        # param1 = (fc_refr_thresh + tx_value)
-        # addr_high = (0)
-        # addr_low = (0)
-        #Class instantiation
-        driver = self.driver
-        opCodes = AqOpCodes()
+
+        byte_0 = config['max_frame'] & 0xff
+        byte_1 = (config['max_frame'] >> 8) & 0xff
+        byte_2 = (config['pacing_type'] << 7) | (config['pacing_rate'] << 3)
+        byte_3 = config['tx_priority'] & 0xff
+        byte_4 = config['tx_value'] & 0xff
+        byte_5 = (config['tx_value'] >> 8) & 0xff
+        byte_6 = config['fc_refr_thresh']& 0xff
+        byte_7 = (config['fc_refr_thresh'] >> 8) & 0xff
+        byte_8 = 0
+        byte_9 = 0
+        byte_10 = 0
+        byte_11 = 0
+        byte_12 = 0
+        byte_13 = 0
+        byte_14 = 0
+        byte_15 = 0
+
         aq_desc = AqDescriptor()
-        #lvar assignment
         data_len = 0x0
-        aq_desc.opcode = opCodes.set_mac_config
+        aq_desc.opcode = 0x0603
         aq_desc.datalen = data_len
         buffer = [0] * data_len
-        aq_desc.param0 = (config['tx_priority'] << 24) | (config['pacing_rate'] << 23) | (config['pacing_type'] << 19) | config['max_frame']
-        aq_desc.param1 = (config['fc_refr_thresh'] << 16) | (config['tx_value'])
+        aq_desc.param0 = (byte_3 << 24) | (byte_2 << 16) | (byte_1 << 8) | byte_0
+        aq_desc.param1 = (byte_7 << 24) | (byte_6 << 16) | (byte_5 << 8) | byte_4
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x0
         
-        status = driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set MAC Config Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+            print('Failed to send Set MAC Config Admin Command, status: {}, FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -3409,7 +3375,7 @@ class cvl(cvlDefines):
             status = (False, None)
         return status
 
-    def SetupLink(self, slu_args,debug=False):
+    def SetupLink(self, slu_args, debug = False):
         #Updated for HAS 1.3
         '''
             Description:  Sets up the link and restarts link auto-negotiation. This operation could bring down the link. This
@@ -3430,17 +3396,9 @@ class cvl(cvlDefines):
         # param1 = (0)
         # addr_high = (0)
         # addr_low = (0)
-
-        
-        #Class instantiation
-        driver = self.driver
-        opCodes = AqOpCodes()
-        #helper = LM_Validation()
         aq_desc = AqDescriptor()
-        helper._debug('SetupLink Admin Command')
-        #lvar assignment
         data_len = 0x0
-        aq_desc.opcode = opCodes.setup_link
+        aq_desc.opcode = 0x0605
         aq_desc.datalen = data_len
         buffer = [0] * data_len
         aq_desc.param0 = (slu_args['enable'] << 18) | (slu_args['restart'] << 17) | slu_args['port']
@@ -3449,7 +3407,7 @@ class cvl(cvlDefines):
         aq_desc.addr_low = 0
         aq_desc.flags = 0x0
         
-        status = driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Setup Link Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
@@ -3459,7 +3417,7 @@ class cvl(cvlDefines):
             status = (False, None)
         return status
 
-    def GetPhyAbilities(self, get_abils,debug=False):
+    def GetPhyAbilities(self, get_abils, debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Get various PHY abilities supported on the port.
@@ -3519,14 +3477,10 @@ class cvl(cvlDefines):
         # param1(bytes 20-23) = (0)
         # addr_high(bytes 24-27) = (0)
         # addr_low(bytes 28-31) = (0)
-        driver = self.driver
-        opCodes = AqOpCodes()
-        #helper = LM_Validation()
+
         aq_desc = AqDescriptor()
-        #helper._debug('GetPhyAbilities Admin Command')
-        #lvar assignment
         data_len = 0x1000
-        aq_desc.opcode = opCodes.get_phy_abilities
+        aq_desc.opcode = 0x0600
         aq_desc.datalen = data_len
         buffer = [0] * data_len
         aq_desc.param0 = (get_abils['rep_mode'] << 17) | (get_abils['rep_qual_mod'] << 16) | get_abils['port']
@@ -3534,7 +3488,7 @@ class cvl(cvlDefines):
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x1200 #Set the buffer flag & long buffer flag
-        status = driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Get PHY Abilities Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
@@ -3549,11 +3503,14 @@ class cvl(cvlDefines):
             data['phy_type_1'] = compose_num_from_array_slice(buffer, 4, 4)
             data['phy_type_2'] = compose_num_from_array_slice(buffer, 8, 4)
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 12, 4)
+            data['phy_type'] = compose_num_from_array_slice(buffer, 0, 16)
+
             phy_type_list = []        
             phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
             phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
             phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
             phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
+            #TODO: change code base to not rely on this field. This Field will be deleted
             data['phy_type_list'] = phy_type_list
 
             data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x1)
@@ -3564,17 +3521,12 @@ class cvl(cvlDefines):
             data['en_mod_qual'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x20) >> 5
             data['lesm_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x40) >> 6
             data['auto_fec_en'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x80) >> 7
-            lpc = compose_num_from_array_slice(buffer, 17, 1)
-            if lpc:
-                data['low_pwr_ctrl'] = 1
-            else:
-                data['low_pwr_ctrl'] = 0
-            #data['low_pwr_ctrl'] = ut.compose_num_from_array_slice(buffer, 17, 1) #if more bits end up being used, remove if/else above and uncomment this line
+            data['low_pwr_ctrl'] = compose_num_from_array_slice(buffer, 17, 1) & 0x1
             data['eee_cap'] = compose_num_from_array_slice(buffer, 18, 2)
             data['eeer'] = compose_num_from_array_slice(buffer, 20, 2)
             data['oui'] = compose_num_from_array_slice(buffer, 22, 4)
             data['phy_fw_ver'] = compose_num_from_array_slice(buffer, 26, 8)
-            #data['fec_opt'] = ut.compose_num_from_array_slice(buffer, 34, 1)
+            data['fec_opt'] = compose_num_from_array_slice(buffer, 34, 1)
             data['fec_firecode_10g_abil'] = compose_num_from_array_slice(buffer, 34, 1) & 0x1
             data['fec_firecode_10g_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x2) >> 1
             data['fec_rs528_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x4) >> 2
@@ -3583,19 +3535,19 @@ class cvl(cvlDefines):
             data['fec_rs528_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x40) >> 6
             data['fec_firecode_25g_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x80) >> 7
             data['mod_ext_comp_code'] = compose_num_from_array_slice(buffer, 36, 1)
-            data['mod_id'] = compose_num_from_array_slice(buffer, 37, 1)
-            data['mod_sfp_cu_passive'] = compose_num_from_array_slice(buffer, 38, 1) & 0x1
-            data['mod_sfp_cu_active'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x2) >> 1
-            data['mod_10g_sr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x10) >> 4     
-            data['mod_10g_lr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x20) >> 5
-            data['mod_10g_lrm'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x40) >> 6
-            data['mod_10g_er'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x80) >> 7
-            data['mod_1g_comp_code'] = compose_num_from_array_slice(buffer, 39, 1)
+            data['current_module_type'] = compose_num_from_array_slice(buffer, 37, 3)
+            #TODO: remove these fiedlds from code
+            data['mod_id'] = compose_num_from_array_slice(buffer, 37, 1) # TODO to be deleted
+            data['mod_sfp_cu_passive'] = compose_num_from_array_slice(buffer, 38, 1) & 0x1  # TODO to be deleted
+            data['mod_sfp_cu_active'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x2) >> 1  # TODO to be deleted
+            data['mod_10g_sr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x10) >> 4  # TODO to be deleted
+            data['mod_10g_lr'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x20) >> 5  # TODO to be deleted
+            data['mod_10g_lrm'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x40) >> 6  # TODO to be deleted
+            data['mod_10g_er'] = (compose_num_from_array_slice(buffer, 38, 1) & 0x80) >> 7  # TODO to be deleted
+            data['mod_1g_comp_code'] = compose_num_from_array_slice(buffer, 39, 1)  # TODO to be deleted
+
             data['qual_mod_count'] = compose_num_from_array_slice(buffer, 40, 1)
-            #if data['qual_mod_count']:
-                #TODO: Implement function that slices the 32 byte sections from the buffer based on mod_count, then builds a list of dictionaries that deciphers the module info based on table in CPK HAS
-            #    data['qual_mod_ids'] = mod_ids
-            data['qual_mod_ids'] = 0
+            data['qual_mod_ids'] = 0 #TODO - read CVL HAS TABLE:3-104
             status = (False, data)
         return status
 
@@ -3666,11 +3618,9 @@ class cvl(cvlDefines):
         # param1(bytes 20-23) = (0)
         # addr_high(bytes 24-27) = (0)
         # addr_low(bytes 28-31) = (0)
-        driver = self.driver
-        opCodes = AqOpCodes()
         aq_desc = AqDescriptor()
         data_len = 0x1000
-        aq_desc.opcode = opCodes.get_link_status
+        aq_desc.opcode = 0x0607
         aq_desc.datalen = data_len
         buffer = [0] * data_len
         aq_desc.param0 = (gls['cmd_flag'] << 16) | gls['port']
@@ -3678,7 +3628,7 @@ class cvl(cvlDefines):
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x1200 #Set the buffer and long buffer flags
-        status = driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
@@ -3720,36 +3670,44 @@ class cvl(cvlDefines):
             data['25g_kr_fec'] = compose_num_from_array_slice(buffer, 8, 1) & 0x1
             data['25g_rs_528'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
             data['rs_544'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x4) >> 2
-            data['pacing_type'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7
-            data['pacing_rate'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3
-            data['link_speed_10m'] = compose_num_from_array_slice(buffer, 10, 1) & 0x1
-            data['link_speed_100m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1
-            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2
-            data['link_speed_2p5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3
-            data['link_speed_5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4
-            data['link_speed_10g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5
-            data['link_speed_20g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6
-            data['link_speed_25g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7
-            data['link_speed_40g'] = compose_num_from_array_slice(buffer, 11, 1) & 0x1
-            data['link_speed_50g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1
-            data['link_speed_100g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2
-            data['link_speed_200g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3
+            data['pacing_config'] = (compose_num_from_array_slice(buffer, 8, 1) & 0xF8) >> 3
+            data['ext_device_pwr_abil'] = (compose_num_from_array_slice(buffer, 9, 1) & 0x3)
+            
+            data['pacing_type'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7 #TODO - to be deleted
+            data['pacing_rate'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3 #TODO - to be deleted
+            data['current_link_speed'] = compose_num_from_array_slice(buffer, 10, 2)
+
+            data['link_speed_10m'] = compose_num_from_array_slice(buffer, 10, 1) & 0x1 #TODO - to be deleted
+            data['link_speed_100m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1 #TODO - to be deleted
+            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2  #TODO - to be deleted
+            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2 #TODO - to be deleted 
+            data['link_speed_2p5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3 #TODO - to be deleted
+            data['link_speed_5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4 #TODO - to be deleted
+            data['link_speed_10g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5 #TODO - to be deleted
+            data['link_speed_20g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6 #TODO - to be deleted
+            data['link_speed_25g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7 #TODO - to be deleted
+            data['link_speed_40g'] = compose_num_from_array_slice(buffer, 11, 1) & 0x1 #TODO - to be deleted
+            data['link_speed_50g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1 #TODO - to be deleted
+            data['link_speed_100g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2 #TODO - to be deleted
+            data['link_speed_200g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3 #TODO - to be deleted
+
             data['phy_type_0'] = compose_num_from_array_slice(buffer, 16, 4)
             data['phy_type_1'] = compose_num_from_array_slice(buffer, 20, 4)
             data['phy_type_2'] = compose_num_from_array_slice(buffer, 24, 4)
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
+            data['phy_type'] = compose_num_from_array_slice(buffer, 16, 16)
 
-            phy_type_list = []
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
-            data['phy_type_list'] = phy_type_list
+            phy_type_list = [] #TODO - to be deleted
+            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0)) #TODO - to be deleted
+            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1)) #TODO - to be deleted
+            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2)) #TODO - to be deleted
+            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3)) #TODO - to be deleted
+            data['phy_type_list'] = phy_type_list #TODO - to be deleted
 
             status = (False, data)
         return status
 
-    def SetPhyLoopback(self,phy_lpbk_args,debug=False):
+    def SetPhyLoopback(self, phy_lpbk_args, debug=False):
         #Updated for HAS 1.3
         '''
             Description:  Sets various PHYs loopback modes of the link
@@ -3771,12 +3729,10 @@ class cvl(cvlDefines):
         # param1 = (0)
         # addr_high = (0)
         # addr_low = (0)
-        driver = self.driver
-        opCodes = AqOpCodes()
         #helper = LM_Validation()
         aq_desc = AqDescriptor() # helper._debug('SetPhyLoopback Admin Command')
         data_len = 0x0
-        aq_desc.opcode = opCodes.set_phy_loopback
+        aq_desc.opcode = 0x0619
         aq_desc.datalen = data_len
         buffer = [0] * data_len
         aq_desc.param0 = (phy_lpbk_args['level'] << 26) | (phy_lpbk_args['type'] << 25) | (phy_lpbk_args['enable'] << 24) | (phy_lpbk_args['index'] << 16) | phy_lpbk_args['port']
@@ -3785,7 +3741,7 @@ class cvl(cvlDefines):
         aq_desc.addr_low = 0
         aq_desc.flags = 0x0
         
-        status = driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag

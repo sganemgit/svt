@@ -196,6 +196,12 @@ class cvlDefines(cvlBase):
     Mac_link_statistic_dict = {}
     Phy_link_statistic_dict = {}
 
+    suppoted_module_technologies_dict = {0: "sfp + Cu Passive",
+                                         1: "sfp + Cu Active",
+                                         4: "10G BASE-SR",
+                                         5: "10G BASE-LR",
+                                         6: "10G BASE-LRM",
+                                         7: "10G BASE-ER"}
     ########### AQ Dic ######
 
     ## AQ 0x600 get PHY Ability ####
