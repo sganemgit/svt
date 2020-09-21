@@ -4,7 +4,11 @@ class DriverFactory():
     def create_driver_by_project_name(cls, driver_type, project_name, device_number, port_number, hostname):
         if driver_type == "sv":
             from core.drivers.svdriver.SvDriver import SvDriver
-            return SvDriver.create_driver_by_name(project_name, device_number, port_number, hostname)
+            if project_name == 'mev' or project_name == 'mev1':
+                #TODO: handle MEV driver creation differently 
+                return None
+            else:
+                return SvDriver.create_driver_by_name(project_name, device_number, port_number, hostname)
 
     @classmethod
     def create_driver(cls, driver_type, device_info):
