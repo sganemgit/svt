@@ -184,16 +184,17 @@ class cvl(cvlDefines):
         return counter_dict
 
     def Clear_register(self, register_name, mul=0x8):
-        """
-        This function clears CVL register
-        :param register_name: Defined in reg_dict in cvlDefines
-        """
+        ''' 
+            This function clears CVL register
+            :param register_name: Defined in reg_dict in cvlDefines
+        '''
         for addr in self.reg_dict[register_name]:
             reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
             self.driver.write_csr(reg_addr, 0xffffffff)
 
     def ClearMACstat(self):
-        '''This function clears following MAC statistics registers.
+        '''
+            This function clears following MAC statistics registers.
             clear: PTC, PRC, CRCERRS, ILLERRC, ERRBC, MLFC, MRFC, RLEC, RUC, RFC, ROC, RJC, MSPDC, LDPC.
             (12.2.2.19)
         '''
@@ -206,7 +207,8 @@ class cvl(cvlDefines):
 ###############################################################################
 
     def EthStartTraffic(self, packet_size = 512):
-        '''This function starts Tx and Rx.
+        '''
+            This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
@@ -216,7 +218,8 @@ class cvl(cvlDefines):
         driver.start_tx(packet_size = packet_size)
 
     def EthStartRx(self, packet_size = 512):
-        '''This function starts Tx and Rx.
+        '''
+            This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
@@ -224,7 +227,8 @@ class cvl(cvlDefines):
         driver.start_rx(packet_size = packet_size)
     
     def EthStartTx(self, packet_size = 512):
-        '''This function starts Tx and Rx.
+        '''
+            This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
@@ -232,7 +236,8 @@ class cvl(cvlDefines):
         driver.start_tx(packet_size = packet_size)
 
     def EthStopRx(self):
-        '''This function stops Tx and Rx.
+        '''
+            This function stops Tx and Rx.
             argument: None
             return: None
         '''
@@ -240,7 +245,8 @@ class cvl(cvlDefines):
         driver.stop_rx()
     
     def EthStopTx(self):
-        '''This function stops Tx and Rx.
+        '''
+            This function stops Tx and Rx.
             argument: None
             return: None
         '''
@@ -248,7 +254,8 @@ class cvl(cvlDefines):
         driver.stop_tx()
 
     def EthStopTraffic(self):
-        '''This function stops Tx and Rx.
+        '''
+            This function stops Tx and Rx.
             argument: None
             return: None
         '''
@@ -258,7 +265,8 @@ class cvl(cvlDefines):
         driver.stop_rx()
 
     def GetCurrentThroughput(self, packet_size=512):
-        '''This function returns current Throughput
+        '''
+            This function returns current Throughput
             argument: packet size - Default is 512
             return: Transmit throughput
         '''
@@ -304,9 +312,10 @@ class cvl(cvlDefines):
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
 
     def GetMacLinkStatus(self, Location = "AQ"):
-        '''This function returns the link status.
-           argument: read by AQ/REG
-           return: True/false
+        '''
+            This function returns the link status.
+            argument: read by AQ/REG
+            return: True/false
         '''
         if Location == "REG":
             LinkStatus = self._GetMacLinkStatusReg()
@@ -317,12 +326,12 @@ class cvl(cvlDefines):
         return LinkStatus
 
     def _GetMacLinkStatusReg(self):
-        '''This function returns the link status (13.2.2.4.78).
-           PRTMAC_LINKSTA 0x001E47A0
-               argument: None
-               return: True/false
         '''
-        # driver = self.driver
+            This function returns the link status (13.2.2.4.78).
+            PRTMAC_LINKSTA 0x001E47A0
+                argument: None
+                return: True/false
+        '''
         reg_addr = calculate_port_offset(0x001E47A0, 0x4, self.driver.port_number())
         reg_data = self.driver.read_csr(reg_addr)
         LinkStatus = get_bit_value(reg_data, 30)
@@ -351,23 +360,18 @@ class cvl(cvlDefines):
         gls['port'] = 0 
         gls['cmd_flag'] = 1
         result = self.GetLinkStatus(gls)
+
         if not result[0]:
             data = result[1]
         else:
             raise RuntimeError("Error {}: Admin command was not successful".format(self.GetLinkStatusFields.__name__))
-        print()
-        print(data)
-        print()
 
-        print("link status {}".format(data['link_sts']))
-        print("media available {}".format(data['media_avail']))
-
-        print("PHY Type list  {}" .format(data['phy_type_list']))
-        print()
-
+        for key, val in data.items():
+            print("{} : {}".format(key, val))
 
     def GetCurrentLinkSpeed(self, Location = "AQ"):
-        '''This function return Mac Link Speed.
+        '''
+            This function return Mac Link Speed.
             argument: "REG" / "AQ"
             return: 
                 '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G'
@@ -414,9 +418,9 @@ class cvl(cvlDefines):
         else: 
             return None
 
-
     def RestartAn(self, Location = "AQ"):
-        '''This function performs restart autoneg
+        '''
+            This function performs restart autoneg
             argument: "REG" / "AQ"
             return: None
         '''
@@ -428,13 +432,15 @@ class cvl(cvlDefines):
             raise RuntimeError("Error RestartAn: Error Location, please insert location REG/AQ")
 
     def _RestartAnReg(self):
-        '''This function performs restart autoneg
+        '''
+            This function performs restart autoneg
             This function is for debug only because Restart AN by REG is not implimented
         '''
         raise RuntimeError("Restart AN by REG is not implimented")
 
     def _RestartAnAq(self):
-        '''This function performs restart autoneg by AQ
+        '''
+            This function performs restart autoneg by AQ
         '''
         args = {}
         args['port'] = 0 #not relevant for CVL according to CVL Spec
@@ -447,68 +453,15 @@ class cvl(cvlDefines):
             raise RuntimeError(error_msg)
 
     def Reset(self, reset_type = 'pfr'):
-        '''This function performs resets
+        '''
+            This function performs resets
             argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
             return: None
         '''
-        # driver = self.driver
         if reset_type in self.reset_type_dict:
             self.driver.device_reset(self.reset_type_dict[reset_type])
-        # if reset_type ==  "globr":
-        #     driver.device_reset("GLOBAL")
-        # elif reset_type ==  "pfr" :
-        #     driver.device_reset("PF")
-        # elif reset_type == "corer" :
-        #     driver.device_reset("CORE")
-        # elif reset_type == "empr":
-        #     driver.device_reset("EMP")
-        # elif reset_type == "flr":
-        #     driver.device_reset("FL")
-        # elif reset_type == "pcir":
-        #     driver.device_reset("PCI")
-        # elif reset_type == "bmer":
-        #     driver.device_reset("BME")
-        # elif reset_type ==  "vfr":
-        #     driver.device_reset("VF_SW")
-        # elif reset_type ==   "vflr":
-        #     driver.device_reset("VFLR")
         else:
             print("could not identify reset type")
-
-    def Reset2(self,Reset, Location = "REG"):
-        '''This function performs reset to CVL
-            argument:
-                Location = "REG" / "AQ"
-                Reset = 0 - for core reset
-                        1 - for global reset
-                        2 - for EMP reset
-        '''
-        if Location == "REG":
-            self._ResetReg(Reset)
-        elif Location == "AQ":
-            self._ResetAq()
-            # self._ResetAq(Reset)
-        else:
-            raise RuntimeError("Err Reset: Error Location, please insert location REG/AQ")
-
-    def _ResetReg(self, Reset):
-        ''' RESET GLGEN_RTRIG (0x000B8190)
-            argument:
-                Reset = 0 - for core reset
-                        1 - for global reset
-                        2 - for EMP reset
-        '''
-        driver = self.driver
-        reg_addr = 0x00B8190
-        reg_value = driver.read_csr(reg_addr)   
-        reg_value = reg_value | (1 << Reset)
-        driver.write_csr(reg_addr, reg_value)
-
-    def _ResetAq(self):
-        '''This function performs reset to CVL by admin command. 
-            for debug only because reset by AQ is not implimented.
-        '''
-        raise RuntimeError("Reset by AQ is not implimented")
 
     def GetCurrentModuleInfo(self):
         '''
@@ -549,7 +502,8 @@ class cvl(cvlDefines):
         return module_type_info_dict
 
     def GetPhyType(self, Location = "AQ"):
-        '''This function return Phy type
+        '''
+            This function return Phy type
             input: Location = "AQ"
             return: phy type (str)
         '''
@@ -562,34 +516,35 @@ class cvl(cvlDefines):
         return Phy_Type
 
     def _GetPhyTypeReg(self):
-        '''This function return Phy type.
+        '''
+            This function return Phy type.
             for debug only because GetPhyType by REG is not implimented.
         '''
         raise RuntimeError("Get Phy type by Reg is not implemented")
 
     def _GetPhyTypeAq(self):
-        '''This function return Phy type using Get link status AQ.
+        '''
+            This function return Phy type using Get link status AQ.
             return: Phy type in str
         '''
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
+        status, data = self.GetLinkStatus(gls)
+        if status:
             raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
-        phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0']
+
+        phy_type = data['phy_type'] 
         if self.Get_Phy_Type_Status_dict:
             for i in range(len(self.Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
                     return self.Get_Phy_Type_Status_dict[i]
-
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
 
     def GetCurrentFECStatus(self, Location = "AQ"):
-        '''This function return the current FEC status
+        '''
+            This function return the current FEC status
             argument:
                 Location = "REG" / "AQ"
         '''
@@ -602,14 +557,16 @@ class cvl(cvlDefines):
         return FEC_Type
 
     def _GetCurrentFECStatusReg(self):
-        '''This function returns the FEC status using register.
+        '''
+            This function returns the FEC status using register.
             for debug only because GetCurrentFecStatus by REG is not implimented.
             return: None
         '''
         raise RuntimeError("Get current FEC status by Reg is not implimented")
 
     def _GetCurrentFECStatusAq(self):
-        '''This function returns the FEC status using Get link status AQ.
+        '''
+            This function returns the FEC status using Get link status AQ.
             return: FEC type by str
         '''
         link_speed = self.GetPhyLinkSpeed()
@@ -619,11 +576,9 @@ class cvl(cvlDefines):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
+        status, data = self.GetLinkStatus(gls)
 
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
+        if status:
             raise RuntimeError("Error _GetCurrentFECStatusAq: Admin command was not successful")
 
         FEC_list = ['10G_KR_FEC','25G_KR_FEC','25G_RS_528_FEC','25G_RS_544_FEC']
@@ -643,7 +598,8 @@ class cvl(cvlDefines):
                 return 'NO_FEC'
 
     def GetPhyTypeAbilities(self, rep_mode = 0, Location = "AQ"):
-        '''This function return list of phy types
+        '''
+            This function return list of phy types
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
                 Location = "REG" / "AQ"
@@ -657,29 +613,28 @@ class cvl(cvlDefines):
         return phy_type_list
 
     def _GetPhyTypeAbilitiesReg(self):
-        '''This function return list of phy types
+        '''
+            This function return list of phy types
             for debug only because reset by AQ is not implimented.
         '''
         raise RuntimeError("Get Phy Type Abilities by Reg is not implimented")      
 
     def _GetPhyTypeAbilitiesAq(self, rep_mode):
-        ''' Description: Get various PHY type abilities supported on the port.
+        '''
+            Description: Get various PHY type abilities supported on the port.
             input:
                 rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
             return:
                 phy_type_list - contain phy type abilities by str
         '''
-        
         get_abils = {}
         get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = self.GetPhyAbilities(get_abils)
+        status, data = self.GetPhyAbilities(get_abils)
         
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
+        if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
             
         phy_type = data['phy_type']
@@ -693,7 +648,8 @@ class cvl(cvlDefines):
         return phy_type_list
 
     def GetEEEAbilities(self, rep_mode, Location = "AQ"):
-        '''This function return list of EEE abilities
+        '''
+            This function return list of EEE abilities
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
                 Location = "REG" / "AQ" 
@@ -709,19 +665,20 @@ class cvl(cvlDefines):
         return EEE_list 
      
     def _GetEEEAbilitiesReg(self):
-        '''This function return list of EEE abilities
+        '''
+            This function return list of EEE abilities
             for debug only because FecAbilities by REG is not implimented.
         '''
         raise RuntimeError("Get EEE Abilities by Reg is not implimented")   
      
     def _GetEEEAbilitiesAq(self, rep_mode):
-        ''' Description: Get EEE abilities supported on the port.
+        '''
+            Description: Get EEE abilities supported on the port.
             input:
                 rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
             return:
                 EEE_list - contain EEE abilities by str
         '''
-        
         get_abils = {}
         get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
         get_abils['rep_qual_mod'] = 0
@@ -733,18 +690,15 @@ class cvl(cvlDefines):
         else:
             raise RuntimeError("Error _GetEEEAbilitiesAq: Admin command was not successful")  
             
-        #print hex(data['eee_cap'])
-            
-        EEE_list = []
+        EEE_list = list() 
         for i in range(len(self.get_Ability_EEE_dict)):
             if ((data['eee_cap'] >> i) & 0x1):
                 EEE_list.append(self.get_Ability_EEE_dict[i])
-        
-        #print EEE_list
         return EEE_list
 
     def GetFecAbilities(self,rep_mode = 1, Location = "AQ"):
-        '''This function return list of FEC abilities
+        '''
+            This function return list of FEC abilities
             argument:
                 rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
                 Location = "REG" / "AQ" 
@@ -761,13 +715,15 @@ class cvl(cvlDefines):
         return FEC_list
 
     def _GetFecAbilitiesReg(self):
-        '''This function return list of FEC abilities
+        '''
+            This function return list of FEC abilities
             for debug only because FecAbilities by REG is not implimented.
         '''
         raise RuntimeError("Get FEC Abilities by Reg is not implimented")
 
     def _GetFecAbilitiesAq(self,rep_mode):
-        ''' Description: Get available FEC options for the link
+        '''
+            Description: Get available FEC options for the link
             input:
                 rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
             return:
@@ -812,7 +768,8 @@ class cvl(cvlDefines):
         return FEC_list
 
     def GetPhyLinkSpeed(self, Location = "REG"):
-        '''This function return Phy Link Speed.
+        '''
+            This function return Phy Link Speed.
             argument:
                 Location = "REG" / "AQ" 
             return: 
@@ -828,7 +785,8 @@ class cvl(cvlDefines):
         return LinkSpeed    
         
     def _GetPhyLinkSpeedReg(self):
-        '''This function return Phy Link Speed.
+        '''
+            This function return Phy Link Speed.
             return: 
                 link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G'
         '''
@@ -838,14 +796,16 @@ class cvl(cvlDefines):
         return self.Phy_link_speed_dict[int(value,16)]
         
     def _GetPhyLinkSpeedAq(self):
-        '''This function return Phy Link Speed using Get link status AQ.
+        '''
+            This function return Phy Link Speed using Get link status AQ.
             return:
                 link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G' 
         '''
         raise RuntimeError("_GetPhyLinkSpeedAq need to be done")
 
     def GetPhyLinkStatus(self, Location = "AQ"):
-        '''This function return Phy Link status.
+        '''
+            This function return Phy Link status.
             argument:
                 Location = "REG" / "AQ" 
             return: 
@@ -867,7 +827,8 @@ class cvl(cvlDefines):
         raise RuntimeError("Get link status by Reg is not implimented")
         
     def _GetPhyLinkStatusAq(self):
-        '''This function return PCS Link Status .
+        '''
+            This function return PCS Link Status .
             return: true (link up)/false (link down)
         '''
         quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
@@ -898,51 +859,6 @@ class cvl(cvlDefines):
         
         return link_status
 
-    def DisableLldp(self, shutdown=0 , persistent=0, debug=0):
-        driver = self.driver
-        aq_desc = AqDescriptor()
-        data_len = 0x0
-        aq_desc.opcode = 0x0a05 
-        aq_desc.datalen = data_len
-        buffer = [0] * data_len
-        aq_desc.param0 = (persistent << 1 | shutdown) 
-        aq_desc.param1 = 0
-        aq_desc.addr_high = 0
-        aq_desc.addr_low = 0
-        aq_desc.flags = 0x0
-
-        status = driver.send_aq_command(aq_desc, buffer, debug)
-        if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
-        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
-        if status or err_flag:
-            status = (True, aq_desc.retval)
-        else:
-            status = (False, None)
-
-    def EnableLldp(self,persistent = 0, debug = 0):
-        driver = self.driver
-        #helper = LM_Validation()
-        aq_desc = AqDescriptor()
-       # helper._debug('SetPhyDebug Admin Command')
-        data_len = 0x0
-        aq_desc.opcode = 0x0a06 
-        aq_desc.datalen = data_len
-        buffer = [0] * data_len
-        aq_desc.param0 = (persistent << 1 | 1) 
-        aq_desc.param1 = 0
-        aq_desc.addr_high = 0
-        aq_desc.addr_low = 0
-        aq_desc.flags = 0x0
-
-        status = driver.send_aq_command(aq_desc, buffer, debug)
-        if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
-        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
-        if status or err_flag:
-            status = (True, aq_desc.retval)
-        else:
-            status = (False, None)
 
     def DisableFECRequests(self, rep_mode = 1, Location = "AQ"):
         '''This function diables all feq requests by the device while keeping all other abillities intact 
@@ -2074,7 +1990,8 @@ class cvl(cvlDefines):
     ######################################################################################################
 
     def _DnlCallActivity(self, activity_id, context, sto_0, sto_1, sto_2, sto_3,debug=False):
-        '''This function is an indirect admin command used to call a DNL activity in the specified context. 
+        '''
+            This function is an indirect admin command used to call a DNL activity in the specified context. 
             arguments:
                 activity_id - The ID of the activity to be called
                 context - port number
@@ -2114,7 +2031,8 @@ class cvl(cvlDefines):
         return (sto_0, sto_1, sto_2, sto_3)
 
     def _DnlReadPstore(self, context, psto_index_to_read,debug=False):
-        '''Function that returns the value of the specific PSTO requested
+        '''
+            Function that returns the value of the specific PSTO requested
             arguments: 
                 context - context number
                 pstores_number_to_read - PSTO number to read
@@ -2151,7 +2069,8 @@ class cvl(cvlDefines):
         return pstores[-1] 
      
     def _DnlWriteStore(self, context, store_type, store_index, value,debug=False):
-        '''Function that write the value to specific PSTO.
+        '''
+            Function that write the value to specific PSTO.
             arguments: context - context number
                        store_type - 'sto' / 'psto'
                        store_index - offest
@@ -2181,7 +2100,8 @@ class cvl(cvlDefines):
             print('Failed to send DNL WRITE STORE AQ command, status:', status, ', FW ret value: ', aq_desc.retval)
 
     def DnlCvlDftTest(self, opcode,serdes_sel,data_in,debug=False):
-        '''This function run DNL dft test according to the list below (CVL-DFT-DO.8EX file).
+        '''
+            This function run DNL dft test according to the list below (CVL-DFT-DO.8EX file).
              input:
                 opcode - dft opcode according to the below list 
                 serdes_sel - on which serdes to run the dft test
@@ -2211,7 +2131,6 @@ class cvl(cvlDefines):
                 10                   get tx eq settings
                 11                   get_temperature
         '''
-
         driver = self.driver
         CVL_DFT_TEST_ACT_IT = 0x1129
         context = driver.port_number()
@@ -2241,7 +2160,8 @@ class cvl(cvlDefines):
         return sto_0
 
     def ReadDnlPstore(self, psto_index,debug=False):
-        '''This function return value from psore.
+        '''
+            This function return value from psore.
             argument: psto_index 
             return: value (hex)
         '''
@@ -2249,12 +2169,11 @@ class cvl(cvlDefines):
         context = driver.port_number()
 
         ret_val = self._DnlReadPstore(context,psto_index,debug=False)
-        #print 'ret_val',ret_val
-        #ret_val = ret_val.replace('L','')
         return hex(ret_val)
 
     def DnlGetPhyInfo(self):
-        '''This function calls DNL script get_phy_info
+        '''
+            This function calls DNL script get_phy_info
             inputs:
                 dict --
                     'context' : int
@@ -2283,42 +2202,40 @@ class cvl(cvlDefines):
         st['phy_fw_h'] = hex(status[2]).replace('L','')
         st['done'] = hex(status[3] >> 31).replace('L','') 
         return st
-
      
-     
-    #########################################################################################################
-    ######################           Support SECTION               ##########################################
-    #########################################################################################################
+#########################################################################################################
+######################           Support SECTION               ##########################################
+#########################################################################################################
      
     def GetPortNumber(self):
-        '''This function return port number
+        '''
+            This function return port number
             argument: None
             return: port number (int)
         '''
-        # driver = self.driver
         return self.driver.port_number()
 
     def ReadCsrRegister(self,offset):
-        '''This function return CSR register value according to CSR register address.
+        '''
+            This function return CSR register value according to CSR register address.
             argument: offset - CSR register address
             return: value - CSR register value
         '''
-        # driver = self.driver
-        reg_value = self.driver.read_csr(offset)
-        print("Register Value: ",hex(reg_value))
-
+        return self.driver.read_csr(offset)
+            
     def WriteCsrRegister(self,offset,value):
-        '''This function write value to CSR register address.
+        '''
+            This function write value to CSR register address.
             arguments: 
                 offset - CSR register address
                 value - value to write
             return: None
         '''
-        # driver = self.driver
         self.driver.write_csr(offset, value)
 
     def ReadEthwRegister(self, address):
-        '''This function support read from ethw.
+        '''
+            This function support read from ethw.
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 address - address to read in the neighbor device CSRs.
@@ -2329,7 +2246,8 @@ class cvl(cvlDefines):
         return return_val
 
     def WriteEthwRegister(self,address,data):
-        '''this function support write to ethw.
+        '''
+            this function support write to ethw.
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 address - address to write in the neighbor device CSRs.
@@ -2339,7 +2257,8 @@ class cvl(cvlDefines):
         pass
 
     def ReadMTIPRegister(self, offset,address,debug = False):
-        '''this function read from MTIP in ethw.
+        '''
+            this function read from MTIP in ethw.
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 offset - according CVL TLM Documents.
@@ -2356,7 +2275,8 @@ class cvl(cvlDefines):
         return ret_val
 
     def NeighborDeviceWrite(self,dest,opcode,addrlen,address,data):
-        '''this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
@@ -2416,16 +2336,11 @@ class cvl(cvlDefines):
         buffer.append(Byte3_AdDW)
         Byte4_AdDW = (data >> 24 ) & 0xFF
         buffer.append(Byte4_AdDW)
-
-
-        #print [hex(x) for x in buffer]
-
         return_buffer = self._NeighborDeviceRequestAq(0,buffer)
-        #print "return_buffer: ",return_buffer
-        pass
 
     def NeighborDeviceRead(self, dest,opcode,addrlen, address):
-        '''this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
@@ -2493,7 +2408,8 @@ class cvl(cvlDefines):
         return return_val.replace("L","")
 
     def _NeighborDeviceRequestAq(self, opcode,Massage):
-        '''this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
             arguments: 
                 Massage - massage value that contain the SB IOSF massage.
@@ -2524,21 +2440,9 @@ class cvl(cvlDefines):
         #print "buffer: ",buffer
         return buffer
 
-    def _Average(self, lst):
-        '''This function return average of list
-            argument: lst (list)
-            return: none
-        '''
-        return sum(lst) / len(lst)
-
-    def _GetValAddrPCIE(self, address):
-        ''' This function returns PCIE value by input address
-        '''
-        driver = self.driver
-        return driver.read_pci(address) 
-
     def _to_unsigned(self, value):
-        '''This function convert sign value to unsigned.
+        '''
+            This function convert sign value to unsigned.
             argument: value (sign number)
             return: unsigned value
         '''
@@ -2546,12 +2450,11 @@ class cvl(cvlDefines):
             return value
         else:
             return value + 2**8
-        
      
     def SetMdioBit(self, Page,Register,BitNum):
-        '''This function set MDIO bit.
         '''
-        # driver = self.driver
+            This function set MDIO bit.
+        '''
         reg_value = self.driver.read_phy_register(Page, Register, self.driver.port_number())
         print(hex(reg_value))
         reg_value = reg_value | (1 << BitNum)
@@ -2559,9 +2462,9 @@ class cvl(cvlDefines):
         self.driver.write_phy_register(Page, Register, driver.port_number(), reg_value)
      
     def ClearMdioBit(self,Page,Register,BitNum):
-        '''This function clear MDIO bit.
         '''
-        # driver = self.driver
+            This function clear MDIO bit.
+        '''
         reg_value = self.driver.read_phy_register(Page, Register, self.driver.port_number())
         print(hex(reg_value))
         reg_value = reg_value & ~(1 << BitNum)
@@ -2569,12 +2472,11 @@ class cvl(cvlDefines):
         self.driver.write_phy_register(Page, Register, self.driver.port_number(), reg_value)
 
     def CheckDeviceAliveness(self):
-        '''This function returns true if the device is alive or false otherwise
+        '''
+            This function returns true if the device is alive or false otherwise
             it's done for PCIe issue .
                return: True/false
         '''
-        # driver = self.driver
-
         reg_addr = calculate_port_offset(0x001E47A0, 0x4, self.driver.port_number())
         reg_data = self.driver.read_csr(reg_addr)
         if ( reg_data == 0xffffffff or reg_data == 0xdeadbeef):
@@ -2586,11 +2488,11 @@ class cvl(cvlDefines):
         gls = dict()
         gls["port"] = 0 
         gls["cmd_flag"] = 0
-        result = self.GetLinkStatus(gls)
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
+        status, data = self.GetLinkStatus(gls)
+
+        if status:
             raise RuntimeError("Error GetLinkStatusAfterParsing: Admin command was not successful")  
+
         if data["lcl_lpbk"]:
             print("PHY local loopback enabled")
         else:
@@ -2609,7 +2511,8 @@ class cvl(cvlDefines):
         #TODO print the PHY index that performs the loopback 0 = outermost
 
     def GetLinkStatusAfterParsing(self):
-        '''This function return dictionary that contain phy and mac link status and speed, fec mode.
+        '''
+            This function return dictionary that contain phy and mac link status and speed, fec mode.
             arguments: None
             return: dict--
                         "PhyType"
@@ -3824,6 +3727,51 @@ class cvl(cvlDefines):
             status = (False, None)
         return status
 
+    def DisableLldp(self, shutdown=0 , persistent=0, debug=0):
+        driver = self.driver
+        aq_desc = AqDescriptor()
+        data_len = 0x0
+        aq_desc.opcode = 0x0a05 
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (persistent << 1 | shutdown) 
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+
+    def EnableLldp(self,persistent = 0, debug = 0):
+        driver = self.driver
+        #helper = LM_Validation()
+        aq_desc = AqDescriptor()
+       # helper._debug('SetPhyDebug Admin Command')
+        data_len = 0x0
+        aq_desc.opcode = 0x0a06 
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = (persistent << 1 | 1) 
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x0
+
+        status = driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2 #isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
 
     ######################################################################################################
     ##########################                  PCIe sections                   ##########################
@@ -3919,18 +3867,18 @@ class cvl(cvlDefines):
         return link_width.get(val, "Wrong")
 
     def GetDevicePowerState(self):
-        '''This function returns Device power state: 
+        '''
+            This function returns Device power state: 
             argument: None
             return: "D0" / "Reserved" / "D3hot"
         '''
-        reg = self._GetValAddrPCIE(0x44)
+        reg = self.driver.read_pci(0x44)
         val = get_bits_slice_value(reg[1],0,1)
 
-        power_sate = {
-            0: "D0",
-            2: "Reserved",
-            3: "D3hot"
-        }
+        power_sate = {0: "D0",
+                      2: "Reserved",
+                      3: "D3hot"}
+
         print("Device Power State: ", power_sate.get(val,"Wrong"))
 
     #########################################################################################################
