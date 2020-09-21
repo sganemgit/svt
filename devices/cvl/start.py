@@ -32,13 +32,11 @@ parser.add_argument('-a', '--auto' , help="try to create devices automatically",
 parser.add_argument('-s', '--setup' , help="path to setup file")
 args = parser.parse_args()
 
-
-
 if args.auto:
-	devices = get_detected_devices("cvl")
-	if devices:
-		for device,info in devices.items():
-			globals()[device] = cvl(info['device_number'],info['port_number'])
+    devices = get_detected_devices("cvl")
+    if devices:
+        for device,info in devices.items():
+            globals()[device] = cvl(info['device_number'],info['port_number'])
 if args.setup:
 	print("currently not available")
 else:

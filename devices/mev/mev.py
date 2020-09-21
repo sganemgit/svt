@@ -1,7 +1,7 @@
+from devices.mev.mevTier1 import mevTier1
 
-from mevTier1 import mevTier1
 
 class mev(mevTier1):
 
     def info(self):
-        print mev1
+        print ("mev1")

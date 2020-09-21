@@ -1,5 +1,5 @@
+from devices.mev.mevDefines import mevDefines
 
-from mevDefines import mevDefines
 
 class mevTier1(mevDefines):
         
