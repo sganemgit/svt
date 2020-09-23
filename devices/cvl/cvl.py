@@ -370,6 +370,7 @@ class cvl(cvlTier1):
         for key, val in data.items():
             print("{} : {}".format(key, val))
 
+        
     def GetCurrentLinkSpeed(self, Location = "AQ"):
         '''
             This function return Mac Link Speed.
@@ -598,6 +599,25 @@ class cvl(cvlTier1):
             else:
                 return 'NO_FEC'
 
+    def GetCurrentModuleComplianceEnforcement(self):
+        '''
+            CPK DCR 102
+        '''
+        get_abils = {}
+        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
+        get_abils['rep_qual_mod'] = 0
+        get_abils['rep_mode'] = 0 
+        
+        status, data = self.GetPhyAbilities(get_abils)
+        
+        if status:
+            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
+        
+        if data['module_compliance_enforcement'] & 0x1:
+            return 'strict'
+        else:
+            return 'lenient'
+         
     def GetPhyTypeAbilities(self, rep_mode = 0, Location = "AQ"):
         '''
             This function return list of phy types

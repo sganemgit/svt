@@ -51,19 +51,15 @@ class cvlTier1(cvlDefines):
         buffer.extend(turn_arg_to_bytes(config['phy_type_1']))
         buffer.extend(turn_arg_to_bytes(config['phy_type_2']))
         buffer.extend(turn_arg_to_bytes(config['phy_type_3']))
-        byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (
-                    config.get('an_mode', 0) << 4) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | (
-                              config['rx_pause_req'] << 1) | config['tx_pause_req']
+        byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (config.get('an_mode', 0) << 4) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | (config['rx_pause_req'] << 1) | config['tx_pause_req']
         byte_17 = config['low_pwr_ctrl'] & 0xff
         byte_18 = config['eee_cap_en'] & 0xff
         byte_19 = (config['eee_cap_en'] >> 8) & 0xff
         byte_20 = config['eeer'] & 0xff
         byte_21 = (config['eeer'] >> 8) & 0xff
-        byte_22 = (config['fec_firecode_25g_abil'] << 7) | (config['fec_rs528_abil'] << 6) | (
-                    config['fec_rs544_req'] << 4) | (config['fec_firecode_25g_req'] << 3) | (
-                              config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config[
-                      'fec_firecode_10g_abil']
-        byte_23 = 0 & 0xFF  # FW requires buffer to be 24 bytes long, appending empty byte at the end of data structure to achieve this
+        byte_22 = (config['fec_firecode_25g_abil'] << 7) | (config['fec_rs528_abil'] << 6) | (config['fec_rs544_req'] << 4) | (config['fec_firecode_25g_req'] << 3) | (config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config['fec_firecode_10g_abil']
+
+        byte_23 = config.get('module_compliance_mode',1)
         buffer.append(byte_16)
         buffer.append(byte_17)
         buffer.append(byte_18)
@@ -309,6 +305,7 @@ class cvlTier1(cvlDefines):
             data['fec_rs544_req'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x10) >> 4
             data['fec_rs528_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x40) >> 6
             data['fec_firecode_25g_abil'] = (compose_num_from_array_slice(buffer, 34, 1) & 0x80) >> 7
+            data['module_compliance_enforcement'] = compose_num_from_array_slice(buffer, 35, 1) & 0x1 #from CPK DCR 102 aka persistent mode
             data['mod_ext_comp_code'] = compose_num_from_array_slice(buffer, 36, 1)
             data['current_module_type'] = compose_num_from_array_slice(buffer, 37, 3)
             # TODO: remove these fiedlds from code
