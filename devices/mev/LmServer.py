@@ -24,8 +24,8 @@ class LmServer:
         self._IP = ip
         self._PORT = port
     
-    def get_imc_tcp_ip_address(self, ip, port):
-        returnt self.IP, self.PORT 
+    def get_imc_tcp_ip_address(self):
+        return self._IP, self._PORT
 
     def connect(self):
         try:
