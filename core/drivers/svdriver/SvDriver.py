@@ -381,6 +381,105 @@ class SvDriver(object):
     def rx_start_traffic(self, **kwargs):
         pass
 
+    def get_fw_info(self):
+        '''
+            This method retuns a dictionary conatining FW info
+        '''
+        fw_info_dict = dict()
+        fw_info = libPyApi.SvFirmwareVersion()
+        self._driver_proxy.cfg().get_firmware_version(fw_info)
+        fw_info_dict['FW build'] = hex(fw_info.fw_build)
+        fw_info_dict['FW Api version'] = "{}.{}".format(fw_info.api_major_version, fw_info.api_minor_version)
+        fw_info_dict['FW version'] = "{}.{}".format(fw_info.fw_major_version, fw_info.fw_minor_version)
+        fw_info_dict['FW rom version'] = hex(fw_info.rom_version)
+        fw_info_dict['FW patch version'] = str(fw_info.fw_patch_version)
+        return fw_info_dict
+
+    def get_kernel_module_name(self):
+        '''
+            This method returns the kernel device driver's module name in the kernel
+        '''
+        return self._driver_proxy.get_module_name()
+
+    def read_shadow_ram(word_offset):
+        '''
+            This methods reads from the FW shadow ram
+        '''
+        nvm_block = self._driver_proxy.nvm()
+        value = nvm_block.shadow_ram_read(word_offset)
+        if value[0]:
+            raise RuntimeError("shadow ram read failed status {}".format(value[0]))
+        return vlue[1]
+
+    def dump_show_ram_to_file(self, filename):
+        '''
+            This method dumps shadow ram values to a file
+        '''
+        nvm_block = self._driver_proxy.nvm()
+        value = nvm_block.dump_shadow_ram_to_file(filename)
+        if value:
+            raise RuntimeError("shadow ram read failed status {}".format(value[0]))
+
+    def read_nvm(self, word_offset):
+        '''
+            this method reads from the device's nvm
+        '''
+        nvm_block = self._driver_proxy.nvm()
+        value = nvm_block.read(word_offset)
+        if value[0]:
+            raise RuntimeError("nvm read failed status {}".format(value[0]))
+        return vlaue[1]
+
+    def read_nvm_memory_mapped(self, word_offset):
+        '''
+            this method reads from the device's nvm
+        '''
+        nvm_block = self._driver_proxy.nvm()
+        value = nvm_block.memory_mapped_read(word_offset)
+        if value[0]:
+            raise RuntimeError("nvm read failed status {}".format(value[0]))
+        return vlaue[1]        
+    def write_nvm(slef, word_offset, value_16bit):
+        '''
+            this method reads from the device's nvm
+        '''
+        nvm_block = self._driver_proxy.nvm()
+        nvm_block.write(word_offset, value_16bit)
+
+    def get_nvm_version(self):
+        '''
+            This method returns the currnet device nvm version as a string 
+        '''
+        version = libPyApi.SvNvmVersion()
+        self._driver_proxy.nvm().get_nvm_version(version)    
+        return "{}.{}".format(version.major,version.minor)
+
+    def get_nvm_id(self):
+        '''
+            This method returns the currnet device nvm id
+        '''
+        version = libPyApi.SvNvmVersion()
+        self._driver_proxy.nvm().get_nvm_version(version)    
+        return hex(version.id)
+
+    def get_flash_size(self):
+        '''
+            This method returns the flash size as an int
+        '''
+        return self._driver_proxy.nvm().get_flash_size()[1]
+
+    def get_shadow_ram_size(self):
+        '''
+            This method returns the shadow ram size as an int
+        '''
+        return self._driver_proxy.nvm().get_shadow_ram_size()[1]
+
+    def get_eeprom_size(self):
+        '''
+            This method returns the shadow ram size as an int
+        '''
+        return self._driver_proxy.nvm().get_eepromsize()[1]
+
     def read_pci(self, register_offset):
         ''' 
         This method reads 32-bits pci register at offset specified 
