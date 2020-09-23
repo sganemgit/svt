@@ -8,16 +8,18 @@ import threading
 
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *
+from core.utilities.SvtDecorator import *
 
 import time
 
 from devices.cvl.cvlDefines import cvlDefines, cvl_structs, AqOpCodes
 from devices.cvl.cvlTier1 import cvlTier1
 
-
 class cvl(cvlTier1):
-    'This class contains all the methods to interface with a cvl pf'
-    
+    '''
+        This class contains all the methods to interface with a cvl pf
+    '''
+    @timer
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:
