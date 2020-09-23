@@ -327,6 +327,48 @@ class SvDriver(object):
             raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
         self._driver_proxy.dispose_rx_ring(rx_ring)
            
+    def get_rx_descriptors(self, ring_number):
+        '''
+            create a list of all the ring descriptors
+
+                :param device: device identity
+                :param ring_number: ring number
+                :return: list of descriptors
+        ''' 
+        dp = self._driver_proxy
+
+        rx_ring = dp.get_rx_ring(ring_number)
+
+        if rx_ring is None:
+            raise RuntimeError("Getting Rx ring failed, ring number = %s" % ring_number)
+
+        ring_props = libPyApi.RxRingProperties()
+
+        rx_ring.get_ring_properties(ring_props)
+
+        if ring_props is None:
+            raise RuntimeError("Getting ring properties failed, ring number = %s" % ring_number)
+
+        ring_size = ring_props.desc_count
+
+        data = list() 
+        buff = libPyApi.vector_descriptor()
+        rx_ring.get_ring_descriptors(buff)
+
+        for idx in range(0, ring_size):
+            offset = rx_ring.get_descriptor_offset(idx)
+            # offset = [0,0]
+            # desc_type = DESC_TYPE[rx_ring.get_ring_descriptor_type(idx)[1]]
+            address = buff[idx].address
+            fields = buff[idx].fields
+            row = ["{0:0>12}".format(idx),
+                    hex(offset[1]),
+                    hex(address),
+                    "{0:0>12}".format(hex(fields))]
+
+            data.append(row)
+        return data
+
     def configure_tx_ring(self, **kwargs):
         pass
 

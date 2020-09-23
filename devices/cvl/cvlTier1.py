@@ -990,3 +990,14 @@ class cvlTier1(cvlDefines):
         buffer = []
         status = self.driver.send_aq_command(aq_desc)
         return [status, aq_desc.retval]
+
+    def ReadNvm(self, args, debug=False):
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0701
+        aq_desc.flags = 0
+        aq_desc.datalen = 0
+        aq_desc.param0 = ((args.get('read_from_flash', 0)) << 31) | (args.get('last_cmd',0) << 24) | (args['offset'] & 0xffffff)
+        aq_desc.param1 = ((args['length'] & 0xffff) << 16) | (args['module_typeID'] & 0xffff)
+        aq_desc.addr_high = args.get('addr_high', 0)
+        aq_desc.addr_low = args.get('addr_low', 0)
+
