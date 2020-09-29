@@ -7,7 +7,7 @@ from core.drivers.DriverFactory import DriverFactory
 from core.devices.deviceBase import deviceBase
 import sys
 
-class cvlBase:
+class cpkBase:
     '''
         This class is the base class for CPK infreface, 
         defines the constructor and holds information about the object instance
