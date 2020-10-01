@@ -40,7 +40,9 @@ class LmServer:
             total_data.append(data)
         return ''.join(total_data)
 
-    def send(self):
-        pass
-        
-
+    def send(self,message):
+        try:
+            self._socket.sendall(message)
+        except Exception as e:
+            print('failed to send the message')
+            raise e
