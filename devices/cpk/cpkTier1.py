@@ -22,8 +22,7 @@ class cpkTier1(cpkDefines):
                     'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
                     'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
                     'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'tx_pause_req' : int[1 bit] -- bit to request that TX_PAUSE be enabled on the link
-                    'rx_pause_req' : int[1 bit] -- bit to request that RX_PAUSE be enabled on the link
+                    'pause_abil' : int[1 bit] -- bit to request that PAUSE be enabled on the link
                     'low_pwr_abil' : int[1 bit] -- bit to indicate if modules may engage Power Classes higher than 1, if set only Power Class 1 is allowed
                     'en_link' : int[1 bit] -- 1 to enable link, 0 to disable link
                     'en_auto_update' : int[1 bit] -- 1 to allow FW to issue Setup Link command immediately after SetPHYConfig completes, 0 to only execute SetPHYConfig
@@ -52,15 +51,15 @@ class cpkTier1(cpkDefines):
         buffer.extend(turn_arg_to_bytes(config['phy_type_1']))
         buffer.extend(turn_arg_to_bytes(config['phy_type_2']))
         buffer.extend(turn_arg_to_bytes(config['phy_type_3']))
-        byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (config.get('an_mode', 0) << 4) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | (config['rx_pause_req'] << 1) | config['tx_pause_req']
+        byte_16 = (config['auto_fec_en'] << 7) | (config['lesm_en'] << 6) | (config['en_auto_update'] << 5) | (config['en_link'] << 3) | (config['low_pwr_abil'] << 2) | config['pause_abil']
         byte_17 = config['low_pwr_ctrl'] & 0xff
         byte_18 = config['eee_cap_en'] & 0xff
         byte_19 = (config['eee_cap_en'] >> 8) & 0xff
         byte_20 = config['eeer'] & 0xff
         byte_21 = (config['eeer'] >> 8) & 0xff
         byte_22 = (config['fec_firecode_25g_abil'] << 7) | (config['fec_rs528_abil'] << 6) | (config['fec_rs544_req'] << 4) | (config['fec_firecode_25g_req'] << 3) | (config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config['fec_firecode_10g_abil']
+        byte_23 = config.get('module_complinance_enforcement', 1) & 0x1 #Based on DCR 102
 
-        byte_23 = config.get('module_compliance_mode',1)
         buffer.append(byte_16)
         buffer.append(byte_17)
         buffer.append(byte_18)
@@ -70,6 +69,7 @@ class cpkTier1(cpkDefines):
         buffer.append(byte_22)
         buffer.append(byte_23)
         buffer.extend([0] * (0x100 - len(buffer)))
+        
         aq_desc.opcode = 0x0601
         aq_desc.flags = 0x1400  # Include buffer and read flags for this command
         aq_desc.param0 = config['port']
@@ -79,8 +79,7 @@ class cpkTier1(cpkDefines):
         aq_desc.datalen = len(buffer)
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,
-                                                                                                      aq_desc.retval))
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -277,16 +276,8 @@ class cpkTier1(cpkDefines):
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 12, 4)
             data['phy_type'] = compose_num_from_array_slice(buffer, 0, 16)
 
-            phy_type_list = []
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
-            # TODO: change code base to not rely on this field. This Field will be deleted
-            data['phy_type_list'] = phy_type_list
 
-            data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x1)
-            data['asy_dir_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x2) >> 1
+            data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x3)
             data['low_pwr_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x4) >> 2
             data['link_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x8) >> 3
             data['an_mode'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x10) >> 4
@@ -444,38 +435,14 @@ class cpkTier1(cpkDefines):
             data['25g_rs_528'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
             data['rs_544'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x4) >> 2
             data['pacing_config'] = (compose_num_from_array_slice(buffer, 8, 1) & 0xF8) >> 3
-            data['ext_device_pwr_abil'] = (compose_num_from_array_slice(buffer, 9, 1) & 0x3)
 
-            data['pacing_type'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x80) >> 7  # TODO - to be deleted
-            data['pacing_rate'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x78) >> 3  # TODO - to be deleted
             data['current_link_speed'] = compose_num_from_array_slice(buffer, 10, 2)
-
-            data['link_speed_10m'] = compose_num_from_array_slice(buffer, 10, 1) & 0x1  # TODO - to be deleted
-            data['link_speed_100m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x2) >> 1  # TODO - to be deleted
-            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2  # TODO - to be deleted
-            data['link_speed_1000m'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x4) >> 2  # TODO - to be deleted
-            data['link_speed_2p5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x8) >> 3  # TODO - to be deleted
-            data['link_speed_5g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x10) >> 4  # TODO - to be deleted
-            data['link_speed_10g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x20) >> 5  # TODO - to be deleted
-            data['link_speed_20g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x40) >> 6  # TODO - to be deleted
-            data['link_speed_25g'] = (compose_num_from_array_slice(buffer, 10, 1) & 0x80) >> 7  # TODO - to be deleted
-            data['link_speed_40g'] = compose_num_from_array_slice(buffer, 11, 1) & 0x1  # TODO - to be deleted
-            data['link_speed_50g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x2) >> 1  # TODO - to be deleted
-            data['link_speed_100g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x4) >> 2  # TODO - to be deleted
-            data['link_speed_200g'] = (compose_num_from_array_slice(buffer, 11, 1) & 0x8) >> 3  # TODO - to be deleted
 
             data['phy_type_0'] = compose_num_from_array_slice(buffer, 16, 4)
             data['phy_type_1'] = compose_num_from_array_slice(buffer, 20, 4)
             data['phy_type_2'] = compose_num_from_array_slice(buffer, 24, 4)
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
             data['phy_type'] = compose_num_from_array_slice(buffer, 16, 16)
-
-            phy_type_list = []  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))  # TODO - to be deleted
-            data['phy_type_list'] = phy_type_list  # TODO - to be deleted
 
             status = (False, data)
         return status
@@ -502,14 +469,12 @@ class cpkTier1(cpkDefines):
         # param1 = (0)
         # addr_high = (0)
         # addr_low = (0)
-        # helper = LM_Validation()
-        aq_desc = AqDescriptor()  # helper._debug('SetPhyLoopback Admin Command')
+        aq_desc = AqDescriptor()
         data_len = 0x0
         aq_desc.opcode = 0x0619
         aq_desc.datalen = data_len
         buffer = [0] * data_len
-        aq_desc.param0 = (phy_lpbk_args['level'] << 26) | (phy_lpbk_args['type'] << 25) | (
-                    phy_lpbk_args['enable'] << 24) | (phy_lpbk_args['index'] << 16) | phy_lpbk_args['port']
+        aq_desc.param0 = (phy_lpbk_args['level'] << 26) | (phy_lpbk_args['type'] << 25) | (phy_lpbk_args['enable'] << 24) | (phy_lpbk_args['index'] << 16) | phy_lpbk_args['port']
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -518,7 +483,7 @@ class cpkTier1(cpkDefines):
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
-        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        err_flag = (aq_desc.flags & 0x4) >> 2
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
@@ -546,9 +511,7 @@ class cpkTier1(cpkDefines):
         # addr_high = (0)
         # addr_low = (0)
 
-        # helper = LM_Validation()
         aq_desc = AqDescriptor()
-        # helper._debug('SetPhyDebug Admin Command')
         data_len = 0x0
         aq_desc.opcode = 0x0622
         aq_desc.datalen = data_len
