@@ -6,6 +6,7 @@
 import sys
 import time
 from core.utilities.BitManipulation import *
+from core.utilities.SvtDecorator import *
 from core.structs.AqDescriptor import AqDescriptor
 from cpkTier1 import *
 
@@ -24,8 +25,8 @@ class cpk(cpkTier1):
         port = self.driver.port_number()
         device_number = self.driver.device_number()
         print("######################################")
-        print("CVL port {}".format(port))
-        print("CVL device {}".format(device_number))
+        print("CPK port {}".format(port))
+        print("CPK device {}".format(device_number))
         print("######################################")
         link_status_dict = self.GetLinkStatusAfterParsing()
         link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
@@ -34,19 +35,17 @@ class cpk(cpkTier1):
         for phy in self.GetPhyTypeAbilities(rep_mode = 0):
             print('        {}'.format(phy))
         print("Phy Type: ", link_status_dict['PhyType'])
-        print("FEC Type: ", self.GetCurrentFECStatus())
+
         print("Mac Link Status: ",link_status_dict['MacLinkStatus'])
         if link_up_flag:
             print("Mac Link Speed: ",link_status_dict['MacLinkSpeed'])
-            print("Phy Link Status: ",'UP' if self.GetPhyLinkStatus()==1 else 'Down') #GetPhyLinkStatus() # ONPI)
-            print("Phy Link Speed: ",self.GetPhyLinkSpeed()) 
             #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
             print("Enabled FEC: ", link_status_dict['EnabeldFEC'])
             print("EEE abilities: ", self.GetEEEAbilities(rep_mode = 0))#GetPhyAbility)
             print() 
 
-        print("Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed())
-        print("Current PCIe link Width, ",self.GetPCIECurrentLinkWidth())
+       # print("Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed())
+        #print("Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()) TODO: uncomment when the methods are implemented
 
 ###############################################################################
 #                        Register reading section                             #
@@ -700,16 +699,16 @@ class cpk(cpkTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = self.GetPhyAbilities(get_abils) 
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
+        status, data = self.GetPhyAbilities(get_abils) 
+        if status:
             raise RuntimeError("Error _GetEEEAbilitiesAq: Admin command was not successful")  
             
-        EEE_list = list() 
-        for i in range(len(self.get_Ability_EEE_dict)):
-            if ((data['eee_cap'] >> i) & 0x1):
-                EEE_list.append(self.get_Ability_EEE_dict[i])
+        EEE_list = list()
+        eee_cap = data['eee_cap']
+        for key, val in self.get_Ability_EEE_dict.items():
+            mask = 1 << key
+            if mask & eee_cap:
+                EEE_list.append(val)
         return EEE_list
 
     def GetFecAbilities(self,rep_mode = 1, Location = "AQ"):
@@ -2205,74 +2204,7 @@ class cpk(cpkTier1):
         buffer.append(Byte4_AdDW)
         return_buffer = self._NeighborDeviceRequestAq(0,buffer)
 
-    def NeighborDeviceRead(self, dest,opcode,addrlen, address):
-        '''
-            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
-            supporting read/write via SBiosf to neighbor device.
-            arguments: 
-                dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
-                opcode - read/write etc...  according Table 3-34, in 3.3.4.1 CVL Spec
-                addrlen - address length 0: 16 bit, 1: 48 bits. according Table B-8, appandix B.3.1 CVL spec
-                address - address to read in the neighbor device CSRs.
-            return: 
-                value - return value from the neighbor device.
-        ''' 
-        struct = cvl_structs()
-        SbIosfMassageDict = struct.SbIosfMassageStruct()
-        buffer = []
-     
-        # First DW
-        buffer.append(SbIosfMassageDict['dest'] | dest)
-        buffer.append(SbIosfMassageDict['source'])
-        buffer.append(SbIosfMassageDict['opcode'] | opcode)
-        Byte4_1stDW = (SbIosfMassageDict['EH'] << 7) | ((SbIosfMassageDict['addrlen'] | addrlen ) << 6) | (SbIosfMassageDict['Bar'] << 3 ) | SbIosfMassageDict['Tag']
-        buffer.append(Byte4_1stDW)
-     
-        # Second DW - Should be ignored according tanya
-        # Byte1_2ndDW = (SbIosfMassageDict['EH_2ndDW'] << 7) | SbIosfMassageDict['exphdrid']
-        # buffer.append(Byte1_2ndDW)
-        # Byte2_2ndDW = SbIosfMassageDict['sai'] & 0xFF
-        # buffer.append(Byte2_2ndDW)
-        # Byte3_2ndDW = (SbIosfMassageDict['sai'] >> 8) & 0xFF
-        # buffer.append(Byte3_2ndDW)
-        # Byte4_2ndDW = SbIosfMassageDict['rs'] & 0xF
-        # buffer.append(Byte4_2ndDW)
-     
-        # Third DW
-        Byte1_3rdDW = (SbIosfMassageDict['Sbe'] << 4) | (SbIosfMassageDict['fbe'] | 0xF) # the fbe value taken from BDX team
-        buffer.append(Byte1_3rdDW)
-        buffer.append(SbIosfMassageDict['Fid'])
-        Byte3_3rdDW = address & 0xFF
-        buffer.append(Byte3_3rdDW)
-        Byte4_3rdDW = (address >> 8) & 0xFF
-        buffer.append(Byte4_3rdDW)
-     
-        # four DW
-        Byte1_4rdDW = (address >> 16) & 0xFF
-        buffer.append(Byte1_4rdDW)
-        Byte2_4rdDW = (address >> 24) & 0xFF
-        buffer.append(Byte2_4rdDW)
-        Byte3_4rdDW = 0
-        buffer.append(Byte3_4rdDW)
-        Byte4_4rdDW = 0
-        buffer.append(Byte4_4rdDW)
 
-        # need to fill 0 for the ladt DW according tanya
-        buffer.append(0)
-        buffer.append(0)
-        buffer.append(0)
-        buffer.append(0)
-
-        #print [hex(x) for x in buffer]
-        #print "DW_1", hex(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])
-        #print "DW_2", hex(buffer[7] << 24 | buffer[6] << 16 | buffer[5] << 8 | buffer[4])
-        #print "DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
-        #print "DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
-
-        return_buffer = self._NeighborDeviceRequestAq(1,buffer)
-        return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
-        #print "return val: ", return_val
-        return return_val.replace("L","")
 
     def _to_unsigned(self, value):
         '''
@@ -2396,42 +2328,49 @@ class cpk(cpkTier1):
 
         ####### get Mac Link status  ##############################################
         link_speed = 'N/A'
+        current_link_speed = data['current_link_speed']
+
         if self.Get_Speed_Status_dict:
-            if data['link_speed_10m']:
-                link_speed = self.Get_Speed_Status_dict[0]
+            for key, val in self.Get_Speed_Status_dict.items():
+                mask = 1 << key
+                if current_link_speed & mask:
+                    link_speed= val
+
+            # if data['link_speed_10m']:
+            #     link_speed = self.Get_Speed_Status_dict[0]
                 
-            elif data['link_speed_100m']:
-                link_speed = self.Get_Speed_Status_dict[1]
+            # elif data['link_speed_100m']:
+            #     link_speed = self.Get_Speed_Status_dict[1]
                 
-            elif data['link_speed_1000m']:
-                link_speed = self.Get_Speed_Status_dict[2]
+            # elif data['link_speed_1000m']:
+            #     link_speed = self.Get_Speed_Status_dict[2]
                 
-            elif data['link_speed_2p5g']:
-                link_speed = self.Get_Speed_Status_dict[3]
+            # elif data['link_speed_2p5g']:
+            #     link_speed = self.Get_Speed_Status_dict[3]
                 
-            elif data['link_speed_5g']:
-                link_speed = self.Get_Speed_Status_dict[4]
+            # elif data['link_speed_5g']:
+            #     link_speed = self.Get_Speed_Status_dict[4]
                 
-            elif data['link_speed_10g']:
-                link_speed = self.Get_Speed_Status_dict[5]
+            # elif data['link_speed_10g']:
+            #     link_speed = self.Get_Speed_Status_dict[5]
                 
-            elif data['link_speed_20g']:
-                link_speed = self.Get_Speed_Status_dict[6]
+            # elif data['link_speed_20g']:
+            #     link_speed = self.Get_Speed_Status_dict[6]
                 
-            elif data['link_speed_25g']:
-                link_speed = self.Get_Speed_Status_dict[7]
+            # elif data['link_speed_25g']:
+            #     link_speed = self.Get_Speed_Status_dict[7]
                 
-            elif data['link_speed_40g']:
-                link_speed = self.Get_Speed_Status_dict[8]
+            # elif data['link_speed_40g']:
+            #     link_speed = self.Get_Speed_Status_dict[8]
                 
-            elif data['link_speed_50g']:
-                link_speed = self.Get_Speed_Status_dict[9]
+            # elif data['link_speed_50g']:
+            #     link_speed = self.Get_Speed_Status_dict[9]
                 
-            elif data['link_speed_100g']:
-                link_speed = self.Get_Speed_Status_dict[10]
+            # elif data['link_speed_100g']:
+            #     link_speed = self.Get_Speed_Status_dict[10]
                 
-            elif data['link_speed_200g']:
-                link_speed = self.Get_Speed_Status_dict[11]
+            # elif data['link_speed_200g']:
+            #     link_speed = self.Get_Speed_Status_dict[11]
 
         else:
             raise RuntimeError("Error GetLinkStatusAfterParsing: Get_Speed_Status_dict is not defined")
@@ -2978,7 +2917,6 @@ class cpk(cpkTier1):
         #print hex(val)
         return val
 
-
     def WriteLcbRegister(self, offset,data):
         '''This function writes a data to LCB register by register-offset
             Section 13.2.2.3.130  PCIe LCB Address Port - GLPCI_LCBADD(0x0009E944)
@@ -3002,8 +2940,7 @@ class cpk(cpkTier1):
             argument: None
             return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
         '''
-        reg = (self.ReadLcbRegister(0x50))
-        val = get_bits_slice_value(reg,16,19) #speed
+        #TODO implement this methdo
 
         link_speed = {
             1: "Gen1",
@@ -3011,6 +2948,7 @@ class cpk(cpkTier1):
             3: "Gen3",
             4: "Gen4"
         }
+
         return link_speed.get(val,"Wrong")
 
     def GetPCIECurrentLinkWidth(self):
@@ -3018,9 +2956,7 @@ class cpk(cpkTier1):
             argument: None
             return: 'x1' / 'x2' / 'x4' / 'x8' / 'x16'
         '''
-        reg = (self.ReadLcbRegister(0x50))
-        val = get_bits_slice_value(reg,20,24) #width
-
+        #TODO implement this method for cpk
         link_width = {
             0: "Reserved",
             1: "x1",

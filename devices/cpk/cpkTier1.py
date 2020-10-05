@@ -965,3 +965,119 @@ class cpkTier1(cpkDefines):
         aq_desc.addr_high = args.get('addr_high', 0)
         aq_desc.addr_low = args.get('addr_low', 0)
 
+    def NeighborDeviceRead(self, dest,opcode,addrlen, address):
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+            supporting read/write via SBiosf to neighbor device.
+            arguments: 
+                dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
+                opcode - read/write etc...  according Table 3-34, in 3.3.4.1 CVL Spec
+                addrlen - address length 0: 16 bit, 1: 48 bits. according Table B-8, appandix B.3.1 CVL spec
+                address - address to read in the neighbor device CSRs.
+            return: 
+                value - return value from the neighbor device.
+        ''' 
+        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        buffer = []
+     
+        # First DW
+        buffer.append(SbIosfMassageDict['dest'] | dest)
+        buffer.append(SbIosfMassageDict['source'])
+        buffer.append(SbIosfMassageDict['opcode'] | opcode)
+        Byte4_1stDW = (SbIosfMassageDict['EH'] << 7) | ((SbIosfMassageDict['addrlen'] | addrlen ) << 6) | (SbIosfMassageDict['Bar'] << 3 ) | SbIosfMassageDict['Tag']
+        buffer.append(Byte4_1stDW)
+     
+        # Third DW
+        Byte1_3rdDW = (SbIosfMassageDict['Sbe'] << 4) | (SbIosfMassageDict['fbe'] | 0xF) # the fbe value taken from BDX team
+        buffer.append(Byte1_3rdDW)
+        buffer.append(SbIosfMassageDict['Fid'])
+        Byte3_3rdDW = address & 0xFF
+        buffer.append(Byte3_3rdDW)
+        Byte4_3rdDW = (address >> 8) & 0xFF
+        buffer.append(Byte4_3rdDW)
+     
+        # four DW
+        Byte1_4rdDW = (address >> 16) & 0xFF
+        buffer.append(Byte1_4rdDW)
+        Byte2_4rdDW = (address >> 24) & 0xFF
+        buffer.append(Byte2_4rdDW)
+        Byte3_4rdDW = 0
+        buffer.append(Byte3_4rdDW)
+        Byte4_4rdDW = 0
+        buffer.append(Byte4_4rdDW)
+
+        # need to fill 0 for the ladt DW according tanya
+        buffer.append(0)
+        buffer.append(0)
+        buffer.append(0)
+        buffer.append(0)
+
+        return_buffer = self._NeighborDeviceRequestAq(1,buffer)
+        return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
+        #print "return val: ", return_val
+        return return_val.replace("L","")
+
+    def NeighborDeviceWrite(self,dest,opcode,addrlen,address,data):
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+            supporting read/write via SBiosf to neighbor device.
+            arguments: 
+                dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
+                opcode - read/write etc...  according Table 3-34, in 3.3.4.1 CVL Spec
+                addrlen - address length 0: 16 bit, 1: 48 bits. according Table B-8, appandix B.3.1 CVL spec
+                address - address to read in the neighbor device CSRs.
+                data - data to be written
+            return: 
+                None
+        ''' 
+        struct = cvl_structs()
+        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        buffer = []
+     
+        # First DW
+        buffer.append(SbIosfMassageDict['dest'] | dest)
+        buffer.append(SbIosfMassageDict['source'])
+        buffer.append(SbIosfMassageDict['opcode'] | opcode)
+        Byte4_1stDW = (SbIosfMassageDict['EH'] << 7) | ((SbIosfMassageDict['addrlen'] | addrlen ) << 6) | (SbIosfMassageDict['Bar'] << 3 ) | SbIosfMassageDict['Tag']
+        buffer.append(Byte4_1stDW)
+     
+        # Second DW - Should be ignored according tanya
+        # Byte1_2ndDW = (SbIosfMassageDict['EH_2ndDW'] << 7) | SbIosfMassageDict['exphdrid']
+        # buffer.append(Byte1_2ndDW)
+        # Byte2_2ndDW = SbIosfMassageDict['sai'] & 0xFF
+        # buffer.append(Byte2_2ndDW)
+        # Byte3_2ndDW = (SbIosfMassageDict['sai'] >> 8) & 0xFF
+        # buffer.append(Byte3_2ndDW)
+        # Byte4_2ndDW = SbIosfMassageDict['rs'] & 0xF
+        # buffer.append(Byte4_2ndDW)
+     
+        # Third DW
+        Byte1_3rdDW =(SbIosfMassageDict['Sbe'] << 4) | (SbIosfMassageDict['fbe'] | 0xF) # the fbe value taken from BDX team
+        buffer.append(Byte1_3rdDW)
+        buffer.append(SbIosfMassageDict['Fid'])
+        Byte3_3rdDW = address & 0xFF
+        buffer.append(Byte3_3rdDW)
+        Byte4_3rdDW = (address >> 8) & 0xFF
+        buffer.append(Byte4_3rdDW)
+     
+        # four DW
+        Byte1_4rdDW = (address >> 16) & 0xFF
+        buffer.append(Byte1_4rdDW)
+        Byte2_4rdDW = (address >> 24) & 0xFF
+        buffer.append(Byte2_4rdDW)
+        Byte3_4rdDW = 0
+        buffer.append(Byte3_4rdDW)
+        Byte4_4rdDW = 0
+        buffer.append(Byte4_4rdDW)
+
+        # Addidional DW's for writing
+        Byte1_AdDW = data & 0xFF
+        buffer.append(Byte1_AdDW)
+        Byte2_AdDW = (data >> 8 ) & 0xFF
+        buffer.append(Byte2_AdDW)
+        Byte3_AdDW = (data >> 16 ) & 0xFF
+        buffer.append(Byte3_AdDW)
+        Byte4_AdDW = (data >> 24 ) & 0xFF
+        buffer.append(Byte4_AdDW)
+        return_buffer = self._NeighborDeviceRequestAq(0,buffer)
+

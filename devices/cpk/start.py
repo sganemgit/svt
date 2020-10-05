@@ -42,4 +42,6 @@ if args.setup:
 else:
 	help()
 
+cpk_dut = cpk(0,0,'ladh1841')
+cpk_lp  = cpk(0,0,'ladh1833')
 
