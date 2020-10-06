@@ -7,6 +7,7 @@ class Timer:
 		self._end_time = 0
 		self._duration = duration
 		self._set_flag = True
+		self._start_time = None
 
 	def set_for(self, duration):
 		self._duration = duration
@@ -16,9 +17,14 @@ class Timer:
 		self._end_time = 0
 		self._duration = 0
 		self._set_flag = False
+		self._start_time = None
+
+	def time_passed_in_seconds(self):
+		return int(time.time() - self._start_time)
 
 	def start(self):
-		self._end_time = time.time() + self._duration 
+		self._start_time = time.time()
+		self._end_time = self._start_time + self._duration 
 
 	def expired(self):
 		if self._set_flag:
