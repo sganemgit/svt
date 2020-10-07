@@ -340,15 +340,12 @@ class cpk(cpkTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
+        status, data = self.GetLinkStatus(gls)
 
-        if not result[0]:  # if Admin command was successful - False
-            data = result[1]
-        else:
+        if status:
             raise RuntimeError("Error _GetMacLinkStatusAQ: Admin command was not successful")
 
-        status = data['link_sts']
-        return status
+        return  data['link_sts']
 
     def GetLinkStatusFields(self):
         gls = dict()
