@@ -30,13 +30,21 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-a', '--auto' , help="try to create devices automatically", action="store_true")
 parser.add_argument('-s', '--setup' , help="path to setup file")
+parser.add_argument('-r', '--remote', help="hostame or ip of a remote device")
 args = parser.parse_args()
 
 if args.auto:
-    devices = get_detected_devices("cpk")
-    if devices:
-        for device,info in devices.items():
-            globals()[device] = cpk(info['device_number'],info['port_number'])
+    if args.remote:
+        print type(args.remote)
+        devices = get_detected_devices("cpk", args.remote)
+        if devices:
+            for device,info in devices.items():
+                globals()[device] = cpk(info['device_number'],info['port_number'], args.remote)
+    else:
+        devices = get_detected_devices("cpk")
+        if devices:
+            for device,info in devices.items():
+                globals()[device] = cpk(info['device_number'],info['port_number'])
 if args.setup:
 	print("currently not available")
 else:

@@ -1077,13 +1077,12 @@ class cvl(cvlTier1):
 
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
+        status, data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
 
-        if data[0]:
-            error_msg = 'Error _SetPhyConfigurationAQ: GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
+        if status:
             raise RuntimeError(error_msg)
 
-        abilities = data[1]
+        abilities = data
         
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['tx_pause_req'] = abilities['pause_abil']
