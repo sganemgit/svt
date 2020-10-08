@@ -1,4 +1,6 @@
 
+# @author Shady Ganem <shady.ganem@intel.com>
+
 import time
 
 def timer(function):

@@ -1,6 +1,6 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
 import subprocess
-
-
 
 class svdt:
     @classmethod 
@@ -8,10 +8,6 @@ class svdt:
         '''this method will call svdt -r to perform a reset'''
         output = subprocess.check_output(['svdt','-r',device_name,reset_type])
         return output
-
-
-
-
 
 if __name__=="__main__":
    svdt.reset("cvl:0","empr")

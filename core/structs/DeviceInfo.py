@@ -1,3 +1,6 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
+
 from core.drivers.svdriver.SvDriverCommands import svdt
 
 '''This data structure holds the information neccessry for creating a driver instance'''

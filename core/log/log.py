@@ -1,3 +1,6 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
+
 import logging
 import os
 from core.utilities.colors import colors
@@ -5,7 +8,6 @@ from core.utilities.colors import colors
 class log:
 
     def __init__(self, testname, level = 'INFO'):
-
         if level == 'NOTSET':
             self.level = logging.NOTSET
         elif level == 'DEBUG':
@@ -27,13 +29,7 @@ class log:
             os.makedirs(directory)
 
         LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-        #configuring the logger
-        logging.basicConfig(filename = self.filepath,
-                            level = self.level,
-                            format = LOG_FORMAT,
-                            filemode = 'w')
-
-        #creating the logger
+        logging.basicConfig(filename = self.filepath, level = self.level, format = LOG_FORMAT, filemode = 'w')
         self.logger = logging.getLogger()
 
     def info(self, msg = "", color = None):

@@ -1,3 +1,6 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
+
 class DriverFactory():
     '''This class is responsible for creation of drivers'''
     @classmethod
@@ -13,15 +16,12 @@ class DriverFactory():
     @classmethod
     def create_driver(cls, driver_type, device_info):
         '''
-        Class method that creates driver according to driver type.
-        If driver type not supported RuntimeError will be raised.
+            Class method that creates driver according to driver type.
+            If driver type not supported RuntimeError will be raised.
        '''
         if driver_type == 'sv':
             from core.drivers.svdriver import SvDriver
             return SvDriver(device_info)
-        elif driver_type == "svcp":
-            from core.drivers.svcpdriver import SvCpDriver
-            return SvCpDriver(device_info)
-
-        error = "Failed to create driver of type {}, Unsupported dirver type".format(deriver_type)
-        raise RuntimeError(error)
+        else:
+            error = "Failed to create driver of type {}, Unsupported dirver type".format(deriver_type)
+            raise RuntimeError(error)

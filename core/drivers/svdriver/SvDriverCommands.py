@@ -1,5 +1,7 @@
-import subprocess
 
+# @author Shady Ganem <shady.ganem@intel.com>
+
+import subprocess
 
 def port_discovery():
     output = subprocess.check_output(["port_discovery"])
@@ -72,7 +74,7 @@ def get_detected_devices(project_name, remote = ''):
             info = dict()
             info['device_number'] = line_component[2].replace("@"+remote, "")
             info['port_number'] = line_component[3]
-            devices[line_component[0].replace("@"+remote, "")] = info
+            devices[line_component[0]] = info
     return devices
 
 def detect_connected_devices():

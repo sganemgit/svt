@@ -1,8 +1,10 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
+
 import os
 from datetime import datetime
 from core.log.log import log
 import argparse
-import  xml.etree.ElementTree as ET
 from core.devices.DeviceFactory import DeviceFactory
 from core.exceptions.Exceptions import *
 
@@ -10,6 +12,7 @@ class testBase():
     def  __init__(self):
         self._parser = self._configure_parser(argparse.ArgumentParser())
         self._args = self._parser.parse_args()
+
         if self._args.output:
             print(self._args.output)
             self.output_path = self._args.output
@@ -30,10 +33,14 @@ class testBase():
         self._test_status = "Pass"
         self._fail_reason_list = list()
         self.test_iteration = 0
-        self.run()
+        try:
+            self.run()
+        except Exception as e:
+            self.summarise_test()
+            raise e
 
     def __del__(self):
-        self.test_summry() 
+        self.summarise_test() 
 
     def __call__(self):
         self.run() 
@@ -153,7 +160,7 @@ class testBase():
         else:
             self.log.warning("Trying to set an invalid test status - {}".format(status))
 
-    def test_summry(self):
+    def summarise_test(self):
         if self._fail_reason_list:
             self.log.info("")
             for reason in self._fail_reason_list:
