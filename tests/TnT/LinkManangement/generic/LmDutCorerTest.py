@@ -1,4 +1,5 @@
 
+TEST = True
 
 from LmLocalStressFlow import LmLocalStressFlow
 

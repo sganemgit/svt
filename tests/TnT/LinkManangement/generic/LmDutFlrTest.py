@@ -1,4 +1,5 @@
 
+TEST = True
 
 from LmDutCorerTest import LmDutCorerTest
 
