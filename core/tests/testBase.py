@@ -7,43 +7,70 @@ from core.log.log import log
 import argparse
 from core.devices.DeviceFactory import DeviceFactory
 from core.exceptions.Exceptions import *
+from core.tests.XmlParser import XmlParser
 
 class testBase():
-    def  __init__(self):
-        self._parser = self._configure_parser(argparse.ArgumentParser())
-        self._args = self._parser.parse_args()
 
-        if self._args.output:
-            print(self._args.output)
-            self.output_path = self._args.output
-
+    def __init__(self):
         self.testname = str(self.__class__).split('.')[-1]
         self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
         self.log = log(self.logname, "DEBUG")
         self.log.info(self.testname)
-        if self._args.auto:
-            self.log.info("Test Auto Mode Enabled")
-        else:
-            self._setup_dom = self._parse_setup_file()
-            self._reg_dom = self._parse_regression_file()
-            self.devices = self._create_devices()
-            self.pairs = self._create_dut_lp_pairs()
-            self.user_args = self._get_user_args()
-            self._core_args = self._get_core_args()
         self._test_status = "Pass"
         self._fail_reason_list = list()
         self.test_iteration = 0
-        try:
-            self.run()
-        except Exception as e:
-            self.summarise_test()
-            raise e
+
+#    def __init__(self):
+#        self._parser = self._configure_parser(argparse.ArgumentParser())
+#        self._args = self._parser.parse_args()
+#
+#        if self._args.output:
+#            print(self._args.output)
+#            self.output_path = self._args.output
+#
+#        self.testname = str(self.__class__).split('.')[-1]
+#        self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
+#        self.log = log(self.logname, "DEBUG")
+#        self.log.info(self.testname)
+#        if self._args.auto:
+#            self.log.info("Test Auto Mode Enabled")
+#        else:
+#            self._setup_dom = self._parse_setup_file()
+#            self._reg_dom = self._parse_regression_file()
+#            self.devices = self._create_devices()
+#            self.pairs = self._create_dut_lp_pairs()
+#            self.user_args = self._get_user_args()
+#            self._core_args = self._get_core_args()
+#        self._test_status = "Pass"
+#        self._fail_reason_list = list()
+#        self.test_iteration = 0
+#        try:
+#            self.run()
+#        except Exception as e:
+#            self.summarise_test()
+#            raise e
+
+    @classmethod
+    def CreateTest(cls, args, setup):
+        test_obj = cls()
+        test_obj.args = args
+        test_obj.setup = setup
+        return test_obj
 
     def __del__(self):
         self.summarise_test() 
 
     def __call__(self):
-        self.run() 
+        try:
+            self.run() 
+        except Exception as e:
+            raise e
+
+    def start_test(self):
+        try:
+            self.run()
+        except Exception as e:
+            raise e
 
     def _configure_parser(self, parser):
         parser.add_argument('-r', '--regression', help="Path to regression file")
