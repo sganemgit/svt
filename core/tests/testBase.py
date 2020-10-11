@@ -22,6 +22,8 @@ class testBase():
         self.args = dict()
         self.setup = dict()
         self.devices = dict()
+        self.dut_lp_pairs = list()
+
 #    def __init__(self):
 #        self._parser = self._configure_parser(argparse.ArgumentParser())
 #        self._args = self._parser.parse_args()
@@ -58,6 +60,7 @@ class testBase():
         test_obj.args = args
         test_obj.setup = setup
         test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
+        test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
         return test_obj
 
     def __del__(self):

@@ -18,18 +18,6 @@
     				<Port ID='cvl0' role='dut'/>	
     				<Port ID='cvl1' role='lp'/>
     			</Link>
-    			<Link>
-    				<Port ID='cvl2' role='dut'/>	
-    				<Port ID='cvl4' role='lp'/>
-    			</Link>
-    			<Link>
-    				<Port ID='cvl5' role='dut'/>	
-    				<Port ID='cvl6' role='lp'/>
-    			</Link>
-    			<Link>
-    				<Port ID='cvl7' role='dut'/>	
-    				<Port ID='cvl8' role='lp'/>
-    			</Link>
     		</Links>
         </Setup>
     </TestCase>

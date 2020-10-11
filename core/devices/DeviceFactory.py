@@ -17,6 +17,16 @@ class DeviceFactory:
             return mev(device_number, pf_number, hostname)
 
     @classmethod
+    def create_dut_lp_pairs(cls, links, devices):
+        pair_list = list()
+        for link, roles in links.items():
+            if roles['dut'] in devices.keys() and roles['lp'] in devices.keys():
+                pair_list.append((devices[roles['dut']], devices[roles['lp']]))
+            else:
+                print("Prots with IDs {}, {} do not appear in devices".format(roles['dut'], roles['lp']))
+        return pair_list
+
+    @classmethod
     def get_supported_devices(cls):
         return cls._supported_devices_list
 
