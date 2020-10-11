@@ -1,7 +1,7 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-import  xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 class XmlParser():
 

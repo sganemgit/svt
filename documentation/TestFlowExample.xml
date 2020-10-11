@@ -1,0 +1,30 @@
+<TestFlow>
+    <TestCase>
+        <Test name='DumpyTest'/>
+        <Input>
+            <Parameter name='number_of_packets' value='10'/>
+            <Parameter name='number_of_stress' value='10'/>
+            <Parameter name='enable_lfc' value='True'/>
+        </Input>
+        <Setup>
+		<device name='cvl' hostname='' number='0'>
+			<port ID='cvl0' number='0'/>
+			<port ID='cvl1' number='1'/>
+		</device>
+		<links>
+			<link>
+				<port ID='cvl0' role='dut'/>	
+				<port ID='cvl1' role='lp'/>
+			</link>
+		</links>
+        </Setup>
+    </TestCase>
+
+    <TestCase>
+        <Test name='mistake'/>
+        <Input>
+        </Input>
+        <Setup>
+        </Setup>
+    </TestCase>
+</TestFlow>
