@@ -2,7 +2,7 @@ TEST = True
 
 from LmLoopbackWithLpFlow import LmLoopbackWithLpFlow
 
-class LmPcsLoopbackWithLpTest(LmLoopbackWithLpFlow):
-
+class LmMacLoopbackWithLpTest(LmLoopbackWithLpFlow):
+	
 	def run(self):
 		pass

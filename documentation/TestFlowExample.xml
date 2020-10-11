@@ -1,19 +1,23 @@
 <TestFlow>
     <TestCase>
-        <Test name='DumpyTest'/>
+        <Test name='LmDutGlobrTest'/>
         <Input>
             <Parameter name='number_of_packets' value='10'/>
             <Parameter name='number_of_stress' value='10'/>
             <Parameter name='enable_lfc' value='True'/>
+            <Parameter name='run_time' value='5'/>
+            <Parameter name='enable_lfc' value='True'/>
+            <Parameter name='enable_lfc' value='True'/>
+            <Parameter name='enable_lfc' value='True'/>
         </Input>
         <Setup>
-            <Devices>
-        		<Device name='cvl' hostname='' number='0'>
+		<Devices>
+			<Device name='cvl' hostname='' number='0'>
         			<Port ID='cvl0' number='0'/>
         			<Port ID='cvl1' number='1'/>
         		</Device>
-            </Devices>
-    		<Links>
+		</Devices>
+		<Links>
     			<Link>
     				<Port ID='cvl0' role='dut'/>	
     				<Port ID='cvl1' role='lp'/>

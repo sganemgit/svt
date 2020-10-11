@@ -1,7 +1,7 @@
 from GenericLinkManagement import GenericLinkManagement
 
 
-class LmGeneralStressFlow(GenericLinkManagement):
+class LmLoopbackWithoutLpFlow(GenericLinkManagement):
 
 	def run(self):
 		pass

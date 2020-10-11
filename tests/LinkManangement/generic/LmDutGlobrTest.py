@@ -1,12 +1,11 @@
 
 TEST = True
 
-from LmGeneralStressFlow import LmGeneralStressFlow
+from LmGlobalStressFlow import LmGlobalStressFlow
 
-class LmDutGlobrTest(LmGeneralStressFlow):
+class LmDutGlobrTest(LmGlobalStressFlow):
 	
 	stress_type = "globr"
-
 
 	def perform_stress(self, dut, lp):
 		try: 
