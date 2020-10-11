@@ -1,8 +1,8 @@
 
 
-from LmTestFlow import LmTestFlow
+from LmRandomStressFlow import LmRandomStressFlow
 
-class LmRandomEventsCrossLfcTest(LmTestFlow):
+class LmRandomEventsCrossLfcTest(LmRandomStressFlow):
 	
 	stress_type = "random_events_cross_lfc"
 

@@ -1,8 +1,8 @@
 
 
-from LmTestFlow import LmTestFlow
+from LmDutCorerTest import LmDutCorerTest
 
-class LmDutRestartAnTest(LmTestFlow):
+class LmDutRestartAnTest(LmDutCorerTest):
 	
 	stress_type = ""
 

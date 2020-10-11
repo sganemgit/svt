@@ -100,8 +100,8 @@ class GenericLinkManagement(testBase):
         dut.Reset(reset)
         self.poll_for_link(dut, lp, 15)
 
-        def configure_link(self, dut,lp,PhyType,FecType):
-                log = self.log
+    def configure_link(self, dut, lp, PhyType, FecType):
+        log = self.log
         link_configuratio_status_flag = True
         if PhyType in dut.force_phy_types_list:
             log.info(colors.Red("{} does not support AN".format(colors.Green(PhyType))))
@@ -143,12 +143,3 @@ class GenericLinkManagement(testBase):
             link_configuratio_status_flag = False
         return link_configuratio_status_flag
 
-    def perform_stress(self):
-
-        print(self.stress_type)
-
-    def do_traffic_before_stress(self, dut = None, lp = None):
-        print("starting traffic before stress")
-
-    def do_traffic_after_stress(self, dut = None, lp = None):
-        print("starting traffic after stress")

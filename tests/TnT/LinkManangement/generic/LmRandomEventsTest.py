@@ -1,8 +1,8 @@
 
 
-from LmTestFlow import LmTestFlow
+from LmRandomStressFlow import LmRandomStressFlow
 
-class LmRandomEventsTest(LmTestFlow):
+class LmRandomEventsTest(LmRandomStressFlow):
 	
 	stress_type = "random_event"
 

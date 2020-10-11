@@ -220,23 +220,24 @@ class cvl(cvlTier1):
         time.sleep(2)
         driver.start_tx(packet_size = packet_size)
 
-    def EthStartRx(self, packet_size = 512):
+    def EthStartRx(self):
         '''
             This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
-        driver = self.driver
-        driver.start_rx(packet_size = packet_size)
+        self.driver.start_rx()
     
-    def EthStartTx(self, packet_size = 512):
+    def EthStartTx(self, packet_size = 512, number_of_packets = None):
         '''
             This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
-        driver = self.driver
-        driver.start_tx(packet_size = packet_size)
+        if number_of_packets:
+            self.driver.start_tx(packet_size = packet_size, number_of_packets = number_of_packets, tx_limit_type = 'PACKET_COUNT')
+        else: 
+            self.driver.start_tx(packet_size = packet_size)
 
     def EthStopRx(self):
         '''

@@ -1,8 +1,8 @@
 
 
-from LmTestFlow import LmTestFlow
+from LmProtcolChangeStressFlow import LmProtcolChangeStressFlow
 
-class LmDutProtocolChangeTest(LmTestFlow):
+class LmDutProtocolChangeTest(LmProtcolChangeStressFlow):
 	
 	stress_type = "protocol_change_dut"
 

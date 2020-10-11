@@ -1,8 +1,8 @@
 
 
-from LmTestFlow import LmTestFlow
+from LmDutCorerTest import LmDutCorerTest
 
-class LmDutPfrTest(LmTestFlow):
+class LmDutPfrTest(LmDutCorerTest):
 	
 	stress_type = "pfr"
 
