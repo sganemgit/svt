@@ -1,4 +1,5 @@
 
+TEST = True 
 from LmGeneralStressFlow import LmGeneralStressFlow
 
 class LmDutEmprTest(LmGeneralStressFlow):

@@ -7,16 +7,30 @@
             <Parameter name='enable_lfc' value='True'/>
         </Input>
         <Setup>
-		<device name='cvl' hostname='' number='0'>
-			<port ID='cvl0' number='0'/>
-			<port ID='cvl1' number='1'/>
-		</device>
-		<links>
-			<link>
-				<port ID='cvl0' role='dut'/>	
-				<port ID='cvl1' role='lp'/>
-			</link>
-		</links>
+            <Devices>
+        		<Device name='cvl' hostname='' number='0'>
+        			<Port ID='cvl0' number='0'/>
+        			<Port ID='cvl1' number='1'/>
+        		</Device>
+            </Devices>
+    		<Links>
+    			<Link>
+    				<Port ID='cvl0' role='dut'/>	
+    				<Port ID='cvl1' role='lp'/>
+    			</Link>
+    			<Link>
+    				<Port ID='cvl2' role='dut'/>	
+    				<Port ID='cvl4' role='lp'/>
+    			</Link>
+    			<Link>
+    				<Port ID='cvl5' role='dut'/>	
+    				<Port ID='cvl6' role='lp'/>
+    			</Link>
+    			<Link>
+    				<Port ID='cvl7' role='dut'/>	
+    				<Port ID='cvl8' role='lp'/>
+    			</Link>
+    		</Links>
         </Setup>
     </TestCase>
 
