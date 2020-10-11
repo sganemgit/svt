@@ -2,28 +2,27 @@
 # @author Shady Ganem <shady.ganem@intel.com>
 
 class DeviceFactory:
-	_supported_devices_list = ['cvl', 'mev', 'mev1', 'crsvl']
+    _supported_devices_list = ['cvl', 'mev', 'mev1', 'crsvl']
 
-	@classmethod
-	def create_device(cls, device_name, device_number, pf_number, hostname = ''):
+    @classmethod
+    def create_device(cls, device_name, device_number, pf_number, hostname = ''):
+        if device_name == 'cvl':
+            from devices.cvl.cvl import cvl
+            return cvl(device_number, pf_number, hostname)
+        elif device_name == 'crsvl':
+            from devices.crsvl.crsvl import crsvl
+            return crsvl(device_number, pf_number, hostname)
+        elif device_name == 'mev' or device_name == 'mev1':
+            from devices.mev.mev import mev
+            return mev(device_number, pf_number, hostname)
 
-		if device_name == 'cvl':
-			from devices.cvl.cvl import cvl
-			return cvl(device_number, pf_number, hostname)
-		elif device_name == 'crsvl':
-			from devices.crsvl.crsvl import crsvl
-			return crsvl(device_number, pf_number, hostname)
-		elif device_name == 'mev' or device_name == 'mev1':
-			from devices.mev.mev import mev
-			return mev(device_number, pf_number, hostname)
+    @classmethod
+    def get_supported_devices(cls):
+        return cls._supported_devices_list
 
-	@classmethod
-	def get_supported_devices(cls):
-		return cls._supported_devices_list
-
-        @classmethod
-        def create_device_pairs(cls):
-            pass
+    @classmethod
+    def create_device_pairs(cls):
+        pass
 
 #    def _create_devices(self):
 #        devices_info_dict = dict()
@@ -44,3 +43,24 @@ class DeviceFactory:
 #            return devices_dict
 #        except Exception as e:
 #            raise e
+
+    @classmethod
+    def create_devices_from_setup(cls, devices):
+        '''
+            @input devices (dict)
+                    device = {'device_index': {'name': value,
+                                               'number' : value,
+                                               'hostname': value,
+                                               'Ports': {id:number,
+                                                         id: nubmer,
+                                                         ...},
+                              ...}}
+
+        '''
+        pf_dict = dict()
+        for device_id, device_dict, in devices.items():
+            for pf_id, number in device_dict['Ports'].items():
+                pf_dict[pf_id] = cls.create_device(device_dict['name'], int(device_dict['number']), int(number), device_dict['hostname'])
+        return pf_dict
+ 
+

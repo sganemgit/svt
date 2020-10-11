@@ -2,11 +2,8 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-import sys
 import os
-import time
 import argparse
-import modulefinder
 from core.tests.XmlParser import XmlParser
 from core.tests.TestFactory import TestFactory
 
@@ -21,13 +18,11 @@ def configure_parser_args(parser):
     return parser
 
 def main():
-    parser = configure_parser_args(argparse.ArgumentParser())
-    args = parser.parse_args()
+    args = configure_parser_args(argparse.ArgumentParser()).parse_args()
     test_factory = TestFactory() # this object performs a lot of imports 
-    XmlParser.TestFlow(args.flow)
-    for test, args, setup in XmlParser.TestFlow(args.flow):
+    for test, args, setup in XmlParser.IterTestCases(args.flow):
         if test in test_factory.tests_dict: 
-            current_test = test_factory.create_test(test)
+            current_test = test_factory.create_test(test, args, setup)
             current_test.start_test()
             del current_test
         else:

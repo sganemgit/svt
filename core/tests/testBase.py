@@ -19,7 +19,9 @@ class testBase():
         self._test_status = "Pass"
         self._fail_reason_list = list()
         self.test_iteration = 0
-
+        self.args = dict()
+        self.setup = dict()
+        self.devices = dict()
 #    def __init__(self):
 #        self._parser = self._configure_parser(argparse.ArgumentParser())
 #        self._args = self._parser.parse_args()
@@ -55,6 +57,7 @@ class testBase():
         test_obj = cls()
         test_obj.args = args
         test_obj.setup = setup
+        test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
         return test_obj
 
     def __del__(self):

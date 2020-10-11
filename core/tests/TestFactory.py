@@ -46,15 +46,12 @@ class TestFactory:
             test_full_path_list.append(sys.path.join(test_path, test_name))
         return test_full_path_list
     
-    def create_test(self, test_name):
-        try:
-            if test_name in self.tests_dict.keys():
-                if not self.tests_dict[test_name] in sys.path:
-                    sys.path.append(self.tests_dict[test_name])
-                module = __import__(test_name)
-                return module.__dict__[test_name]()
-        except Exception as e:
-            raise e
+    def create_test(self, name, args, setup):
+        if name in self.tests_dict.keys():
+            if not self.tests_dict[name] in sys.path:
+                sys.path.append(self.tests_dict[name])
+            module = __import__(name)
+            return module.__dict__[name].CreateTest(args, setup)
 
 if __name__=="__main__":
     TestFactory()
