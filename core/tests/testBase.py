@@ -64,18 +64,17 @@ class testBase():
         return test_obj
 
     def __del__(self):
-        self.summarise_test() 
+        self.summarise_test()
 
     def __call__(self):
-        try:
-            self.run() 
-        except Exception as e:
-            raise e
+        self.start_test()
 
     def start_test(self):
         try:
             self.run()
         except Exception as e:
+            self.set_test_status('fail')
+            self.append_fail_reason(str(e))
             raise e
 
     def _configure_parser(self, parser):

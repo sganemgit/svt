@@ -6,7 +6,7 @@
             <Parameter name='number_of_stress' value='10'/>
             <Parameter name='enable_lfc' value='True'/>
             <Parameter name='run_time' value='5'/>
-            <Parameter name='enable_lfc' value='True'/>
+            <Parameter name='stress_quantity' value='1'/>
             <Parameter name='enable_lfc' value='True'/>
             <Parameter name='enable_lfc' value='True'/>
         </Input>

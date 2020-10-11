@@ -3,10 +3,11 @@
 # @author Shady Ganem <shady.ganem@intel.com>
 
 from core.tests.testBase import testBase 
+import time 
 
 class GenericLinkManagement(testBase):
 
-    def run_traffic(self, dut, lp, traffic_time):
+    def run_traffic(self, dut, lp, traffic_time, packet_size=512, number_of_packets=10000):
         #TODO receive PakcetSize and NumOfPackets as params
         log = self.log
         log.info()

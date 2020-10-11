@@ -24,7 +24,7 @@ class Timer:
 
 	def start(self):
 		self._start_time = time.time()
-		self._end_time = self._start_time + self._duration 
+		self._end_time = self._start_time + float(self._duration)
 
 	def expired(self):
 		if self._set_flag:
