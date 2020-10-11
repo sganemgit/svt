@@ -1,4 +1,4 @@
-
+TEST = True
 
 from LmProtcolChangeStressFlow import LmProtcolChangeStressFlow
 

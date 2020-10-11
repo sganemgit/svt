@@ -1,3 +1,4 @@
+TEST = True
 
 
 from LmRandomStressFlow import LmRandomStressFlow
