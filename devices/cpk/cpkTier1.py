@@ -1,6 +1,4 @@
 
-# @author Shady Ganem <shady.ganem@intel.com>
-
 from cpkDefines import cpkDefines
 from core.structs.AqDescriptor import AqDescriptor
 from core.utilities.BitManipulation import *

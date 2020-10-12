@@ -15,5 +15,15 @@ class LmGlobalStressFlow(LmStressFlow):
 
     def do_stress(self, dut, lp):
         self.log.info("performing global stress")
-        #TODO: print PF pair info
+        #TODO: print which pf are under stress
     	self.perform_stress(dut, lp)
+
+    def run_stress_flow(self):
+        # we need to configure the to the test phy type
+        for dut, lp in self.dut_lp_pairs:
+            self.do_traffic_before_stress(dut ,lp)
+            for i in range(self.stress_quantity):
+                self.log.info("stress iteration {}".format(i))
+                self.do_stress(dut, lp)
+            self.do_traffic_after_stress(dut, lp)
+        

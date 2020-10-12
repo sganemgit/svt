@@ -4,10 +4,12 @@
 import logging
 import os
 from core.utilities.colors import colors
+import threading
 
 class log:
 
     def __init__(self, testname, level = 'INFO'):
+        self.lock = threading.Lock()
         if level == 'NOTSET':
             self.level = logging.NOTSET
         elif level == 'DEBUG':
@@ -33,31 +35,36 @@ class log:
         self.logger = logging.getLogger()
 
     def info(self, msg = "", color = None):
-        if color == 'r':
-            print(colors.Red(msg))
-        elif color == 'b':
-            print(colors.Blue(msg))
-        elif color == 'g':
-            print(colors.Green(msg))
-        else:
-            print(msg)
-        self.logger.info(msg)
+        with self.lock:
+            if color == 'r':
+                print(colors.Red(msg))
+            elif color == 'b':
+                print(colors.Blue(msg))
+            elif color == 'g':
+                print(colors.Green(msg))
+            else:
+                print(msg)
+            self.logger.info(msg)
 
     def debug(self, msg = ""):
-        print(msg)
-        self.logger.debug(msg)
+        with self.lock:
+            print(msg)
+            self.logger.debug(msg)
 
     def warning(self, msg = ""):
-        print(colors.Orange(msg))
-        self.logger.warning(msg)
+        with self.lock:
+            print(colors.Orange(msg))
+            self.logger.warning(msg)
 
     def error(self, msg = ""):
-        print(colors.Red(msg))
-        self.logger.error(msg)
+        with self.lock:
+            print(colors.Red(msg))
+            self.logger.error(msg)
 
     def critical(self, msg = ""):
-        print(colors.Red(msg))
-        self.logger.critical(msg)
+        with self.lock:
+            print(colors.Red(msg))
+            self.logger.critical(msg)
 
 if __name__ == "__main__":
     log = log("testlog")

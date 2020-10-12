@@ -21,7 +21,9 @@ class GenericInterface(ABC):
 	def SetPhyConfiguration(self, phytype, fec, debug = False):
 		pass
 
-
+	@abstractmethod
+	def info(self):
+		pass
 
 	# TODO add abstract method for each method that is used in the tests
 	# need to have a unified interface for all devices 

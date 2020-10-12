@@ -22,7 +22,6 @@ class GenericLinkManagement(testBase):
         ring_id = kwargs.get('ring_id', 0)
         packet_size=  kwargs.get('packet_size', 512)
         number_of_packets = kwargs.get('number_of_packets', 10000)
-        print(number_of_packets)
         dut.EthStartRx()
         lp.EthStartRx()
         lp.EthStartTx(packet_size, number_of_packets)
@@ -68,11 +67,13 @@ class GenericLinkManagement(testBase):
         dut_coutners = dut.GetMacCounters()
         log.info("DUT MAC Counters:")
         for key, value in dut_coutners.iteritems():
-            log.info("{} = {}".format(key,value))
+            if value:
+                log.info("{} = {}".format(key,value))
         lp_counters = lp.GetMacCounters()
         log.info("LP MAC Counters:")
         for key, value in lp_counters.iteritems():
-            log.info("{} = {}".format(key,value))
+            if value:
+                log.info("{} = {}".format(key,value))
 
         if dut_coutners['CRCERRS'] > 0:
             log.warning("{} CRC on DUT".format(dut_coutners['CRCERRS']))
@@ -83,19 +84,23 @@ class GenericLinkManagement(testBase):
         dut_PTC = dut.GetPTC()
         log.info("DUT MAC transmitted packets counters")
         for key, value in dut_PTC.iteritems():
-            log.info("{} = {}".format(key,value))
+            if value:
+                log.info("{} = {}".format(key,value))
         log.info("LP MAC received packets counters")
         lp_PRC = lp.GetPRC()
         for key, value in lp_PRC.iteritems():
-            log.info("{} = {}".format(key,value))
+            if value:
+                log.info("{} = {}".format(key,value))
         log.info("LP MAC transmitted packet counters")
         lp_PTC = lp.GetPTC()
         for key,value in lp_PTC.iteritems():
-            log.info("{} = {}".format(key, value))
+            if value:
+                log.info("{} = {}".format(key, value))
         log.info("DUT MAC received packets counters")
         dut_PRC = dut.GetPRC()
         for key,value in dut_PRC.iteritems():
-            log.info("{} = {}".format(key, value))
+            if value:
+                log.info("{} = {}".format(key, value))
 
         if dut_PTC['TotalPTC'] != lp_PRC['TotalPRC']:
             log.warning("missed packets on LP")
@@ -121,8 +126,8 @@ class GenericLinkManagement(testBase):
         self.append_fail_reason("link is down on dut port {} and lp port {}".format(dut.port_number,lp.port_number))
         return False
 
-        def get_common_protocols(self, dut,lp):
-                log = self.log
+    def get_common_protocols(self, dut,lp):
+        log = self.log
         try:
             dut_phy_types = dut.GetPhyTypeAbilities(1)
             lp_phy_types = lp.GetPhyTypeAbilities(1)
@@ -131,8 +136,8 @@ class GenericLinkManagement(testBase):
             log.info("Exception {} raised in {}".format(str(e), get_cmmmon_protocols.__name__))
             raise e
 
-        def reset_both_sides(self, dut,lp,reset):
-                log = self.log
+    def reset_both_sides(self, dut,lp,reset):
+        log = self.log
         log.info("performing {} reset on lp".format(reset))
         lp.Reset(reset)
         log.info("performing {} reset on dut".format(reset))

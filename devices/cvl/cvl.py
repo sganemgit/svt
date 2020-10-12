@@ -1,8 +1,4 @@
 
-#--------------------------------------------
-# @author Shady Ganem <shady.ganem@intel.com>
-#--------------------------------------------
-
 import sys
 import threading
 
@@ -17,9 +13,8 @@ from devices.cvl.cvlTier1 import cvlTier1
 
 class cvl(cvlTier1):
     '''
-        This class contains all the methods to interface with a cvl pf
+        This class contains methods to interface with a cvl pf
     '''
-    @timer
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:

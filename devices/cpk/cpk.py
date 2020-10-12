@@ -1,8 +1,4 @@
 
-#--------------------------------------------
-# @author Shady Ganem <shady.ganem@intel.com>
-#--------------------------------------------
-
 import sys
 import time
 from core.utilities.BitManipulation import *

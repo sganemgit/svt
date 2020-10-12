@@ -1,5 +1,6 @@
 
 from LmStressFlow import LmStressFlow
+import thread
 
 class LmLocalStressFlow(LmStressFlow):
 
@@ -16,3 +17,11 @@ class LmLocalStressFlow(LmStressFlow):
     def do_stress(self, dut, lp):
         self.log.info("performing global stress")
     	self.perform_stress(dut, lp)
+
+    def run_stress_flow(self):
+        for dut, lp in self.dut_lp_pairs:
+            self.do_traffic_before_stress(dut ,lp)
+            for i in range(self.stress_quantity):
+                self.log.info("stress iteration {}".format(i))
+                self.do_stress(dut, lp)
+            self.do_traffic_after_stress(dut, lp)
