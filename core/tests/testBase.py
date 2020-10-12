@@ -25,36 +25,6 @@ class testBase():
         self.devices = dict()
         self.dut_lp_pairs = list()
 
-#    def __init__(self):
-#        self._parser = self._configure_parser(argparse.ArgumentParser())
-#        self._args = self._parser.parse_args()
-#
-#        if self._args.output:
-#            print(self._args.output)
-#            self.output_path = self._args.output
-#
-#        self.testname = str(self.__class__).split('.')[-1]
-#        self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
-#        self.log = log(self.logname, "DEBUG")
-#        self.log.info(self.testname)
-#        if self._args.auto:
-#            self.log.info("Test Auto Mode Enabled")
-#        else:
-#            self._setup_dom = self._parse_setup_file()
-#            self._reg_dom = self._parse_regression_file()
-#            self.devices = self._create_devices()
-#            self.pairs = self._create_dut_lp_pairs()
-#            self.user_args = self._get_user_args()
-#            self._core_args = self._get_core_args()
-#        self._test_status = "Pass"
-#        self._fail_reason_list = list()
-#        self.test_iteration = 0
-#        try:
-#            self.run()
-#        except Exception as e:
-#            self.summarise_test()
-#            raise e
-
     @classmethod
     def CreateTest(cls, args, setup):
         test_obj = cls()
@@ -208,4 +178,5 @@ class testBase():
             self.log.info("Test Status: {}".format(self._test_status),'r')
         self.log.info("-----------------------")
         self.log.info("")
-        self.log.info("Test ran for {}".format(str(datetime.now() - self.test_start_time)))
+        self.log.info("{} ran for {}".format(str(self.__class__).split('.')[-1], str(datetime.now() - self.test_start_time)), 'r')
+        self.log.info('')

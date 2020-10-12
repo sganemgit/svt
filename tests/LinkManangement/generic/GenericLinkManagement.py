@@ -27,7 +27,6 @@ class GenericLinkManagement(testBase):
         lp.EthStartRx()
         lp.EthStartTx(packet_size, number_of_packets)
         dut.EthStartTx(packet_size, number_of_packets)
-
         while not (dut.driver.is_ring_done(ring_id) and lp.driver.is_ring_done(ring_id)):
             time.sleep(0.01)
         dut.EthStopTx(ring_id)
