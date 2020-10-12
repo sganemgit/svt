@@ -46,8 +46,8 @@ if args.setup:
 	print("currently not available")
 else:
 	help()
-
-for device in devices.keys():
-    print "reseting link on port {}".format(globals()[device].port_number)
-    globals()[device].RestartAn()
-    time.sleep(0.2)
+#
+#for device in devices.keys():
+#    print "reseting link on port {}".format(globals()[device].port_number)
+#    globals()[device].RestartAn()
+#    time.sleep(0.2)

@@ -2,7 +2,8 @@
     <TestCase>
         <Test name='LmDutGlobrTest'/>
         <Input>
-            <Parameter name='number_of_packets' value='10'/>
+            <Parameter name='number_of_packets' value='88888'/>
+            <Parameter name='pakcet_size' value='10'/>
             <Parameter name='number_of_stress' value='10'/>
             <Parameter name='enable_lfc' value='True'/>
             <Parameter name='run_time' value='5'/>

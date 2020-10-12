@@ -1,7 +1,7 @@
-from GenericLinkManagement import GenericLinkManagement
 
+from LmStressFlow import LmStressFlow
 
-class LmProtcolChangeStressFlow(GenericLinkManagement):
+class LmProtcolChangeStressFlow(LmStressFlow):
 
     def do_traffic_before_stress(self, dut = None, lp = None):
         self.log.info("starting traffic before stress")

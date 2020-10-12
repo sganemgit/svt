@@ -1,7 +1,7 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-import os
+import os, sys
 from datetime import datetime
 from core.log.log import log
 import argparse
@@ -12,6 +12,7 @@ from core.tests.XmlParser import XmlParser
 class testBase():
 
     def __init__(self):
+        self.test_start_time = datetime.now()
         self.testname = str(self.__class__).split('.')[-1]
         self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
         self.log = log(self.logname, "DEBUG")
@@ -73,6 +74,8 @@ class testBase():
         try:
             self.run()
         except Exception as e:
+            import traceback
+            traceback.print_exc(file=sys.stdout)
             self.set_test_status('fail')
             self.append_fail_reason(str(e))
             raise e
@@ -205,3 +208,4 @@ class testBase():
             self.log.info("Test Status: {}".format(self._test_status),'r')
         self.log.info("-----------------------")
         self.log.info("")
+        self.log.info("Test ran for {}".format(str(datetime.now() - self.test_start_time)))

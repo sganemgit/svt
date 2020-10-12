@@ -1,3 +1,4 @@
+
 from GenericLinkManagement import GenericLinkManagement
 
 
@@ -30,4 +31,3 @@ class LmLoopbackWithLpFlow(GenericLinkManagement):
 
 
 							self.check_link(dut, lp)
-

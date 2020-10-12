@@ -218,8 +218,7 @@ class cpk(cpkTier1):
             argument: packet size - Default is 512
             return: None
         '''
-        driver = self.driver
-        driver.start_rx(packet_size = packet_size)
+        self.driver.start_rx(packet_size = packet_size)
     
     def EthStartTx(self, packet_size = 512):
         '''
@@ -227,8 +226,7 @@ class cpk(cpkTier1):
             argument: packet size - Default is 512
             return: None
         '''
-        driver = self.driver
-        driver.start_tx(packet_size = packet_size)
+        self.driver.start_tx(packet_size = packet_size)
 
     def EthStopRx(self):
         '''

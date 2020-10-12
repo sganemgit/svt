@@ -13,5 +13,3 @@ class LmDutFlrTest(LmDutCorerTest):
 		except Exception as e:
 			raise e
 
-if __name__=="__main__":
-	LmDutFlrTest()

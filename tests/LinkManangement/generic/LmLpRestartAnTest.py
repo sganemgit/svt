@@ -1,3 +1,4 @@
+
 TEST = True
 
 from LmDutCorerTest import LmDutCorerTest
@@ -6,6 +7,8 @@ class LmLpRestartAnTest(LmDutCorerTest):
 	
 	stress_type = "restart_an_lp"
 
-
-if __name__=="__main__":
-	LmLpRestartAnTest()
+	def perform_stress(self, dut, lp):
+		try: 
+			dut.Reset(self.stress_type)
+		except Exception as e:
+			raise e

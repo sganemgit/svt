@@ -235,27 +235,27 @@ class cvl(cvlTier1):
             return: None
         '''
         if number_of_packets:
-            self.driver.start_tx(packet_size = packet_size, number_of_packets = number_of_packets, tx_limit_type = 'PACKET_COUNT')
+            self.driver.start_tx(packet_size=packet_size, number_of_packets=number_of_packets, tx_limit_type='PACKET_COUNT')
         else: 
-            self.driver.start_tx(packet_size = packet_size)
+            self.driver.start_tx(packet_size=packet_size)
 
-    def EthStopRx(self):
+    def EthStopRx(self, ring_id=0):
         '''
             This function stops Tx and Rx.
             argument: None
             return: None
         '''
         driver = self.driver
-        driver.stop_rx()
+        driver.stop_rx(ring_id=ring_id)
     
-    def EthStopTx(self):
+    def EthStopTx(self, ring_id=0):
         '''
             This function stops Tx and Rx.
             argument: None
             return: None
         '''
         driver = self.driver
-        driver.stop_tx()
+        driver.stop_tx(ring_id=ring_id)
 
     def EthStopTraffic(self):
         '''

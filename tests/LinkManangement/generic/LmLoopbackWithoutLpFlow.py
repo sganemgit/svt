@@ -1,5 +1,5 @@
-from GenericLinkManagement import GenericLinkManagement
 
+from GenericLinkManagement import GenericLinkManagement
 
 class LmLoopbackWithoutLpFlow(GenericLinkManagement):
 

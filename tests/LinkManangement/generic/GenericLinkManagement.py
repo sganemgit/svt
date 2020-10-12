@@ -4,14 +4,40 @@
 
 from core.tests.testBase import testBase 
 import time 
+import random 
 
 class GenericLinkManagement(testBase):
+    
+    def get_random_number_of_packets(self):
+        max_value = self.args.get('max_number_of_packet', 10000000)
+        min_value = self.args.get('min_number_of_packet', 1000000)
+        return random.randint(min_value, max_value)
 
-    def run_traffic(self, dut, lp, traffic_time, packet_size=512, number_of_packets=10000):
-        #TODO receive PakcetSize and NumOfPackets as params
-        log = self.log
-        log.info()
-        log.info("running traffic for {} seconds".format(traffic_time))
+    def get_random_packet_size(self):
+        max_value = self.args.get('max_packet_size', 1522)
+        min_value = self.args.get('min_packet_size', 64)
+        return random.randint(min_value, max_value)
+
+    def _run_traffic_by_number_of_packets(self, dut ,lp , **kwargs):
+        ring_id = kwargs.get('ring_id', 0)
+        packet_size=  kwargs.get('packet_size', 512)
+        number_of_packets = kwargs.get('number_of_packets', 10000)
+        print(number_of_packets)
+        dut.EthStartRx()
+        lp.EthStartRx()
+        lp.EthStartTx(packet_size, number_of_packets)
+        dut.EthStartTx(packet_size, number_of_packets)
+
+        while not (dut.driver.is_ring_done(ring_id) and lp.driver.is_ring_done(ring_id)):
+            time.sleep(0.01)
+        dut.EthStopTx(ring_id)
+        lp.EthStopTx(ring_id)
+        dut.EthStopRx(ring_id)
+        lp.EthStopRx(ring_id)
+
+    def _run_traffic_by_traffic_time(self, **kwargs):
+        ring_id = kwargs.get('ring_id', 0)
+        traffic_time= kwargs.get('traffic_time', 0)
         dut.EthStartRx()
         lp.EthStartRx()
         lp.EthStartTx()
@@ -21,6 +47,19 @@ class GenericLinkManagement(testBase):
         lp.EthStopTx()
         dut.EthStopRx()
         lp.EthStopRx()
+
+    def run_traffic(self, dut, lp, **kwargs):
+        log = self.log
+        log.info()
+        ring_id= kwargs.get('ring_id', 0)
+        packet_size= kwargs.get('packet_size', 512)
+        number_of_packets=kwargs.get('number_of_packets', 10000)
+        if 'traffic_time' in kwargs:
+            log.info("running traffic for {} seconds".format(kwargs['traffic_time'] ))
+            self._run_traffic_by_traffic_time(dut, lp, ring_id=ring_id, traffic_time=kwargs['traffic_time'])
+        else:
+            log.info("running traffic: packet size = {} and number of packets = {}".format(packet_size, number_of_packets))
+            self._run_traffic_by_number_of_packets(dut, lp, ring_id=ring_id, packet_size=packet_size, number_of_packets=number_of_packets)
         log.info()
         self.check_traffic(dut, lp)
         self.check_mac_counters(dut, lp)

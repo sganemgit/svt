@@ -237,18 +237,43 @@ class SvDriver(object):
             tx_options.tx_limit_type = libPyApi.TX_MODE_TIME_LIMIT
         elif tx_limit_type == 'PACKET_COUNT':
             tx_options.tx_limit_type = libPyApi.TX_MODE_PACKET_COUNT_LIMIT
+            tx_options.limit_value = number_of_packets
         elif tx_limit_type == 'FULL_RING':
             tx_options.tx_limit_type = libPyApi.TX_MODE_FULL_RING
         else:
-            print("invalid limit using FULL_RING")
+            print("Warning: invalid limit using FULL_RING")
             tx_options.tx_limit_type = libPyApi.TX_MODE_FULL_RING
 
-        status = tx_ring.start_tx(tx_options)
+        try:
+            status = tx_ring.start_tx(tx_options)
+        except Exception as e:
+            raise e
 
         if status != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
 
         self._driver_proxy.dispose_tx_ring(tx_ring)
+
+    def get_ring_status(self, ring_id):
+        try:
+            ring_status = libPyApi.TxRingStatus()
+            tx_ring = self._driver_proxy.get_tx_ring(ring_id)
+            status = tx_ring.get_status(ring_status)
+            self._driver_proxy.dispose_tx_ring(tx_ring)
+            if status:
+                raise RuntimeError(self._driver_proxy.driver_error_to_string(status))
+            return ring_status.State
+        except Exception as e:
+            raise e
+
+    def is_ring_done(self, ring_id):
+        try:
+            if self.get_ring_status(ring_id) == libPyApi.RING_STATE_WORKING:
+                return False
+            else:
+                return True
+        except Exception as e:
+            raise e
 
     def stop_tx(self, **kwargs):
         '''

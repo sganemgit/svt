@@ -7,5 +7,3 @@ class LmDutRestartAnTest(LmDutCorerTest):
 	stress_type = ""
 
 
-if __name__=="__main__":
-	LmDutRestartAnTest()
