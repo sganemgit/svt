@@ -40,8 +40,6 @@ class cvlDefines(cvlBase, IeeeCommon):
                 "GLPRT_PXOFFRXC": [0x00380500],
                 "PRTMAC_LINK_DOWN_COUNTER[PRT]": [0x001E47C0]}
 
-    reset_type_dict = {"globr": "GLOBAL", "pfr": "PF", "corer": "CORE", "empr": "EMP", "flr": "FL", "pcir": "PCI",
-                       "bmer": "BME", "vfr": "VF_SW", "vflr": "VFLR"}
 
     force_phy_types_list = ['10GBase-SR',
                             '10GBase-LR',

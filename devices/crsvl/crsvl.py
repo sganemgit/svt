@@ -1459,31 +1459,32 @@ class crsvl(crsvlDefines):
                     print
                     raise RuntimeError("Exception in crsvl_eth:SetForceLinkSpeed proclib Error")	
 
-    def EthStartTraffic(self, packet_size = 512):
+    def EthStartTraffic(self, packet_size = 512, number_of_packets=None):
             '''
                 This function starts Tx and Rx.
                 Default packet size is 512
             '''
             driver = self.driver
-            driver.start_rx(packet_size = packet_size)
-            driver.start_tx(packet_size = packet_size)
+            driver.start_rx()
+            driver.start_tx(packet_size = packet_size, number_of_packets=number_of_packets)
 
-    def EthStartRx(self, packet_size = 512):
+    def EthStartRx(self):
             '''
                 This function starts Tx and Rx.
                 Default packet size is 512
             '''
-            driver = self.driver
 
-            driver.start_rx(packet_size = packet_size)
+            self.driver.start_rx()
 
-    def EthStartTx(self, packet_size = 512):
+    def EthStartTx(self, packet_size = 512, number_of_packets=None):
             '''
                 This function starts Tx and Rx.
                 Default packet size is 512
             '''
-            driver = self.driver
-            driver.start_tx(packet_size = packet_size)
+        if number_of_packets:
+            self.driver.start_tx(packet_size=packet_size, number_of_packets=number_of_packets, tx_limit_type='PACKET_COUNT')
+        else: 
+            self.driver.start_tx(packet_size=packet_size)
 
     ###############################################################
 
@@ -1507,22 +1508,19 @@ class crsvl(crsvlDefines):
     def EthStopRx(self):
             '''This function stops Tx and Rx.
             '''
-            driver = self.driver
-            driver.stop_rx()
+            self.driver.stop_rx()
 
-    def EthStopTx(self):
+    def EthStopTx(self, ring_id=0):
             '''This function stops Tx and Rx.
             '''
-            driver = self.driver
-            driver.stop_tx()
+            self.driver.stop_tx(ring_id=ring_id)
 
     def EthStopTraffic(self):
             '''This function stops Tx and Rx.
             '''
-            driver = self.driver
-            driver.stop_tx()
+            self.driver.stop_tx()
             time.sleep(2)
-            driver.stop_rx()
+            self.driver.stop_rx()
 
     def EthGetTrafficStatistics(self):
             '''This function reads traffic statistic

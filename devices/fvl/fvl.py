@@ -16,339 +16,182 @@ class fvl(fvlDefines):
 		This class defines all interfaces to the fvl device
 	'''
 
-    def GetPTC64(self):
-            '''This function reads PTC64 FVL register
-                    Packets Transmitted [64 Bytes] Counter (12.2.2.19.36/37)
-                    GLPRT_PTC64L = 0x003006a0
-                    GLPRT_PTC64H = 0x003006a4
-            '''
-            driver = self.driver 
-            reg_addr = calculate_port_offset(0x003006a0, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x003006a4, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
-            
-    def GetPTC127(self):
-            '''This function reads PTC127 FVL register
-                    Packets Transmitted [65-127 Bytes] Counter (12.2.2.19.38/39)
-                    GLPRT_PTC127L = 0x003006c0
-                    GLPRT_PTC127H = 0x003006c4
-            '''
-            driver = self.driver 
-            reg_addr = calculate_port_offset(0x003006c0, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x003006c4, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-            
-    def GetPTC255(self):
-            '''This function reads PTC255 FVL register
-                    Packets Transmitted [128-255 Bytes] Counter (12.2.2.19.40/41)
-                    GLPRT_PTC255L = 0x003006e0
-                    GLPRT_PTC255H = 0x003006e4
-            '''
-            driver = self.driver 
-            reg_addr = calculate_port_offset(0x003006e0, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x003006e4, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
-            
-    def GetPTC511(self):
-            '''This function reads PTC511 FVL register
-                    Packets Transmitted [256-511 Bytes] Counter (12.2.2.19.42/43)
-                    GLPRT_PTC511L = 0x00300700
-                    GLPRT_PTC511H = 0x00300704
-            '''
-            driver = self.driver 
-            reg_addr = calculate_port_offset(0x00300700, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300704, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-            
-    def GetPTC1023(self):
-            '''This function reads PTC1023 FVL register
-                    Packets Transmitted [512-1023 Bytes] Counter (12.2.2.19.44/45)
-                    GLPRT_PTC1023L = 0x00300720
-                    GLPRT_PTC1023H = 0x00300724
-            '''
-            driver = self.driver 
-            reg_addr = calculate_port_offset(0x00300720, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300724, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-            
-    def GetPTC1522(self):
-            '''This function reads PTC1522 FVL register
-                    Packets Transmitted [1024-1522 Bytes] Counter (12.2.2.19.46/47)
-                    GLPRT_PTC1522L = 0x00300740
-                    GLPRT_PTC1522H = 0x00300744
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300740, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300744, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-
-    def GetPTC9522(self):
-            '''This function reads PTC9522 FVL register
-                    Packets Transmitted [1523-9522 bytes] Counter (12.2.2.19.48/49)
-                    GLPRT_PTC9522L = 0x00300760
-                    GLPRT_PTC9522H = 0x00300764
-            '''
-            driver = self.driver 
-            reg_addr = calculate_port_offset(0x00300760, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300764, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
+    
+    def read_register(self, register_name, mul = 0x8, size = 0xffffffff):
+       '''
+            This function reads CVL register
+            :param register_name: Defined in reg_dict in cvlDefines
+            :return: int
+       '''
+       reg_data = 0
+       for addr in self.reg_dict[register_name]:
+           reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
+           temp_data = self.driver.read_csr(reg_addr)
+           reg_data = ((reg_data & size) << 32) | temp_data
+       return reg_data
 
     def GetPTC(self):
             '''This function reads all PTC FVL register
                     Total Packets Transmitted Counter (12.2.2.19.36 - 12.2.2.19.49)
+                return: dict--
+                        'GetPTC64'
+                        'GetPTC127'
+                        'GetPTC255'
+                        'GetPTC511'
+                        'GetPTC1023'
+                        'GetPTC1522'
+                        'GetPTC9522'
+                        'TotalPTC' - sum of all PTC registers
             '''
-            PTC_Dict = dict()
-            PTC_Dict['GetPTC64']   = self.GetPTC64()
-            PTC_Dict['GetPTC127']  = self.GetPTC127()
-            PTC_Dict['GetPTC255']  = self.GetPTC255()
-            PTC_Dict['GetPTC511']  = self.GetPTC511()
-            PTC_Dict['GetPTC1023'] = self.GetPTC1023()
-            PTC_Dict['GetPTC1522'] = self.GetPTC1522()
-            PTC_Dict['GetPTC9522'] = self.GetPTC9522()
-            PTC_sum = sum(PTC_Dict.values())
-            PTC_Dict['TotalPTC'] = PTC_sum
+  
+            PTC_registers_list = ["PTC64", "PTC127", "PTC255", "PTC511", "PTC1023", "PTC1522", "PTC9522"]
+            PTC_Dict = {}
+            PTC_Dict['TotalPTC'] = 0
+            for reg in PTC_registers_list:
+                PTC_Dict[reg] = self.read_register(reg)
+                PTC_Dict['TotalPTC'] = PTC_Dict['TotalPTC'] + self.read_register(reg)
             return PTC_Dict
 
-    def GetPRC64(self):
-            '''This function reads PRC64 FVL register
-                    Packets Received [64 Bytes] Counter (12.2.2.19.22/23)
-                    GLPRT_PRC64L = 0x00300480
-                    GLPRT_PRC64H = 0x00300484
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300480, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300484, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-
-    def GetPRC127(self):
-            '''This function reads PRC127 FVL register
-                    Packets Received [65-127 Bytes] Counter (12.2.2.19.24/25)
-                    GLPRT_PRC127L = 0x003004a0
-                    GLPRT_PRC127H = 0x003004a4
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003004a0, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x003004a4, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-
-    def GetPRC255(self):
-            '''This function reads PRC255 FVL register
-                    Packets Received [128-255 Bytes] Counter (12.2.2.19.26/27)
-                    GLPRT_PRC255L = 0x003004c0
-                    GLPRT_PRC255H = 0x003004c4
-            '''
-            driver= self.driver 
-            reg_addr = calculate_port_offset(0x003004c0, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x003004c4, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return ((high_data & 0xffff) <<32) | low_data
-            
-    def GetPRC511(self):
-            '''This function reads PRC511 FVL register
-                    Packets Received [256-511 Bytes] Counter (12.2.2.19.28/29)
-                    GLPRT_PRC511L = 0x003004e0
-                    GLPRT_PRC511H = 0x003004e4
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x003004e0, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x003004e4, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
-            
-    def GetPRC1023(self):
-            '''This function reads PRC1023 FVL register
-                    Packets Received [512-1023 Bytes] Counter (12.2.2.19.30/31)
-                    GLPRT_PRC1023L = 0x00300500
-                    GLPRT_PRC1023H = 0x00300504
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300500, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300504, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
-
-    def GetPRC1522(self):
-            '''This function reads PRC1522 FVL register
-                    Packets Received [1024-1522 Bytes] Counter (12.2.2.19.32/33)
-                    GLPRT_PRC1522L = 0x00300520
-                    GLPRT_PRC1522H = 0x00300524
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300520, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300524, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
-            
-    def GetPRC9522(self):
-            '''This function reads PRC9522 FVL register
-                    Packets Received [1523-9522 Bytes] Counter (12.2.2.19.34/35)
-                    GLPRT_PRC9522L = 0x00300540
-                    GLPRT_PRC9522H = 0x00300544
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300540, 0x8, driver.port_number())
-            low_data = driver.read_csr(reg_addr)
-            reg_addr = calculate_port_offset(0x00300544, 0x8, driver.port_number())
-            high_data = driver.read_csr(reg_addr)
-            return (((high_data & 0xffff) <<32) | low_data)
-            
     def GetPRC(self):
             '''
                 This function reads all PRC FVL registers
                 Total Packets Received Counter (12.2.2.19.23-12.2.2.19.35)
+                return: dict--
+                        'PRC64'
+                        'PRC127'
+                        'PRC255'
+                        'PRC511'
+                        'PRC1023'
+                        'PRC1522'
+                        'PRC9522'
+                        'TotalPRC' - sum of all PRC registers
             '''
-            PRC_Dict = {}
-            PRC_Dict['GetPRC64']   = self.GetPRC64()
-            PRC_Dict['GetPRC127']  = self.GetPRC127()
-            PRC_Dict['GetPRC255']  = self.GetPRC255()
-            PRC_Dict['GetPRC511']  = self.GetPRC511()
-            PRC_Dict['GetPRC1023'] = self.GetPRC1023()
-            PRC_Dict['GetPRC1522'] = self.GetPRC1522()
-            PRC_Dict['GetPRC9522'] = self.GetPRC9522()
-            PRC_sum = sum(PRC_Dict.values())
-            PRC_Dict['TotalPRC'] = PRC_sum
-            return PRC_Dict
+        PRC_registers_list = ["PRC64", "PRC127", "PRC255", "PRC511", "PRC1023", "PRC1522", "PRC9522"]
+        PRC_Dict = dict()
+        PRC_Dict['TotalPRC'] = 0
+        for reg in PRC_registers_list:
+            PRC_Dict[reg] = self.read_register(reg)
+            PRC_Dict['TotalPRC'] = PRC_Dict['TotalPRC'] + self.read_register(reg)
+        return PRC_Dict
             
     ##############################################################################################	
 
-    def GetCRCERRS(self):
-            ''' This function counts the number of receive packets with CRC error, this includes
-                    packets that are also counted by other error registers. (12.2.2.19.59)
-                    GLPRT_CRCERRS = 0x00300080
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300080, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetCRCERRS(self):
+    #         ''' This function counts the number of receive packets with CRC error, this includes
+    #                 packets that are also counted by other error registers. (12.2.2.19.59)
+    #                 GLPRT_CRCERRS = 0x00300080
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300080, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetILLERRC(self):
-            ''' This function counts the number of receive packets with Illegal bytes errors. (12.2.2.19.60)
-                    GLPRT_ILLERRC = 0x003000E0
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003000e0, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetILLERRC(self):
+    #         ''' This function counts the number of receive packets with Illegal bytes errors. (12.2.2.19.60)
+    #                 GLPRT_ILLERRC = 0x003000E0
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003000e0, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetERRBC(self):
-            ''' This function counts the number of receive packets with Error bytes.
-                    This counter is only active when in 10G mode (12.2.2.19.61)
-                    GLPRT_ERRBC = 0x003000C0 
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003000c0, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetERRBC(self):
+    #         ''' This function counts the number of receive packets with Error bytes.
+    #                 This counter is only active when in 10G mode (12.2.2.19.61)
+    #                 GLPRT_ERRBC = 0x003000C0 
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003000c0, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetMLFC(self):
-            ''' This function count the number of faults in the local MAC. (12.2.2.19.62)
-                    GLPRT_MLFC = 0x00300020
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300020, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetMLFC(self):
+    #         ''' This function count the number of faults in the local MAC. (12.2.2.19.62)
+    #                 GLPRT_MLFC = 0x00300020
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300020, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetMRFC(self):
-            ''' This function count the number of faults in the remote MAC. (12.2.2.19.63)
-                    GLPRT_MRFC = 0x00300040
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300040, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetMRFC(self):
+    #         ''' This function count the number of faults in the remote MAC. (12.2.2.19.63)
+    #                 GLPRT_MRFC = 0x00300040
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300040, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetRLEC(self):
-            ''' This function counts the number of packets with receive length errors.
-                    A length error occurs if an incoming packet length field in the MAC header doesn't match the packet length. (12.2.2.19.64)
-                    GLPRT_RLEC = 0x003000A0
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003000a0, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetRLEC(self):
+    #         ''' This function counts the number of packets with receive length errors.
+    #                 A length error occurs if an incoming packet length field in the MAC header doesn't match the packet length. (12.2.2.19.64)
+    #                 GLPRT_RLEC = 0x003000A0
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003000a0, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetRUC(self):
-            ''' Receive Undersize Error. This function counts the number of received frames that are shorter than
-                    minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had a valid CRC. (12.2.2.19.65)
-                    GLPRT_RUC = 0x00300100
-            ''' 
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300100, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetRUC(self):
+    #         ''' Receive Undersize Error. This function counts the number of received frames that are shorter than
+    #                 minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had a valid CRC. (12.2.2.19.65)
+    #                 GLPRT_RUC = 0x00300100
+    #         ''' 
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300100, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetRFC(self):
-            '''Receive Fragments Count. This function counts the number of received frames that are shorter than
-                    minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (12.2.2.19.66)
-                    GLPRT_RFC = 0x00300560
-            '''  
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300560, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetRFC(self):
+    #         '''Receive Fragments Count. This function counts the number of received frames that are shorter than
+    #                 minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (12.2.2.19.66)
+    #                 GLPRT_RFC = 0x00300560
+    #         '''  
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300560, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
 
-    def GetROC(self):
-            '''Receive oversize Error. This function counts the number of received frames that are longer than
-                    maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
-                    inclusively) and have valid CRC. (12.2.2.19.67)
-                    GLPRT_ROC = 0x00300120
-            '''	
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300120, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetROC(self):
+    #         '''Receive oversize Error. This function counts the number of received frames that are longer than
+    #                 maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
+    #                 inclusively) and have valid CRC. (12.2.2.19.67)
+    #                 GLPRT_ROC = 0x00300120
+    #         '''	
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300120, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
 
-    def GetRJC(self):
-            '''Receive jabber errors. This function counts the number of received packets that passed address filtering,
-                    and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
-                    The packets length is counted from <Destination Address> through <CRC>, inclusively. (12.2.2.19.68)
-                    GLPRT_RJC = 0x00300580
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300580, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetRJC(self):
+    #         '''Receive jabber errors. This function counts the number of received packets that passed address filtering,
+    #                 and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
+    #                 The packets length is counted from <Destination Address> through <CRC>, inclusively. (12.2.2.19.68)
+    #                 GLPRT_RJC = 0x00300580
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300580, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetMSPDC(self):
-            '''This function counts the number of MAC short Packets Discarded. This counter is only active when in 10G mode. (12.2.2.19.69)
-                    GLPRT_MSPDC = 00300060
-            ''' 
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300060, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetMSPDC(self):
+    #         '''This function counts the number of MAC short Packets Discarded. This counter is only active when in 10G mode. (12.2.2.19.69)
+    #                 GLPRT_MSPDC = 00300060
+    #         ''' 
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300060, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
             
-    def GetLDPC_FVL(self):
-            '''This function counts the number of VM to VM loopback packets discarded. (12.2.2.19.70)
-                    GLPRT_LDPC = 0x00300620
-            ''' 
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300620, 0x8, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
-            return reg_data
+    # def GetLDPC_FVL(self):
+    #         '''This function counts the number of VM to VM loopback packets discarded. (12.2.2.19.70)
+    #                 GLPRT_LDPC = 0x00300620
+    #         ''' 
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300620, 0x8, driver.port_number())
+    #         reg_data = driver.read_csr(reg_addr)
+    #         return reg_data
 
     def GetLDPC_ORCA(self):
             '''This function counts the number of low density parity check (LDPC) CRC errors in ORCA
@@ -359,374 +202,364 @@ class fvl(fvlDefines):
             return (((high_data & 0xffff) <<16) | low_data)
 
     def GetMacErrorsStatistics(self, ErrorStatistics):
-            handler = get_handler()
+            # handler = get_handler()
+            ErrorsStatistics_list = ["MSPDC", "CRCERRS", "ILLERRC", "ERRBC", "MLFC", "MRFC", "RLEC", "RUC", "RFC", "ROC", "RJC","FVL_LDPC"]
+            ErrorStatistics['ErrorSummary'] = 0
+            for error in ErrorsStatistics_list:
+                result = self.read_register(reg)
+                ErrorStatistics[error] = result
+                ErrorStatistics['ErrorSummary'] = ErrorStatistics['ErrorSummary'] +result
 
-            CRCERRS = GetCRCERRS()
-            ILLERRC = GetILLERRC()
-            ERRBC = GetERRBC()
-            MLFC = GetMLFC()
-            MRFC = GetMRFC()
-            RLEC = GetRLEC()
-            RUC = GetRUC()
-            RFC = GetRFC()
-            ROC = GetROC()
-            RJC = GetRJC()
-            MSPDC = GetMSPDC()
-            FVL_LDPC = GetLDPC_FVL()
+            # CRCERRS = GetCRCERRS()
+            # ILLERRC = GetILLERRC()
+            # ERRBC = GetERRBC()
+            # MLFC = GetMLFC()
+            # MRFC = GetMRFC()
+            # RLEC = GetRLEC()
+            # RUC = GetRUC()
+            # RFC = GetRFC()
+            # ROC = GetROC()
+            # RJC = GetRJC()
+            # MSPDC = GetMSPDC()
+            # FVL_LDPC = GetLDPC_FVL()
             ORCA_LDPC = GetLDPC_ORCA()
 
-            ErrorStatistics['CRCERRS'] = CRCERRS
-            ErrorStatistics['ILLERRC'] = ILLERRC
-            ErrorStatistics['ERRBC'] = ERRBC
-            ErrorStatistics['MLFC'] = MLFC
-            ErrorStatistics['MRFC'] = MRFC
-            ErrorStatistics['RLEC'] = RLEC
-            ErrorStatistics['RUC'] = RUC
-            ErrorStatistics['RFC'] = RFC
-            ErrorStatistics['ROC'] = ROC  
-            ErrorStatistics['RJC'] = RJC
-            ErrorStatistics['MSPDC'] = MSPDC
-            ErrorStatistics['FVL_LDPC'] = FVL_LDPC
-            #ErrorStatistics['ORCA_LDPC'] = ORCA_LDPC
+            # ErrorStatistics['CRCERRS'] = CRCERRS
+            # ErrorStatistics['ILLERRC'] = ILLERRC
+            # ErrorStatistics['ERRBC'] = ERRBC
+            # ErrorStatistics['MLFC'] = MLFC
+            # ErrorStatistics['MRFC'] = MRFC
+            # ErrorStatistics['RLEC'] = RLEC
+            # ErrorStatistics['RUC'] = RUC
+            # ErrorStatistics['RFC'] = RFC
+            # ErrorStatistics['ROC'] = ROC  
+            # ErrorStatistics['RJC'] = RJC
+            # ErrorStatistics['MSPDC'] = MSPDC
+            # ErrorStatistics['FVL_LDPC'] = FVL_LDPC
+            # #ErrorStatistics['ORCA_LDPC'] = ORCA_LDPC
 
-            ErrorStatistics['ErrorSummary'] = CRCERRS+ILLERRC+MLFC+MRFC+ERRBC+RLEC+RUC+RFC+ROC+RJC+MSPDC+FVL_LDPC#+ORCA_LDPC
-            #print 'Reg statistics :' , ErrorStatistics
+            # ErrorStatistics['ErrorSummary'] = CRCERRS+ILLERRC+MLFC+MRFC+ERRBC+RLEC+RUC+RFC+ROC+RJC+MSPDC+FVL_LDPC#+ORCA_LDPC
+            # #print 'Reg statistics :' , ErrorStatistics
             return collections.OrderedDict(ErrorStatistics)	
     ############################################################################################################	
 
-    def ClearPTC64(self):
-            '''This function clears PTC64 FVL register
-                    Clear Packets Transmitted [64 Bytes] Counter (12.2.2.19.36/37)
-                    GLPRT_PTC64L = 0x003006a0
-                    GLPRT_PTC64H = 0x003006a4
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003006a0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x003006a4, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC64(self):
+    #         '''This function clears PTC64 FVL register
+    #                 Clear Packets Transmitted [64 Bytes] Counter (12.2.2.19.36/37)
+    #                 GLPRT_PTC64L = 0x003006a0
+    #                 GLPRT_PTC64H = 0x003006a4
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003006a0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x003006a4, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPTC127(self):
-            '''This function clears PTC127 FVL register
-                    Clear Packets Transmitted [65-127 Bytes] Counter (12.2.2.19.38/39)
-                    GLPRT_PTC127L = 0x003006c0
-                    GLPRT_PTC127H = 0x003006c4
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003006c0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x003006c4, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC127(self):
+    #         '''This function clears PTC127 FVL register
+    #                 Clear Packets Transmitted [65-127 Bytes] Counter (12.2.2.19.38/39)
+    #                 GLPRT_PTC127L = 0x003006c0
+    #                 GLPRT_PTC127H = 0x003006c4
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003006c0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x003006c4, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
 
-    def ClearPTC255(self):
-            '''This function clears PTC255 FVL register
-                    Clear Packets Transmitted [128-255 Bytes] Counter (12.2.2.19.40/41)
-                    GLPRT_PTC255L = 0x003006e0
-                    GLPRT_PTC255H = 0x003006e4
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003006e0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x003006e4, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC255(self):
+    #         '''This function clears PTC255 FVL register
+    #                 Clear Packets Transmitted [128-255 Bytes] Counter (12.2.2.19.40/41)
+    #                 GLPRT_PTC255L = 0x003006e0
+    #                 GLPRT_PTC255H = 0x003006e4
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003006e0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x003006e4, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPTC511(self):
-            '''This function clears PTC511 FVL register
-                    Clear Packets Transmitted [256-511 Bytes] Counter (12.2.2.19.42/43)
-                    GLPRT_PTC511L = 0x00300700
-                    GLPRT_PTC511H = 0x00300704
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300700, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x00300704, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC511(self):
+    #         '''This function clears PTC511 FVL register
+    #                 Clear Packets Transmitted [256-511 Bytes] Counter (12.2.2.19.42/43)
+    #                 GLPRT_PTC511L = 0x00300700
+    #                 GLPRT_PTC511H = 0x00300704
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300700, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x00300704, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPTC1023(self):
-            '''This function clears PTC1023 FVL register
-                    Clear Packets Transmitted [512-1023 Bytes] Counter (12.2.2.19.44/45)
-                    GLPRT_PTC1023L = 0x00300720
-                    GLPRT_PTC1023H = 0x00300724
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300720, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x00300724, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC1023(self):
+    #         '''This function clears PTC1023 FVL register
+    #                 Clear Packets Transmitted [512-1023 Bytes] Counter (12.2.2.19.44/45)
+    #                 GLPRT_PTC1023L = 0x00300720
+    #                 GLPRT_PTC1023H = 0x00300724
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300720, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x00300724, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPTC1522(self):
-            '''This function clears PTC1522 FVL register
-                    Clear Packets Transmitted [1024-1522 Bytes] Counter (12.2.2.19.46/47)
-                    GLPRT_PTC1522L = 0x00300740
-                    GLPRT_PTC1522H = 0x00300744
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300740, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x00300744, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC1522(self):
+    #         '''This function clears PTC1522 FVL register
+    #                 Clear Packets Transmitted [1024-1522 Bytes] Counter (12.2.2.19.46/47)
+    #                 GLPRT_PTC1522L = 0x00300740
+    #                 GLPRT_PTC1522H = 0x00300744
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300740, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x00300744, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPTC9522(self):
-            '''This function clears PTC9522 FVL register
-                    Clear Packets Transmitted [1523-9522 bytes] Counter (12.2.2.19.48/49)
-                    GLPRT_PTC9522L = 0x00300760
-                    GLPRT_PTC9522H = 0x00300764
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300760, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr = calculate_port_offset(0x00300764, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPTC9522(self):
+    #         '''This function clears PTC9522 FVL register
+    #                 Clear Packets Transmitted [1523-9522 bytes] Counter (12.2.2.19.48/49)
+    #                 GLPRT_PTC9522L = 0x00300760
+    #                 GLPRT_PTC9522H = 0x00300764
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300760, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr = calculate_port_offset(0x00300764, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC64(self):
-            '''This function clears PRC64 FVL register
-                    Clear Packets Received [64 Bytes] Counter (12.2.2.19.22/23)
-                    GLPRT_PRC64L = 0x00300480
-                    GLPRT_PRC64H = 0x00300484
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x00300480, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x00300484, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPRC64(self):
+    #         '''This function clears PRC64 FVL register
+    #                 Clear Packets Received [64 Bytes] Counter (12.2.2.19.22/23)
+    #                 GLPRT_PRC64L = 0x00300480
+    #                 GLPRT_PRC64H = 0x00300484
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x00300480, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x00300484, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC127(self):
-            '''This function clears PRC127 FVL register
-                    Clear Packets Received [65-127 Bytes] Counter (12.2.2.19.24/25)
-                    GLPRT_PRC127L = 0x003004a0
-                    GLPRT_PRC127H = 0x003004a4
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x003004a0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x003004a4, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPRC127(self):
+    #         '''This function clears PRC127 FVL register
+    #                 Clear Packets Received [65-127 Bytes] Counter (12.2.2.19.24/25)
+    #                 GLPRT_PRC127L = 0x003004a0
+    #                 GLPRT_PRC127H = 0x003004a4
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x003004a0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x003004a4, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC255(self):
-            '''This function clears PRC255 FVL register
-                    Clear Packets Received [128-255 Bytes] Counter (12.2.2.19.26/27)
-                    GLPRT_PRC255L = 0x003004c0
-                    GLPRT_PRC255H = 0x003004c4
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x003004c0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x003004c4, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPRC255(self):
+    #         '''This function clears PRC255 FVL register
+    #                 Clear Packets Received [128-255 Bytes] Counter (12.2.2.19.26/27)
+    #                 GLPRT_PRC255L = 0x003004c0
+    #                 GLPRT_PRC255H = 0x003004c4
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x003004c0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x003004c4, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC511(self):
-            '''This function clears PRC511 FVL register
-                    Clear Packets Received [256-511 Bytes] Counter (12.2.2.19.28/29)
-                    GLPRT_PRC511L = 0x003004e0
-                    GLPRT_PRC511H = 0x003004e4
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x003004e0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x003004e4, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPRC511(self):
+    #         '''This function clears PRC511 FVL register
+    #                 Clear Packets Received [256-511 Bytes] Counter (12.2.2.19.28/29)
+    #                 GLPRT_PRC511L = 0x003004e0
+    #                 GLPRT_PRC511H = 0x003004e4
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x003004e0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x003004e4, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC1023(self):
-            '''This function clears PRC1023 FVL register
-                    Clear Packets Received [512-1023 Bytes] Counter (12.2.2.19.30/31)
-                    GLPRT_PRC1023L = 0x00300500
-                    GLPRT_PRC1023H = 0x00300504
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x00300500, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x00300504, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPRC1023(self):
+    #         '''This function clears PRC1023 FVL register
+    #                 Clear Packets Received [512-1023 Bytes] Counter (12.2.2.19.30/31)
+    #                 GLPRT_PRC1023L = 0x00300500
+    #                 GLPRT_PRC1023H = 0x00300504
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x00300500, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x00300504, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC1522(self):
-            '''This function clears PRC1522 FVL register
-                    Clear Packets Received [1024-1522 Bytes] Counter (12.2.2.19.32/33)
-                    GLPRT_PRC1522L = 0x00300520
-                    GLPRT_PRC1522H = 0x00300524
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x00300520, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x00300524, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearPRC1522(self):
+    #         '''This function clears PRC1522 FVL register
+    #                 Clear Packets Received [1024-1522 Bytes] Counter (12.2.2.19.32/33)
+    #                 GLPRT_PRC1522L = 0x00300520
+    #                 GLPRT_PRC1522H = 0x00300524
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x00300520, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x00300524, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearPRC9522(self):
-            '''This function clears PRC9522 FVL register
-                    Clear Packets Received [1523-9522 Bytes] Counter (12.2.2.19.34/35)
-                    GLPRT_PRC9522L = 0x00300540
-                    GLPRT_PRC9522H = 0x00300544
-            '''
-            driver= self.driver
-            reg_addr= calculate_port_offset(0x00300540, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            reg_addr= calculate_port_offset(0x00300544, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
-            
+    # def ClearPRC9522(self):
+    #         '''This function clears PRC9522 FVL register
+    #                 Clear Packets Received [1523-9522 Bytes] Counter (12.2.2.19.34/35)
+    #                 GLPRT_PRC9522L = 0x00300540
+    #                 GLPRT_PRC9522H = 0x00300544
+    #         '''
+    #         driver= self.driver
+    #         reg_addr= calculate_port_offset(0x00300540, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         reg_addr= calculate_port_offset(0x00300544, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
+    
+    def Clear_register(self, register_name, mul=0x8):
+        ''' 
+            This function clears FVL register
+            :param register_name: Defined in reg_dict in fvlDefines
+        '''
+        for addr in self.reg_dict[register_name]:
+            reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
+            self.driver.write_csr(reg_addr, 0xffffffff)
+
     ######################################################################################################
 
-    def ClearCRCERRS(self):
-            ''' This function clears the count of receive packets with CRC error, this includes
-                    packets that are also counted by other error registers. (12.2.2.19.59)
-                    GLPRT_CRCERRS = 0x00300080
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300080, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearCRCERRS(self):
+    #         ''' This function clears the count of receive packets with CRC error, this includes
+    #                 packets that are also counted by other error registers. (12.2.2.19.59)
+    #                 GLPRT_CRCERRS = 0x00300080
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300080, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearILLERRC(self):
-            ''' This function clears the count of receive packets with Illegal bytes errors. (12.2.2.19.60)
-                    GLPRT_ILLERRC = 0x003000E0
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003000e0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearILLERRC(self):
+    #         ''' This function clears the count of receive packets with Illegal bytes errors. (12.2.2.19.60)
+    #                 GLPRT_ILLERRC = 0x003000E0
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003000e0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearERRBC(self):
-            ''' This function clears the count of receive packets with Error bytes.
-                    This counter is only active when in 10G mode (12.2.2.19.61)
-                    GLPRT_ERRBC = 0x003000C0 
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003000c0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearERRBC(self):
+    #         ''' This function clears the count of receive packets with Error bytes.
+    #                 This counter is only active when in 10G mode (12.2.2.19.61)
+    #                 GLPRT_ERRBC = 0x003000C0 
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003000c0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearMLFC(self):
-            ''' This function clears the count of faults in the local MAC. (12.2.2.19.62)
-                    GLPRT_MLFC = 0x00300020
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300020, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearMLFC(self):
+    #         ''' This function clears the count of faults in the local MAC. (12.2.2.19.62)
+    #                 GLPRT_MLFC = 0x00300020
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300020, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearMRFC(self):
-            ''' This function clears the count of faults in the remote MAC. (12.2.2.19.63)
-                    GLPRT_MRFC = 0x00300040
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x00300040, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearMRFC(self):
+    #         ''' This function clears the count of faults in the remote MAC. (12.2.2.19.63)
+    #                 GLPRT_MRFC = 0x00300040
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x00300040, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearRLEC(self):
-            ''' This function clears the count of packets with receive length errors.
-                    A length error occurs if an incoming packet length field in the MAC header doesn't match the packet length. (12.2.2.19.64)
-                    GLPRT_RLEC = 0x003000A0
-            '''
-            driver = self.driver
-            reg_addr = calculate_port_offset(0x003000a0, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearRLEC(self):
+    #         ''' This function clears the count of packets with receive length errors.
+    #                 A length error occurs if an incoming packet length field in the MAC header doesn't match the packet length. (12.2.2.19.64)
+    #                 GLPRT_RLEC = 0x003000A0
+    #         '''
+    #         driver = self.driver
+    #         reg_addr = calculate_port_offset(0x003000a0, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearRUC(self):
-            ''' Receive Undersize Error. This function clears the count of received frames that are shorter than
-                    minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had a valid CRC. (12.2.2.19.65)
-                    GLPRT_RUC = 0x00300100
-            ''' 
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300100, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearRUC(self):
+    #         ''' Receive Undersize Error. This function clears the count of received frames that are shorter than
+    #                 minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had a valid CRC. (12.2.2.19.65)
+    #                 GLPRT_RUC = 0x00300100
+    #         ''' 
+    #         driver= self.driver
+    #         reg_addr = calculate_port_offset(0x00300100, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearRFC(self):
-            '''Receive Fragments Count. This function clears the count of received frames that are shorter than
-                    minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (12.2.2.19.66)
-                    GLPRT_RFC = 0x00300560
-            ''' 
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300560, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearRFC(self):
+    #         '''Receive Fragments Count. This function clears the count of received frames that are shorter than
+    #                 minimum size (64 bytes from <Destination Address> through <CRC>, inclusively), and had an invalid CRC. (12.2.2.19.66)
+    #                 GLPRT_RFC = 0x00300560
+    #         ''' 
+    #         driver= self.driver
+    #         reg_addr = calculate_port_offset(0x00300560, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
 
-    def ClearROC(self):
-            '''Receive oversize Error. This function clears the count of received frames that are longer than
-                    maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
-                    inclusively) and have valid CRC. (12.2.2.19.67)
-                    GLPRT_ROC = 0x00300120
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300120, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearROC(self):
+    #         '''Receive oversize Error. This function clears the count of received frames that are longer than
+    #                 maximum size as defined by the "Set MAC config" command (from <Destination Address> through <CRC>,
+    #                 inclusively) and have valid CRC. (12.2.2.19.67)
+    #                 GLPRT_ROC = 0x00300120
+    #         '''
+    #         driver= self.driver
+    #         reg_addr = calculate_port_offset(0x00300120, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
 
-    def ClearRJC(self):
-            '''Receive jabber errors. This function clears the count of received packets that passed address filtering,
-                    and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
-                    The packets length is counted from <Destination Address> through <CRC>, inclusively. (12.2.2.19.68)
-                    GLPRT_RJC = 0x00300580
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300580, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearRJC(self):
+    #         '''Receive jabber errors. This function clears the count of received packets that passed address filtering,
+    #                 and are greater than maximum size and have bad CRC (this is slightly different from the Receive Oversize Count register).
+    #                 The packets length is counted from <Destination Address> through <CRC>, inclusively. (12.2.2.19.68)
+    #                 GLPRT_RJC = 0x00300580
+    #         '''
+    #         driver= self.driver
+    #         reg_addr = calculate_port_offset(0x00300580, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearMSPDC(self):
-            '''This function clears the count of MAC short Packets Discarded. This counter is only active when in 10G mode. (12.2.2.19.69)
-                    GLPRT_MSPDC = 0x00300060
-            ''' 
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300060, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearMSPDC(self):
+    #         '''This function clears the count of MAC short Packets Discarded. This counter is only active when in 10G mode. (12.2.2.19.69)
+    #                 GLPRT_MSPDC = 0x00300060
+    #         ''' 
+    #         driver= self.driver
+    #         reg_addr = calculate_port_offset(0x00300060, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
-    def ClearLDPC_FVL(self):
-            '''This function clears the count of VM to VM loopback packets discarded. (12.2.2.19.70)
-                    GLPRT_LDPC = 0x00300620
-            '''
-            driver= self.driver
-            reg_addr = calculate_port_offset(0x00300620, 0x8, driver.port_number())
-            driver.write_csr(reg_addr, 0xffffffff)
-            pass
+    # def ClearLDPC_FVL(self):
+    #         '''This function clears the count of VM to VM loopback packets discarded. (12.2.2.19.70)
+    #                 GLPRT_LDPC = 0x00300620
+    #         '''
+    #         driver= self.driver
+    #         reg_addr = calculate_port_offset(0x00300620, 0x8, driver.port_number())
+    #         driver.write_csr(reg_addr, 0xffffffff)
+    #         pass
             
     def ClearMACstat(self):
             '''This function clears following MAC statistics registers. 
                     clear: PTC, PRC, CRCERRS, ILLERRC, ERRBC, MLFC, MRFC, RLEC, RUC, RFC, ROC, RJC, MSPDC, LDPC_FVL, LDPC_ORCA.
                     (12.2.2.19)
             '''
-            self.ClearPTC64()
-            ClearPTC127()
-            ClearPTC255()
-            ClearPTC511()
-            ClearPTC1023()
-            ClearPTC1522()
-            ClearPTC9522()
-            ClearPRC64()
-            ClearPRC127()
-            ClearPRC255()
-            ClearPRC511()
-            ClearPRC1023()
-            ClearPRC1522()
-            ClearPRC9522()
-            ClearCRCERRS()
-            ClearILLERRC()
-            ClearERRBC()
-            ClearMLFC()
-            ClearMRFC()
-            ClearRLEC()
-            ClearRUC()
-            ClearRFC()
-            ClearROC()
-            ClearRJC()
-            ClearMSPDC()
-            ClearLDPC_FVL()
-            pass
+            for reg in self.reg_dict:
+                self.Clear_register(reg)
             
     #########################################################################################################
     ######################                 FVL                  #############################################
@@ -736,9 +569,8 @@ class fvl(fvlDefines):
             ''' This function returns MAC and PHY Parameters'''
 
             print "###################### FVL #############################################"
-            driver = self.driver
             reg_addr = calculate_port_offset(0x0008c260, 0x4, self.Phy_Address_dict[driver.port_number()])
-            reg_value = driver.read_csr(reg_addr)
+            reg_value =  self.driver.read_csr(reg_addr)
             print "FVL Mac link status: ",GetMacLinkStatus()
             print "Tamar PCS link status: ",GetInternalPcsLinkStatus()
             FVLPcsMode = GetFVLPcsMode()
@@ -812,10 +644,9 @@ class fvl(fvlDefines):
                     Options:
                             GetSpeed = True/False
             '''
-            driver = self.driver
 
             reg_addr = calculate_port_offset(0x001E2420, 0x4, driver.port_number())
-            reg_data = driver.read_csr(reg_addr)
+            reg_data = self.driver.read_csr(reg_addr)
 
             result=[]
             result.append(get_bit_value(reg_data,30))
@@ -1463,31 +1294,31 @@ class fvl(fvlDefines):
                     print
                     raise RuntimeError("Exception in fvl_eth:SetForceLinkSpeed proclib Error")	
 
-    def EthStartTraffic(self, packet_size = 512):
+    def EthStartTraffic(self, packet_size = 512, number_of_packets = None):
             '''
                 This function starts Tx and Rx.
                 Default packet size is 512
             '''
-            driver = self.driver
-            driver.start_rx(packet_size = packet_size)
-            driver.start_tx(packet_size = packet_size)
+            self.driver.start_rx()
+            self.driver.start_tx(packet_size = packet_size, number_of_packets=number_of_packets)
 
-    def EthStartRx(self, packet_size = 512):
+    def EthStartRx(self):
             '''
                 This function starts Tx and Rx.
                 Default packet size is 512
             '''
-            driver = self.driver
 
-            driver.start_rx(packet_size = packet_size)
+            self.driver.start_rx()
 
-    def EthStartTx(self, packet_size = 512):
+    def EthStartTx(self, packet_size = 512, number_of_packets = None):
             '''
                 This function starts Tx and Rx.
                 Default packet size is 512
             '''
-            driver = self.driver
-            driver.start_tx(packet_size = packet_size)
+        if number_of_packets:
+            self.driver.start_tx(packet_size=packet_size, number_of_packets=number_of_packets, tx_limit_type='PACKET_COUNT')
+        else: 
+            self.driver.start_tx(packet_size=packet_size)
 
     ###############################################################
 
@@ -1508,25 +1339,22 @@ class fvl(fvlDefines):
             return int((end - start)*8*packet_size/sample_time)
 
     ################################################################
-    def EthStopRx(self):
+    def EthStopRx(self, ring_id=0):
             '''This function stops Tx and Rx.
             '''
-            driver = self.driver
-            driver.stop_rx()
+            self.driver.stop_rx(ring_id=ring_id)
 
-    def EthStopTx(self):
+    def EthStopTx(self, ring_id=0):
             '''This function stops Tx and Rx.
             '''
-            driver = self.driver
-            driver.stop_tx()
+            self.driver.stop_tx(ring_id=ring_id)
 
     def EthStopTraffic(self):
             '''This function stops Tx and Rx.
             '''
-            driver = self.driver
-            driver.stop_tx()
+            self.driver.stop_tx()
             time.sleep(2)
-            driver.stop_rx()
+            self.driver.stop_rx()
 
     def EthGetTrafficStatistics(self):
             '''This function reads traffic statistic
@@ -1816,15 +1644,14 @@ class fvl(fvlDefines):
                                       False = config PHY as Slave
             '''
             HostOrBaseTDirection(1)
-            driver = self.driver
-            reg_value = driver.read_phy_register(0x7, 0x20, self.Phy_Address_dict[driver.port_number()])
+            reg_value = self.driver.read_phy_register(0x7, 0x20, self.Phy_Address_dict[self.driver.port_number()])
             reg_value = reg_value | (1<<15)	
             if (MS==True):
                     reg_value = reg_value |(1<<14)
             else:
                     reg_value = reg_value & (~(1<<14))
 
-            driver.write_phy_register(0x7, 0x20, self.Phy_Address_dict[driver.port_number()], reg_value)	
+            self.driver.write_phy_register(0x7, 0x20, self.Phy_Address_dict[self.driver.port_number()], reg_value)	
             RestartAn()	
 
     def Adv10GLinkSpeed(self, State):
@@ -2404,25 +2231,8 @@ class fvl(fvlDefines):
             argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
             return: None
         '''
-        driver = self.driver
-        if reset_type ==  "globr":
-            driver.device_reset("GLOBAL")
-        elif reset_type ==  "pfr" :
-            driver.device_reset("PF")
-        elif reset_type == "corer" :
-            driver.device_reset("CORE")
-        elif reset_type == "empr":
-            driver.device_reset("EMP")
-        elif reset_type == "flr":
-            driver.device_reset("FL")
-        elif reset_type == "pcir":
-            driver.device_reset("PCI")
-        elif reset_type == "bmer":
-            driver.device_reset("BME")
-        elif reset_type ==  "vfr":
-            driver.device_reset("VF_SW")
-        elif reset_type ==   "vflr":
-            driver.device_reset("VFLR")
+        if reset_type in self.reset_type_dict:
+            self.driver.device_reset(self.reset_type_dict[reset_type])
         else:
             print("could not identify reset type")
 

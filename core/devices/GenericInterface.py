@@ -27,6 +27,61 @@ class GenericInterface(ABC):
 
 	# TODO add abstract method for each method that is used in the tests
 	# need to have a unified interface for all devices 
-	# @abstractmethod
-	# def EthStartTx(self, ):
-	# 	pass
+	@abstractmethod
+	def EthStartTx(self, packet_size = 512, number_of_packets = None):
+		pass
+
+	@abstractmethod
+	def EthStartRx(self):
+		pass
+
+	@abstractmethod
+	def EthStartTraffic(self, packet_size = 512, number_of_packets = None):
+		pass
+
+	@abstractmethod
+	def EthStopRx(self, ring_id=0):
+		pass
+
+	@abstractmethod
+	def EthStopTx(self, ring_id=0):
+		pass
+
+	@abstractmethod
+	def EthStopTraffic(self):
+		pass
+
+	@abstractmethod	
+	def Clear_register(self, register_name, mul=0x8):
+		pass
+
+	@abstractmethod	
+	def GetPRC(self):
+		pass
+
+	@abstractmethod	
+	def GetPTC(self):
+		pass
+
+	@abstractmethod	
+	def read_register(self, register_name, mul = 0x8, size = 0xffffffff):
+		pass
+
+	@abstractmethod	
+	def ClearMACstat(self):
+		pass
+
+	@abstractmethod	
+	def GetCurrentThroughput(self, packet_size=512):
+		pass
+	
+	@abstractmethod	
+	def RestartAn(self, Location = "Ext_Phy"): 
+		pass
+		# def RestartAn(self, Location = "AQ"):cvl
+
+	@abstractmethod	
+	def Reset(self, reset_type = 'pfr'):
+		pass
+	# def GetMacLinkStatus(self, *bits,**options):fvl
+	# def GetMacLinkStatus(self, Location = "AQ"): cvl+cpk

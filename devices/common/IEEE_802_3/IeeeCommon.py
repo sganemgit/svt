@@ -87,3 +87,5 @@ class IeeeCommon:
                 "1000Base-T":['NO_FEC'],
                 "100Base-TX":['NO_FEC'],
                 "100M-SGMII":['NO_FEC']}
+
+    reset_type_dict = {"globr": "GLOBAL", "pfr": "PF", "corer": "CORE", "empr": "EMP", "flr": "FL", "pcir": "PCI","bmer": "BME", "vfr": "VF_SW", "vflr": "VFLR"}

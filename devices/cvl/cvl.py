@@ -204,16 +204,16 @@ class cvl(cvlTier1):
 #                       Traffic Section                                       #
 ###############################################################################
 
-    def EthStartTraffic(self, packet_size = 512):
+    def EthStartTraffic(self, packet_size = 512, number_of_packets = None):
         '''
             This function starts Tx and Rx.
             argument: packet size - Default is 512
             return: None
         '''
         driver = self.driver
-        driver.start_rx(packet_size = packet_size)
+        driver.start_rx()
         time.sleep(2)
-        driver.start_tx(packet_size = packet_size)
+        driver.start_tx(packet_size = packet_size, number_of_packets =number_of_packets)
 
     def EthStartRx(self):
         '''
@@ -240,8 +240,7 @@ class cvl(cvlTier1):
             argument: None
             return: None
         '''
-        driver = self.driver
-        driver.stop_rx(ring_id=ring_id)
+        self.driver.stop_rx(ring_id=ring_id)
     
     def EthStopTx(self, ring_id=0):
         '''
@@ -249,8 +248,7 @@ class cvl(cvlTier1):
             argument: None
             return: None
         '''
-        driver = self.driver
-        driver.stop_tx(ring_id=ring_id)
+        self.driver.stop_tx(ring_id=ring_id)
 
     def EthStopTraffic(self):
         '''
@@ -258,10 +256,9 @@ class cvl(cvlTier1):
             argument: None
             return: None
         '''
-        driver = self.driver
-        driver.stop_tx()
+        self.driver.stop_tx()
         time.sleep(3)
-        driver.stop_rx()
+        self.driver.stop_rx()
 
     def GetCurrentThroughput(self, packet_size=512):
         '''
