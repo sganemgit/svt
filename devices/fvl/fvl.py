@@ -632,19 +632,20 @@ class fvl(fvlDefines):
             if SGMII_KX_BX_value == 2: interface1G = "SGMII"
             elif SGMII_KX_BX_value == 1: interface1G = "KX"
             elif SGMII_KX_BX_value == 0: interface1G = "BX"
-            Mac_link_status_list = GetMacLinkStatus(GetSpeed = True)
+            Mac_link_status_list = self._GetMacLinkStatus(GetSpeed = True)
             MacLinkSpeed = Mac_link_speed_dict[Mac_link_status_list[1]]
             if MacLinkSpeed == "10G": return interface10G 
             elif MacLinkSpeed == "1G" or MacLinkSpeed == "100M": return interface1G
 
+    def GetMacLinkStatus(self, location = 'Aq'):
+        return self._GetMacLinkStatus()
 
-    def GetMacLinkStatus(self, *bits,**options):
+    def _GetMacLinkStatus(self, *bits,**options):
             '''This function returns the MAC_LINK_UP status bit by default.
                     If other bits are required pass as additional args.
                     Options:
                             GetSpeed = True/False
             '''
-
             reg_addr = calculate_port_offset(0x001E2420, 0x4, driver.port_number())
             reg_data = self.driver.read_csr(reg_addr)
 

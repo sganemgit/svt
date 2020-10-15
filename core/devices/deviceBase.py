@@ -6,10 +6,7 @@
 #This class defines an interface for all devices
 #All classes that inhirit from this class must have an implemetation of this interface
 
+from core.devices.GenericInterface import GenericInterface
 
-class deviceBase:
-    pass
-
-
-if __name__ == '__main__':
+class deviceBase(GenericInterface):
     pass

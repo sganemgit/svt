@@ -10,7 +10,7 @@ import time
 
 from devices.cvl.cvlDefines import cvlDefines, cvl_structs, AqOpCodes
 from devices.cvl.cvlTier1 import cvlTier1
-
+from core.devices.GenericInterface import GenericInterface
 class cvl(cvlTier1):
     '''
         This class contains methods to interface with a cvl pf
