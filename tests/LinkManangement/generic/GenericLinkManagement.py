@@ -146,6 +146,7 @@ class GenericLinkManagement(testBase):
 
     def configure_link(self, dut, lp, PhyType, FecType):
         log = self.log
+        from core.utilities.colors import colors
         link_configuratio_status_flag = True
         if PhyType in dut.force_phy_types_list:
             log.info(colors.Red("{} does not support AN".format(colors.Green(PhyType))))

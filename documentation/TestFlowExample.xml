@@ -4,13 +4,11 @@
         <Input>
             <!--Parameter name='number_of_packets' value='88888'/-->
             <Parameter name='phy_type' value='100GBase-CR4'/>
-            <Parameter name='pakcet_size' value='10'/>
+            <!-- <Parameter name='pakcet_size' value='512'/> -->
             <Parameter name='number_of_stress' value='10'/>
             <Parameter name='enable_lfc' value='True'/>
-            <Parameter name='run_time' value='10'/>
-            <Parameter name='stress_quantity' value='2'/>
-            <Parameter name='enable_lfc' value='True'/>
-            <Parameter name='enable_lfc' value='True'/>
+            <Parameter name='run_time' value='3600'/>
+            <Parameter name='stress_quantity' value='1'/>
         </Input>
         <Setup>
 		<Devices>

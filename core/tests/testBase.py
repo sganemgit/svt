@@ -27,12 +27,19 @@ class testBase():
 
     @classmethod
     def CreateTest(cls, args, setup):
-        test_obj = cls()
-        test_obj.args = args
-        test_obj.setup = setup
-        test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
-        test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
-        return test_obj
+        try:
+            test_obj = cls()
+            test_obj.args = args
+            test_obj.setup = setup
+            test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
+            test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
+            return test_obj
+        except Exception as e:
+            import traceback
+            traceback.print_exc(file=sys.stdout)
+            test_obj.set_test_status('fail')
+            test_obj.append_fail_reason(str(e))
+            raise e
 
     def __del__(self):
         self.summarise_test()

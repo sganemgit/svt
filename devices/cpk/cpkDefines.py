@@ -6,9 +6,9 @@
 import sys
 import os
 from cpkBase import cpkBase
-from devices.common.IEEE_802_3.IeeeCommon import IeeeCommon
+from devices.common.DeviceCommon import DeviceCommon
 
-class cpkDefines(cpkBase, IeeeCommon):
+class cpkDefines(cpkBase, DeviceCommon):
     # list should hold the high values before the low
     reg_dict = {"PTC64": [0x00380B84, 0x00380B80],
                 "PTC127": [0x00380BC4, 0x00380BC0],

@@ -1,6 +1,7 @@
 from crsvlBase import crsvlBase
+from devices.common.DeviceCommon import DeviceCommon
 
-class crsvlDefines(crsvlBase):
+class crsvlDefines(crsvlBase, DeviceCommon):
 
     link_stable = True
     Return_list = [0]

@@ -7,9 +7,9 @@ import sys
 import os
 
 from devices.cvl.cvlBase import cvlBase
-from devices.common.IEEE_802_3.IeeeCommon import IeeeCommon
+from devices.common.DeviceCommon import DeviceCommon
 
-class cvlDefines(cvlBase, IeeeCommon):
+class cvlDefines(cvlBase, DeviceCommon):
     # list should hold the high values before the low
     reg_dict = {"PTC64": [0x00380B84, 0x00380B80],
                 "PTC127": [0x00380BC4, 0x00380BC0],

@@ -1,6 +1,7 @@
 from fvlBase import fvlBase
+from devices.common.DeviceCommon import DeviceCommon
 
-class fvlDefines(fvlBase):
+class fvlDefines(fvlBase, DeviceCommon):
 
     link_stable = True
     Return_list = [0]

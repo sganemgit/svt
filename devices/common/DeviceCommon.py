@@ -1,4 +1,7 @@
 
-from IEEE_802_3 import IEEE_802_3
+from devices.common.IEEE_802_3.IeeeCommon import IeeeCommon
+from devices.common.PCIe.PCIe import PCIe
 
-class DeviceCommon()
+
+class DeviceCommon(IeeeCommon, PCIe):
+	pass
