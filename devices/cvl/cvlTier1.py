@@ -58,7 +58,6 @@ class cvlTier1(cvlDefines):
         byte_20 = config['eeer'] & 0xff
         byte_21 = (config['eeer'] >> 8) & 0xff
         byte_22 = (config['fec_firecode_25g_abil'] << 7) | (config['fec_rs528_abil'] << 6) | (config['fec_rs544_req'] << 4) | (config['fec_firecode_25g_req'] << 3) | (config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config['fec_firecode_10g_abil']
-
         byte_23 = config.get('module_compliance_mode',1)
         buffer.append(byte_16)
         buffer.append(byte_17)
