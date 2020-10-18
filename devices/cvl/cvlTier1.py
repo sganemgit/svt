@@ -591,6 +591,11 @@ class cvlTier1(cvlDefines):
             status = (False, None)
         return status
 
+
+###############################################################################
+#                          LLDP admin commands                                #
+###############################################################################
+
     def DisableLldp(self, shutdown=0, persistent=0, debug=0):
         driver = self.driver
         aq_desc = AqDescriptor()
@@ -678,9 +683,9 @@ class cvlTier1(cvlDefines):
         print('addr_low: ', hex(aq_desc.addr_low))
         print('buffer: ',buffer)
 
-    ######################################################################################################
-    ###############################           DNL section             ####################################
-    ######################################################################################################
+######################################################################################################
+#                                  DNL section                                                       # 
+######################################################################################################
 
     def _DnlCallActivity(self, activity_id, context, sto_0, sto_1, sto_2, sto_3, debug=False):
         '''
@@ -869,7 +874,9 @@ class cvlTier1(cvlDefines):
 
         # print 'configure logging aq command has been sent successfully'
 
-    ############################### Link Topology Admin commands WIP ##########################################
+################################################################################
+#                            link topology admin commands                      #  
+################################################################################
 
     def GetLinkTopologyHandle(self, port, debug = False):
         '''This function returs node handler of a given port
@@ -999,6 +1006,31 @@ class cvlTier1(cvlDefines):
         aq_desc.addr_high = args.get('addr_high', 0)
         aq_desc.addr_low = args.get('addr_low', 0)
 
+###############################################################################
+#                     Generic FW admin commands                               # 
+###############################################################################
+
+    def GetVersion(self, config, debug):
+        pass
+
+    def DriverVersion(self, config, debug):
+        pass
+
+    def QueueShutdown(self, config, debug):
+        pass
+
+    def setPfContext(self, config, debug):
+        pass
+
+    def GetExpandedAqErrorReason(self, config, debug):
+        pass
+
+    def RequestResourceOwnership(self, config, debug):
+        pass
+
+    def ReleaseResourceOwnership(self, config, debug):
+        pass
+
     def DiscoverFunctionCapabilities(self, config, debug=False):
         '''
             This command is used to request the list capabilities of the function. 
@@ -1053,22 +1085,30 @@ class cvlTier1(cvlDefines):
 
         return (status, data)
 
+    def Vm_VfReset(self, config, debug):
+        pass
+
+################################################################################
+#                      NVM admin commands                                      #
+################################################################################
+
     def NvmConfigRead(self, config):
         pass 
 
     def NvmConfigWrite(self, config):
-        """ This class represents AQ command descriptor. 
-        Each field represents relevant bytes in descriptor.
-            flags:        bytes 0-1
-            opcode:       bytes 2-3                 
-            datalen:      bytes 4-5
-            retval:       bytes 6-7            
-            cookie_high:  bytes 8-11
-            cookie_low:   bytes 12-15
-            param0:       bytes 16-19
-            param1:       bytes 20-23
-            addr_high:    bytes 24-27
-            addr_low:     bytes 28-31 
+        """ 
+            This class represents AQ command descriptor. 
+            Each field represents relevant bytes in descriptor.
+                flags:        bytes 0-1
+                opcode:       bytes 2-3                 
+                datalen:      bytes 4-5
+                retval:       bytes 6-7            
+                cookie_high:  bytes 8-11
+                cookie_low:   bytes 12-15
+                param0:       bytes 16-19
+                param1:       bytes 20-23
+                addr_high:    bytes 24-27
+                addr_low:     bytes 28-31 
         """ 
         byte_16 = (config.get("added_new_config", 1) << 2) | (config.get('feature_field', 0) << 1) | 0
         aq_desc = AqDescriptor()
@@ -1087,7 +1127,6 @@ class cvlTier1(cvlDefines):
             status = (True, aq_desc.retval)
         else:
             status = (False, None)
-
         return status
 
-
+###############################################################################

@@ -395,6 +395,13 @@ class cvlDefines(cvlBase, DeviceCommon):
     PRT_STATE_MACHINE_AN = {0x28:'AutonegTOP when WAIT_FOR_INT after serdes configuration done',0x14:'AutonegTOP when Determine link mode starts',0xA:'AutonegTOP when WAIT_FOR_INT / Interrupt Handling starts',5:'AutonegTOP when Config PHY for AN starts',1:'AutonegTOP before Init PHY'}
     PRT_STATE_MACHINE_FM = {0x1E:'exit set_pmd_link_up once called from other activity',0x14:'Wait for link up indication',0xA:'Setup SOW done, wait for signal OK ',1:'ForcedModeTOP'}
 
+    device_capabilities_dict = {'switching_mode': 0x1,
+                                'managaeablitiy_mode': 0x2,
+                                'OS2BMCCapable': 0x4,
+                                'functions_valid': 0x5,
+                                'alternate_RAM_structure': 0x6}
+
+
 class cvl_structs:
 
 	def SbIosfMassageStruct(self):
@@ -416,8 +423,8 @@ class cvl_structs:
 		Massage['address'] = 0
 		Massage['address_4thDW'] = 0
 		return Massage
-
-#TODO implement a new calss that holds these values as class member and not as instance members
+    #TODO finish this dict based on table 9-55 Resoruce recognized by this verison of the command
+    #TODO implement a new calss that holds these values as class member and not as instance members
 class AqOpCodes:
     def __init__(self):
         #General Admin Commands
