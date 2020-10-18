@@ -3458,7 +3458,8 @@ class cvl(cvlTier1):
            ############################### Link Topology Admin commands WIP ##########################################
 
     def ReadEEPROM(self):
-        '''this function reads the eeprom of the cable via I2C
+        '''
+            this function reads the eeprom of the moudle via I2C
             arguments:None
         '''
         node_handler_dict = dict()
