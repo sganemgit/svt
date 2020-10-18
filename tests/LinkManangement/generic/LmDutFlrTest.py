@@ -1,11 +1,12 @@
 
 TEST = True
 
-from LmDutCorerTest import LmDutCorerTest
+from LmLocalStressFlow import LmLocalStressFlow
 
-class LmDutFlrTest(LmDutCorerTest):
+class LmDutFlrTest(LmLocalStressFlow):
 	
 	stress_type = "flr"
+	link_config_persistency = True
 
 	def perform_stress(self, dut, lp):
 		try: 

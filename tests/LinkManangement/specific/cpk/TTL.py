@@ -1,7 +1,7 @@
+
 TEST = True
 
-from core.test.testBase import testBase
-
+from core.tests.testBase import testBase
 
 class TTL(testBase):
 

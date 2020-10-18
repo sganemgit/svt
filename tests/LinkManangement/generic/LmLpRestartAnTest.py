@@ -1,14 +1,15 @@
 
 TEST = True
 
-from LmDutCorerTest import LmDutCorerTest
+from LmLocalStressFlow import LmLocalStressFlow
 
-class LmLpRestartAnTest(LmDutCorerTest):
+class LmLpRestartAnTest(LmLocalStressFlow):
 	
-	stress_type = "restart_an_lp"
+	stress_type = "RestartAN"
+	link_config_persistency = True
 
 	def perform_stress(self, dut, lp):
-		try: 
-			dut.Reset(self.stress_type)
+		try:
+			lp.RestartAn()
 		except Exception as e:
 			raise e

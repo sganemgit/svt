@@ -6,6 +6,7 @@ from LmGeneralStressFlow import LmGeneralStressFlow
 class LmDutEmprTest(LmGeneralStressFlow):
 	
 	stress_type = "empr"
+	link_config_persistency = False
 
 	def perform_stress(self, dut, lp):
 		try: 

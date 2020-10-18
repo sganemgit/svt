@@ -52,6 +52,7 @@ class GenericLinkManagement(testBase):
         lp.EthStopRx()
 
     def run_traffic(self, dut, lp, **kwargs):
+        time.sleep(1)
         log = self.log
         log.info()
         ring_id= kwargs.get('ring_id', 0)

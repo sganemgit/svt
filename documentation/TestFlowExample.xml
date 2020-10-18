@@ -1,6 +1,6 @@
 <TestFlow>
     <TestCase>
-        <Test name='LmDutGlobrTest'/>
+        <Test name='LmLpProtocolChangeTest'/>
         <Input>
             <!--Parameter name='number_of_packets' value='88888'/-->
             <Parameter name='phy_type' value='25GBase-CR'/>
