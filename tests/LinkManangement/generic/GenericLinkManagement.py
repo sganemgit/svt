@@ -7,7 +7,12 @@ import time
 import random 
 
 class GenericLinkManagement(testBase):
-    
+
+    def display_devcies_info(self):
+        for dut, lp in self.dut_lp_pairs:
+            self.log.info(dut.info())
+            self.log.info(lp.info())
+
     def get_random_number_of_packets(self):
         max_value = self.args.get('max_number_of_packet', 10000000)
         min_value = self.args.get('min_number_of_packet', 1000000)
@@ -146,45 +151,70 @@ class GenericLinkManagement(testBase):
 
     def configure_link(self, dut, lp, PhyType, FecType):
         log = self.log
-        from core.utilities.colors import colors
-        link_configuratio_status_flag = True
-        if PhyType in dut.force_phy_types_list:
-            log.info(colors.Red("{} does not support AN".format(colors.Green(PhyType))))
-            log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
-            dut.SetPhyConfiguration(PhyType,FecType)
-            log.info("setting lp to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
-            lp.SetPhyConfiguration(PhyType,FecType)
-        else:
-            lp.DisableFECRequests(0)
-            log.info("setting dut to {} with fec {}".format(colors.Green(PhyType), colors.Orange(FecType)))
-            dut.SetPhyConfiguration(PhyType,FecType)
+        try:
+            if PhyType in dut.force_phy_types_list:
+                log.info("{} does not support AN".format(PhyType), '0')
+                log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
+                dut.SetPhyConfiguration(PhyType,FecType)
+                log.info("setting lp to {} with fec {}".format(PhyType, FecType), 'o')
+                lp.SetPhyConfiguration(PhyType,FecType)
+            else:
+                lp.DisableFECRequests(0)
+                log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
+                dut.SetPhyConfiguration(PhyType,FecType)
+        except Exception as e:
+            #TODO print error message and set fail reason
+            log.info("Exception {} raised in {}".format(str(e), self.configure_link.__name__))
+            self.append_fail_reason("Fail to configure link of {} ".format(self.phy_type))
+            raise e
 
+    def get_link_change_event(self, device):
+        pass
+
+    def assert_link_status(self, dut, lp, PhyType, FecType):
+        '''
+            This method will check the link status and assert that it is as expected 
+        '''
+        link_assertion_flag = True
         if self.poll_for_link(dut, lp , 15):
-            time.sleep(3)
+            time.sleep(1)
             current_dut_phy_type = dut.GetPhyType()
             current_lp_phy_type = lp.GetPhyType()
 
-            if current_dut_phy_type != PhyType:
-                log.info(colors.Red("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType)))
+            try:
+                assert current_dut_phy_type == PhyType
+            except AssertionError as e: 
+                self.log.info("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType), 'r')
                 self.append_fail_reason("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType))
-                link_configuratio_status_flag = False
-            if current_lp_phy_type != PhyType:
-                log.info(colors.Red("LP Phy Type is {} Expected to be {}".format(current_lp_phy_type, PhyType)))
+                link_assertion_flag = False
+
+            try: 
+               assert current_lp_phy_type == PhyType
+            except AssertionError as e:
+                self.log.info("LP Phy Type is {} Expected to be {}".format(current_lp_phy_type, PhyType), 'r')
                 self.append_fail_reason("DUT Phy Type is {} Expected to be {}".format(current_dut_phy_type, PhyType))
-                link_configuratio_status_flag = False
+                link_assertion_flag = False
 
             current_dut_fec = dut.GetCurrentFECStatus()
             current_lp_fec = lp.GetCurrentFECStatus()
 
-            if current_dut_fec != FecType:
-                log.info(colors.Red("DUT FEC is {} Expected to be {}".format(current_dut_fec,FecType)))
+            try:
+                assert current_dut_fec == FecType
+            except AssertionError as e:
+                self.log.info("DUT FEC is {} Expected to be {}".format(current_dut_fec,FecType), 'r')
                 self.append_fail_reason("DUT FEC is {} Expected to be {}".format(current_dut_fec,FecType))
-                link_configuratio_status_flag = False
-            if current_lp_fec != FecType:
-                log.info(colors.Red("LP FEC is {} Expected to be {}".format(current_lp_fec, FecType)))
+                link_assertion_flag = False
+            try:
+                current_lp_fec == FecType
+            except AssertionError as e:
+                self.log.info("LP FEC is {} Expected to be {}".format(current_lp_fec, FecType), 'r')
                 self.append_fail_reason("LP FEC is {} Expected to be {}".format(current_lp_fec, FecType))
-                link_configuratio_status_flag = False
+                link_assertion_flag = False
         else:
-            link_configuratio_status_flag = False
-        return link_configuratio_status_flag
+            link_assertion_flag = False
+
+        if link_assertion_flag: 
+            self.log.info("link is configured to {} with {}".format(current_dut_phy_type, current_dut_fec), 'g')
+
+        return link_assertion_flag
 

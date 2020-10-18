@@ -42,6 +42,8 @@ class log:
                 print(colors.Blue(msg))
             elif color == 'g':
                 print(colors.Green(msg))
+            elif color == 'o':
+                print(colors.Orange(msg))
             else:
                 print(msg)
             self.logger.info(msg)

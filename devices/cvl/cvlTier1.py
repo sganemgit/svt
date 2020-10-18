@@ -77,8 +77,7 @@ class cvlTier1(cvlDefines):
         aq_desc.datalen = len(buffer)
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status,
-                                                                                                      aq_desc.retval))
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)

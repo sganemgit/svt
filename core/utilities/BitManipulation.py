@@ -64,10 +64,10 @@ def turn_arg_to_bytes(number):
         param arg: int[4 bytes]
         return: list of all  bytes
     '''
-    byte_list = list()
+    byte_list = [0]*4
     if number:
         temp_inp = number
         for i in range(int(math.log(number,256))+1):
-            byte_list.append(temp_inp & 0xFF)
+            byte_list[i] = temp_inp & 0xFF
             temp_inp = temp_inp >> 8
     return byte_list

@@ -18,11 +18,6 @@ class LmStressFlow(GenericLinkManagement):
         self.stress_quantity = int(self.args.get('stress_quantity',1))
         self.ring_id = int(self.args.get('ring_id', 0))
 
-    def display_devcies_info(self):
-        for dut, lp in self.dut_lp_pairs:
-            self.log.info(dut.info())
-            self.log.info(lp.info())
-
     def run(self):
         self.init_test_params()
         self.display_devcies_info()
