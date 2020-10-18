@@ -999,3 +999,95 @@ class cvlTier1(cvlDefines):
         aq_desc.addr_high = args.get('addr_high', 0)
         aq_desc.addr_low = args.get('addr_low', 0)
 
+    def DiscoverFunctionCapabilities(self, config, debug=False):
+        '''
+            This command is used to request the list capabilities of the function. 
+            If the buffer size is not big enough for the whole structure FW will return ENOMEM
+            
+        '''
+        buffer = [0]*0x1000
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0xa 
+        aq_desc.flags = 0x1600 
+        aq_desc.param0 = 0         
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+
+        data = dict()
+        data['number_of_records'] = aq_desc.param1
+        data['resource_recognized'] = buffer
+
+        return (status, data)
+
+    def DiscoverDeviceCapabilities(self, config=None, debug=False):
+        '''
+            This command is used to request the list capabilities of the device. 
+            If the buffer size is not big enough for the whole structure FW will return ENOMEM
+        '''
+        buffer = [0]*0x1000
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0xb 
+        aq_desc.flags = 0x1600 
+        aq_desc.param0 = 0         
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send dicsocer device capabilities Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        data = dict()
+        data['number_of_records'] = aq_desc.param1
+        data['resource_recognized'] = buffer
+
+        return (status, data)
+
+    def NvmConfigRead(self, config):
+        pass 
+
+    def NvmConfigWrite(self, config):
+        """ This class represents AQ command descriptor. 
+        Each field represents relevant bytes in descriptor.
+            flags:        bytes 0-1
+            opcode:       bytes 2-3                 
+            datalen:      bytes 4-5
+            retval:       bytes 6-7            
+            cookie_high:  bytes 8-11
+            cookie_low:   bytes 12-15
+            param0:       bytes 16-19
+            param1:       bytes 20-23
+            addr_high:    bytes 24-27
+            addr_low:     bytes 28-31 
+        """ 
+        byte_16 = (config.get("added_new_config", 1) << 2) | (config.get('feature_field', 0) << 1) | 0
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x705 
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  byte_16 
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+
+        return status
+
+
