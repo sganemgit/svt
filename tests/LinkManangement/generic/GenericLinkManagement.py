@@ -154,7 +154,7 @@ class GenericLinkManagement(testBase):
         log = self.log
         try:
             if PhyType in dut.force_phy_types_list:
-                log.info("{} does not support AN".format(PhyType), '0')
+                log.info("{} does not support AN".format(PhyType), 'o')
                 log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
                 dut.SetPhyConfiguration(PhyType,FecType)
                 log.info("setting lp to {} with fec {}".format(PhyType, FecType), 'o')

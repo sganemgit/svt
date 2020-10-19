@@ -11,37 +11,32 @@ class cpk(cpkTier1):
     	This class contains all the methods to interface with a cvl pf
     '''    
     def info(self, advance = False, Location = "AQ"):
-        '''This function print cvl info
+        '''
+            This function print cpk info
             argument:
                 Advance - True/False. if true print more info.
                 Location - AQ/REG
             return:
                 None
         '''
-        port = self.driver.port_number()
-        device_number = self.driver.device_number()
-        print("######################################")
-        print("CPK port {}".format(port))
-        print("CPK device {}".format(device_number))
-        print("######################################")
         link_status_dict = self.GetLinkStatusAfterParsing()
-        link_up_flag = 1 if link_status_dict['MacLinkStatus'] == 'Up' else 0
-        
-        print("Phy Types abilities: ")
-        for phy in self.GetPhyTypeAbilities(rep_mode = 0):
-            print('        {}'.format(phy))
-        print("Phy Type: ", link_status_dict['PhyType'])
-
-        print("Mac Link Status: ",link_status_dict['MacLinkStatus'])
-        if link_up_flag:
-            print("Mac Link Speed: ",link_status_dict['MacLinkSpeed'])
-            #print "FEC abilities: ",GetFecAbilities(rep_mode = 0)
-            print("Enabled FEC: ", link_status_dict['EnabeldFEC'])
-            print("EEE abilities: ", self.GetEEEAbilities(rep_mode = 0))#GetPhyAbility)
-            print() 
-
-       # print("Current PCIe link speed, ",self.GetPCIECurrentLinkSpeed())
-        #print("Current PCIe link Width, ",self.GetPCIECurrentLinkWidth()) TODO: uncomment when the methods are implemented
+        fw_info = self.driver.get_fw_info()
+        ret_string = "#"*80 +"\n"
+        ret_string += "Device info: \n"
+        ret_string += "-"*13 +"\n"
+        ret_string += "Device Name : CPK\n"
+        ret_string += "Device Number : {}\n".format(self.driver.device_number())
+        ret_string += "Port Number : {}\n".format(self.driver.port_number())
+        ret_string += "Current MAC link status : {}\n".format(link_status_dict['MacLinkStatus'])
+        ret_string += "Current MAC link Speed : {}\n".format(link_status_dict['MacLinkSpeed'])
+        ret_string += "Current Phy Type : {}\n".format(link_status_dict['PhyType'])
+        ret_string += "Current FEC Type : {}\n".format(self.GetCurrentFECStatus())
+        ret_string += "Current PCIe link speed : {}\n".format(self.GetPCIECurrentLinkSpeed())
+        ret_string += "Current PCIe link Width : {}\n".format(self.GetPCIECurrentLinkWidth())
+        ret_string += "FW version : {}\n".format(fw_info['FW build'])
+        ret_string += "FW build  : {}\n".format(fw_info['FW version'])
+        ret_string += "#"*80 +"\n"
+        return ret_string
 
 ###############################################################################
 #                        Register reading section                             #

@@ -15,6 +15,32 @@ class fvl(fvlDefines):
     '''
 		This class defines all interfaces to the fvl device
 	'''
+        def info(self, advance = False, Location = "AQ"):
+        '''This function print Fvl info
+            argument:
+                Advance - True/False. if true print more info.
+                Location - AQ/REG
+            return:
+                None
+        '''
+        Mac_link_status_list = self.GetMacLinkStatus(GetSpeed = True)
+        fw_info = self.driver.get_fw_info()
+        ret_string = "#"*80 +"\n"
+        ret_string += "Device info: \n"
+        ret_string += "-"*13 +"\n"
+        ret_string += "Device Name : FVL\n"
+        ret_string += "Device Number : {}\n".format(self.driver.device_number())
+        ret_string += "Port Number : {}\n".format(self.driver.port_number())
+        ret_string += "Current MAC link status : {}\n".format(self.GetMacLinkStatus())
+        ret_string += "Current MAC link Speed : {}\n".format(self.Mac_link_speed_dict[Mac_link_status_list[1]])
+        ret_string += "Current Phy Type : {}\n".format("N/A")
+        ret_string += "Current FEC Type : {}\n".format("N/A")
+        ret_string += "Current PCIe link speed : {}\n".format(self.GetPCIE_CurrentLinkSpeed())
+        ret_string += "Current PCIe link Width : {}\n".format(self.GetPCIE_CurrentLinkWidth())
+        ret_string += "FW version : {}\n".format(fw_info['FW build'])
+        ret_string += "FW build  : {}\n".format(fw_info['FW version'])
+        ret_string += "#"*80 +"\n"
+        return ret_string
 
     
     def read_register(self, register_name, mul = 0x8, size = 0xffffffff):
@@ -671,14 +697,13 @@ class fvl(fvlDefines):
                     return:
                             True if link is up else False
             '''
-            driver = self.driver
 
-            reg_addr = calculate_port_offset(0x001E2420, 0x4, driver.port_number())
+            reg_addr = calculate_port_offset(0x001E2420, 0x4, self.driver.port_number())
             
             start_time = curr_time = time.time()
             while ((curr_time - start_time) < ttl_timeout):
                     curr_time = time.time()
-                    reg_data = driver.read_csr(reg_addr)
+                    reg_data = self.driver.read_csr(reg_addr)
                     if (get_bit_value(reg_data,30)):
                             return True
             return False
@@ -1470,7 +1495,7 @@ class fvl(fvlDefines):
     def	GetPCIE_CurrentLinkSpeed(self):
             '''This function returns PCIE link speed: 
             "Gen1 = 2.5G, Gen2 = 5G, Gen3 = 8G"'''
-            val = _get_bits_slice_value(_get_val_addr_pcie(0xB0),16,19)
+            val = _get_bits_slice_value(self.driver.read_pci(0xB0),16,19)
             
             link_speed = {
                     1: "Gen1",
@@ -1484,7 +1509,7 @@ class fvl(fvlDefines):
     def GetPCIE_CurrentLinkWidth(self):
             '''This function returns PCIE link width
             '''
-            val = _get_bits_slice_value(_get_val_addr_pcie(0xB0),20,23)
+            val = _get_bits_slice_value(self.driver.read_pci(0xB0),20,23)
             
             link_width = {
                     0: "Reserved",
@@ -1496,11 +1521,7 @@ class fvl(fvlDefines):
             
             return link_width.get(val,"Wrong")
             
-    def _get_val_addr_pcie(self, address):
-            ''' This function returns PCIE value by input address
-            '''
-            driver = self.driver
-            return driver.read_pci(address)
+
             
             #FVL ULT
     # FAB_SITE 1:0 0x0 RO UNDEFINED Fab Site. Can be one of four possible sites.
