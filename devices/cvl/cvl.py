@@ -3475,6 +3475,17 @@ class cvl(cvlTier1):
                 eeprom_dict[port] = eeprom_dict[port]+data
         return eeprom_dict
 
+    def WriteEeprom(self, offset, value, debug=False):
+        config = dict()
+        config["logical_port_number"] = self.driver.port_number()
+        config["node_handle"] = self.GetLinkTopologyHandle(int(self.driver.port_number()))[2]['node_handle']
+        config["i2c_memory_offset"] = offset
+        config["i2c_data"] = value
+        status, data = self.WriteI2C(config, debug) 
+        if status:
+            raise RuntimeError("WriteI2C Admin command failed with retval {} adn ststus {}".foramt(data, ststus))
+
+
 
 
 ###############################################################################

@@ -969,31 +969,52 @@ class cvlTier1(cvlDefines):
         data += intgerTo4ByteList(aq_desc.addr_low)
         return [status,aq_desc.retval,data]
 
-    def WriteI2C(self, port, node_handle, memory_offset, data):
+    def WriteI2C(self, config, debug=False):
         '''this function write 1 bytes of I2C data. see HAS Table 3-135. write  I2C admin command (Opcode: 0x06E3)
             arguments:
-                port -- (int) logical port number : 0-8
-                node_handle -- (int) topology node handle see  Get Link Topology Node Handle
-                memory_offset -- this is a 16 bit adrress, address of the byte that the user wishs to write to
-                data -- 1 byte of data 0x00 - 0xff. larger numbers are masked only the first 8 bits of the number are written.
+            config -- type(dict):
+            
+                'logical_prt_num' : int[2 byte] -- Logical Port Number
+                'node_type_context': int[1 byte]-- the context within which the handle should be identified
+                'index':int[1 byte]-- requested node index
+                'node_handle' :int[2 byte]--  Reference node handle / Node handle
+                'i2c_memory_offset': int[2 byte] --  I2C memory address (I2C offset) 
+                'i2c_parameters':  int[1 byte] -- bit 4= I2C address type ,bit[3:0]= data size to write (1-4 bytes)
+                'i2c_bus_address': int[10 bits] -- Slave address (10 bits)
+                'i2c_data':int[4 byte] -- the write data (1 to 4 bytes) to be written to the I2C
+
             return:
                 list --
                     list[0] - status : this the drivers return vlaue 0 = succefull admin command
                     list[1] - retval : this the FW return value 0 = succefull admin command
         '''
+        byte_16 = config["logical_port_number"] & 0xff
+        byte_17 = config.get("port_nubmer_valid", 1) & 0x1
+        byte_18 = ((config.get("node_type_context", 0x2) & 0xff) << 4) | (config.get('node_type', 0x6) & 0xf)
+        byte_19 = config.get("index",0) & 0xff
+        byte_20 = config["node_handle"] & 0xff
+        byte_21 = (config["node_handle"] >> 8) & 0x3
+        byte_22 = config["i2c_memory_offset"] & 0xff
+        byte_23 = (config["i2c_memory_offset"] >> 8) & 0xff
+        byte_24 = ((config.get("i2c_address type", 0) & 0x1) <<4) | (config.get("data_size_to_write", 0x1)& 0xf)
+        byte_26 = config.get("i2c_bus_address",0) & 0xff
+        byte_27 = (config.get("i2c_bus_address", 0) >> 8) & 0x3
+        byte_28 = config["i2c_data"] & 0xff
+        byte_29 = (config["i2c_data"] >> 8) & 0xff
+        byte_30 = (config["i2c_data"] >> 16) & 0xff
+        byte_31 = (config["i2c_data"] >> 24) & 0xff
+
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x6E3
         aq_desc.flags = 0
-        aq_desc.datalen = 0
-        aq_desc.param0 = (0x2 << 20 | 0x6 << 16 | 1 << 8 | port)
-        aq_desc.param1 = 0
-        aq_desc.param1 = (memory_offset << 16 | node_handle)
-        aq_desc.addr_high = 0
-        I2C_data = data & 0xff
-        aq_desc.addr_high = (I2C_data << 8 | 1)
-        aq_desc.addr_low = 0
+        aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8 | byte_20)
+        aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_24)  
+        aq_desc.addr_low = (byte_31 << 24 | byte_30 << 16 | byte_29 << 8 | byte_28)
         buffer = []
-        status = self.driver.send_aq_command(aq_desc)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Write I2C Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
         return [status, aq_desc.retval]
 
     def ReadNvm(self, args, debug=False):
@@ -1005,6 +1026,95 @@ class cvlTier1(cvlDefines):
         aq_desc.param1 = ((args['length'] & 0xffff) << 16) | (args['module_typeID'] & 0xffff)
         aq_desc.addr_high = args.get('addr_high', 0)
         aq_desc.addr_low = args.get('addr_low', 0)
+
+
+    def testGetPortOptions(self):
+        config = dict()
+        #config['logical_port_number'] = self.driver.port_number()
+        self.GetPortOptions(config, True)
+
+    def GetPortOptions(self, config, debug=False):
+        '''
+        Retrieve the available port options that are defined for the innermost PHY that is associated with the logical port number
+        input:
+             config -- type(dict):
+            
+                'logical_port_number' : int[2 byte] -- Logical Port Number
+                'port_nubmer_valid':  int[1 bit] -- Logical Port number is valid
+
+        '''
+        #TODO failded to send this aq. driver reports unknow opcode 
+
+        byte_16 = config.get("logical_port_number", 0) & 0xff
+        byte_17 = config.get("port_nubmer_valid", 0) & 0x1
+        buffer = [0]*0x1000
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06EA
+        aq_desc.flags = 0x1200
+        aq_desc.datalen = len(buffer)
+        aq_desc.param0 = (byte_17 & 1) | byte_16
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            raise RuntimeError("Failed to send GetPortOptions Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        else:
+            data = dict()
+            data['port_options_count'] = aq_desc.param0 & 0xf0000
+            data['innermost_phy_index'] = aq_desc.param0 & 0xff000000
+            data['active_port_option'] = aq_desc.param1 & 0xf
+            data['active_port_option_valid'] = aq_desc.param1 & 0x80
+            data['active_port_option_is_forced'] = aq_desc.param1 & 0x40
+
+    def SetPortOptioins(self, config, debug=False):
+        pass
+
+    def testReadWriteSffEeprom(self):
+        config = dict()
+        config["logical_port_number"] = self.driver.port_number()
+        config["i2c_memory_offset"] = 0
+        
+    def ReadWriteSffEeprom(self, config, debug=False):
+        '''
+        input:
+             config -- type(dict):
+            
+                'logical_port_number' : int[2 byte] -- Logical Port Number
+                'port_nubmer_valid':  int[1 bit] -- Logical Port number is valid
+                'i2c_bus_address': int[10 bits] -- Slave address (10 bits)
+                '10_bit_assress_select' :int[1 bit] -- 0- 7 bit address used, 1- 10 bit address used
+                'set_eeprom_page' : int[2 bit] -- 00- Do not change page , 
+                                                  01: Read offset 127 of EEPROM, set it to Byte 23 on mismatch
+                                                  10: Read offset 126 of EEPROM, set it to Byte 22 on mismatch
+                                                  11: Reserved
+                'command': int[1 bit] -- 0-Read, 1-Write
+                'i2c_memory_offset': int[2 byte] -- Offset within the RRPROM to start reading from, up to 16 bits 
+                'eeprom_page' :int [2 byte]-- sirst byte : Set offset 126 to this value,  second byte : Set offset 127 to this value
+        '''
+        byte_16 = config["logical_port_number"] & 0xff
+        byte_17 = config.get("port_nubmer_valid", 1) & 0x1
+        byte_18 = config.get("i2c_bus_address",0) & 0xff
+        byte_19 = ((config.get("command", 0) & 0x1) << 7)|((config.get("set_eeprom_page", 0) & 0x3) << 3)|((config.get("10_bit_assress_select", 0) & 0x1) << 2)|(config.get("i2c_bus_address", 0) >> 8) & 0x3
+        byte_20 = config["i2c_memory_offset"] & 0xff
+        byte_21 = 0
+        byte_22 = config.get("eeprom_page", 0) & 0xff
+        byte_23 = (config.get("eeprom_page", 0) >> 8) & 0xff
+
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06EE
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8 | byte_20)
+        aq_desc.addr_high = 0 
+        aq_desc.addr_low = 0
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Write I2C Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        return [status, aq_desc.retval]
 
 ###############################################################################
 #                     Generic FW admin commands                               # 
