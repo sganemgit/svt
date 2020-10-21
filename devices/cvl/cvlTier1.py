@@ -903,7 +903,7 @@ class cvlTier1(cvlDefines):
         handles = dict()
         driver = self.driver
         aq_desc = AqDescriptor()
-        aq_desc.opcode = 0x06E1
+        aq_desc.opcode = 0x06E0
         aq_desc.flags = 0
         aq_desc.datalen = 0
         aq_desc.param0 = 0

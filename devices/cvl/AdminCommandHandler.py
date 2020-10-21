@@ -891,7 +891,7 @@ class AdminCommandHandler:
         handles = dict()
         driver = self.driver
         aq_desc = AqDescriptor()
-        aq_desc.opcode = 0x06E1
+        aq_desc.opcode = 0x06E0   # 0x06E1
         aq_desc.flags = 0
         aq_desc.datalen = 0
         aq_desc.param0 = 0
@@ -1002,7 +1002,7 @@ class AdminCommandHandler:
         byte_31 = (config["i2c_data"] >> 24) & 0xff
 
         aq_desc = AqDescriptor()
-        aq_desc.opcode = 0x6E3
+        aq_desc.opcode = 0x06E3
         aq_desc.flags = 0
         aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
         aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8 | byte_20)
@@ -1050,7 +1050,7 @@ class AdminCommandHandler:
         aq_desc.opcode = 0x06EA
         aq_desc.flags = 0x1200
         aq_desc.datalen = len(buffer)
-        aq_desc.param0 = (byte_17 & 1) | byte_16
+        aq_desc.param0 = ((byte_17 & 1) << 8)| byte_16
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -1066,7 +1066,26 @@ class AdminCommandHandler:
             data['active_port_option_is_forced'] = aq_desc.param1 & 0x40
 
     def SetPortOptioins(self, config, debug=False):
-        pass
+        '''
+             input : config -- type(dict):
+            
+                'logical_port_number' : int[2 byte] -- Logical Port Number
+                'port_nubmer_valid':  int[1 bit] -- Logical Port number is valid
+                'selected_port_option':  int[4 bit] -- Selected Port option index
+        '''
+        byte_16 = config.get("logical_port_number", 0) & 0xff
+        byte_17 = config.get("port_nubmer_valid", 0) & 0x1
+        byte_18 = config["selected_port_option"] & 0xf
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06EB
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_18 << 16 | byte_17 << 8 | byte_16)
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Read Write SffEeprom Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        return [status, aq_desc.retval]
 
     def testReadWriteSffEeprom(self):
         config = dict()
@@ -1230,7 +1249,7 @@ class AdminCommandHandler:
             return:
                 list --
                     list[0] - status : this the drivers return vlaue 0 = succefull admin command
-                    list[1] -data : 16 bytes of  data read from the MDIO device
+                    list[1] -
         '''
         byte_16 = config["logical_port_number"] & 0xff
         byte_17 = config.get("port_nubmer_valid", 1) & 0x1
@@ -1293,7 +1312,7 @@ class AdminCommandHandler:
         buffer = []
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print("Failed to send Set GPIO ByF unction Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+            print("Failed to send Set GPIO By Function Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
         return [status, aq_desc.retval]
 
     def GetGpioByFunction(self, config, debug=False):
@@ -1338,6 +1357,139 @@ class AdminCommandHandler:
             status = (False, data)
         return status
 
+    def SetGpio(self, config, debug=False):
+       #  '''
+       #  Set a GPIO signal which is part of the topology structures. 
+       #     input:
+       #     config -- type(dict):
+       #     
+       #         'gpio_controller_node_handle' : int[10 bits] --  GPIO controller node handle
+       #         'io_number': int[1 byte] -- IO number of the GPIO that needs to be set (The 5 LSB are used)
+       #         'io_value':  int[1 byte] --  IO value to set in the LSB 
+       #         
+       #     return:
+       #         list --
+       #             list[0] - status : this the drivers return vlaue 0 = succefull admin command
+       #             list[1] -
+       # '''
+        byte_16 = config["gpio_controller_node_handle"] & 0xff
+        byte_17 = (config["gpio_controller_node_handle"] >>8 ) & 0x3
+        byte_18 = config["io_number"] & 0xff
+        byte_19 = config["io_value"] & 0xff
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06EC
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Set GPIO Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        return [status, aq_desc.retval]
+
+    def GetGpio(self, config, debug=False):
+       #  '''
+       #  Get a GPIO signal which is part of the topology structures. 
+       #     input:
+       #     config -- type(dict):
+       #     
+       #         'gpio_controller_node_handle' : int[10 bits] --  GPIO controller node handle
+       #         'io_number': int[1 byte] -- IO number of the GPIO that needs to be set (The 5 LSB are used)
+       #        
+       #         
+       #     return:
+       #         list --
+       #             list[0] - status : this the drivers return vlaue 0 = succefull admin command
+       #             list[1] - 'io_value':  int[1 byte] --  IO value to set in the LSB 
+       # '''
+        byte_16 = config["gpio_controller_node_handle"] & 0xff
+        byte_17 = (config["gpio_controller_node_handle"] >>8 ) & 0x3
+        byte_18 = config["io_number"] & 0xff
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06ED
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_18 << 16 | byte_17 << 8 | byte_16)
+
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Get GPIO Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        else:
+            data = dict()     
+            data['io_value'] = (aq_desc.param0 >> 24) & 0xff
+            status = (False, data)
+        return status
+
+    def SetLed(self, config, debug=False):
+       #  '''
+       #  set a LED signal which is part of the topology structures
+       #     input:
+       #     config -- type(dict):
+       #     
+       #         'logical_port_number' : int[1 byte] -- logical port number 
+       #         'port_nubmer_valid': int[1 bit] -- logical port number is valid
+       #         'node_type_context': int[1 byte]-- the context within which the handle should be identified
+       #         'index':int[1 byte]-- requested node index
+       #         'node_handle' :int[2 byte]--  Reference node handle / Node handle
+       #         'color': int[3 bit] --  color of the LED 
+       #          'blink_option': int[3 bit] --  Blink option
+       #         
+       #     return:
+       #         list --
+       #             list[0] - status : this the drivers return vlaue 0 = succefull admin command
+       #             list[1] -  'io_value':  int[1 byte] that was read in the LSB
+       # '''
+        byte_16 = config["logical_port_number"] & 0xff
+        byte_17 = config.get("port_nubmer_valid", 1) & 0x1
+        byte_18 = ((config.get("node_type_context", 0x2) & 0xff) << 4) | (config.get('node_type', 0x6) & 0xf)
+        byte_19 = config.get("index",0) & 0xff
+        byte_20 = config["node_handle"] & 0xff
+        byte_21 = (config["node_handle"] >> 8) & 0x3
+        byte_22 = ((config["blink_option"] & 0x7) << 3 )| (config["color"] & 0x7)
+
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06E8
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
+        aq_desc.param1 = (byte_22 << 16 | byte_21 << 8 | byte_20)
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Set LED Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        return [status, aq_desc.retval]
+
+
+    def SetPortIdetificationLed(self, config, debug=False):
+       #  '''
+       # set the LED that is used to identify the port as indicated in the topology structures
+       #     input:
+       #     config -- type(dict):
+       #     
+       #         'logical_port_number' : int[1 byte] -- logical port number 
+       #         'port_nubmer_valid': int[1 bit] -- logical port number is valid
+       #         'set_ident_mode': int[1 bit]-- 0 - The LED is configured to its original mode, 
+       #                                        1 - The LED is configured to identification mode and will blink
+       #         
+       #     return:
+       #         list --
+       #             list[0] - status : this the drivers return vlaue 0 = succefull admin command
+       #             list[1] -  'io_value':  int[1 byte] that was read in the LSB
+       # '''
+        byte_16 = config["logical_port_number"] & 0xff
+        byte_17 = config.get("port_nubmer_valid", 1) & 0x1
+        byte_18 = config.get("set_ident_mode", 1) & 0x1
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06E9
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_18 << 16 | byte_17 << 8 | byte_16)
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Set Port Identification LED Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        return [status, aq_desc.retval]
 
 ###############################################################################
 #                     Generic FW admin commands                               # 
