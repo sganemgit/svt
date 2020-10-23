@@ -1,12 +1,10 @@
 
-#--------------------------------------------
 # @author Shady Ganem <shady.ganem@intel.com>
-#--------------------------------------------
 
 from core.drivers.DriverFactory import DriverFactory
 from core.devices.deviceBase import deviceBase
 import sys
-from AdminCommandHandler import AdminCommandHandler
+from devices.cvl.AdminCommandHandler import AdminCommandHandler
 
 class cvlBase:
     '''
