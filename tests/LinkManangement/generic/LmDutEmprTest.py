@@ -1,9 +1,9 @@
 
 TEST = True 
 
-from LmGeneralStressFlow import LmGeneralStressFlow
+from LmGlobalStressFlow import LmGlobalStressFlow
 
-class LmDutEmprTest(LmGeneralStressFlow):
+class LmDutEmprTest(LmGlobalStressFlow):
 	
 	stress_type = "empr"
 	link_config_persistency = False

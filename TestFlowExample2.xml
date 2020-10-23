@@ -1,0 +1,41 @@
+<TestFlow>
+    <TestCase>
+        <Test name='LmLpProtocolChangeTest'/>
+        <Input>
+            <!--Parameter name='number_of_packets' value='88888'/-->
+            <Parameter name='phy_type' value='25GBase-CR'/>
+            <!-- <Parameter name='pakcet_size' value='512'/> -->
+            <Parameter name='number_of_stress' value='10'/>
+            <Parameter name='enable_lfc' value='True'/>
+            <Parameter name='run_time' value='10'/>
+            <Parameter name='stress_quantity' value='1'/>
+        </Input>
+        <Setup>
+		<Devices>
+			<Device name='cvl' hostname='' number='0'>
+                <Port ID='cvl0:0' number='0'/>
+                <Port ID='cvl0:1' number='1'/>
+            </Device>
+                    
+            <Device name='cvl' hostname='' number='1'>
+                <Port ID='cvl1:0' number='0'/>
+                <Port ID='cvl1:1' number='1'/>
+            </Device>
+		</Devices>
+		<Links>
+    			<Link>
+    				<Port ID='cvl0:0' role='dut'/>	
+    				<Port ID='cvl1:0' role='lp'/>
+    			</Link>
+    		</Links>
+        </Setup>
+    </TestCase>
+
+    <TestCase>
+        <Test name='mistake'/>
+        <Input>
+        </Input>
+        <Setup>
+        </Setup>
+    </TestCase>
+</TestFlow>
