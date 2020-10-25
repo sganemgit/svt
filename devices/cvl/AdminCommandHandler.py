@@ -588,12 +588,80 @@ class AdminCommandHandler:
             status = (False, None)
         return status
 
+    def NeighborDeviceRead(self, dest,opcode,addrlen, address):
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+            supporting read/write via SBiosf to neighbor device.
+            arguments: 
+                dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
+                opcode - read/write etc...  according Table 3-34, in 3.3.4.1 CVL Spec
+                addrlen - address length 0: 16 bit, 1: 48 bits. according Table B-8, appandix B.3.1 CVL spec
+                address - address to read in the neighbor device CSRs.
+            return: 
+                value - return value from the neighbor device.
+        ''' 
+        struct = cvl_structs()
+        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        buffer = []
+     
+        # First DW
+        buffer.append(SbIosfMassageDict['dest'] | dest)
+        buffer.append(SbIosfMassageDict['source'])
+        buffer.append(SbIosfMassageDict['opcode'] | opcode)
+        Byte4_1stDW = (SbIosfMassageDict['EH'] << 7) | ((SbIosfMassageDict['addrlen'] | addrlen ) << 6) | (SbIosfMassageDict['Bar'] << 3 ) | SbIosfMassageDict['Tag']
+        buffer.append(Byte4_1stDW)
+     
+        # Second DW - Should be ignored according tanya
+        # Byte1_2ndDW = (SbIosfMassageDict['EH_2ndDW'] << 7) | SbIosfMassageDict['exphdrid']
+        # buffer.append(Byte1_2ndDW)
+        # Byte2_2ndDW = SbIosfMassageDict['sai'] & 0xFF
+        # buffer.append(Byte2_2ndDW)
+        # Byte3_2ndDW = (SbIosfMassageDict['sai'] >> 8) & 0xFF
+        # buffer.append(Byte3_2ndDW)
+        # Byte4_2ndDW = SbIosfMassageDict['rs'] & 0xF
+        # buffer.append(Byte4_2ndDW)
+     
+        # Third DW
+        Byte1_3rdDW = (SbIosfMassageDict['Sbe'] << 4) | (SbIosfMassageDict['fbe'] | 0xF) # the fbe value taken from BDX team
+        buffer.append(Byte1_3rdDW)
+        buffer.append(SbIosfMassageDict['Fid'])
+        Byte3_3rdDW = address & 0xFF
+        buffer.append(Byte3_3rdDW)
+        Byte4_3rdDW = (address >> 8) & 0xFF
+        buffer.append(Byte4_3rdDW)
+     
+        # four DW
+        Byte1_4rdDW = (address >> 16) & 0xFF
+        buffer.append(Byte1_4rdDW)
+        Byte2_4rdDW = (address >> 24) & 0xFF
+        buffer.append(Byte2_4rdDW)
+        Byte3_4rdDW = 0
+        buffer.append(Byte3_4rdDW)
+        Byte4_4rdDW = 0
+        buffer.append(Byte4_4rdDW)
+
+        # need to fill 0 for the ladt DW according tanya
+        buffer.append(0)
+        buffer.append(0)
+        buffer.append(0)
+        buffer.append(0)
+
+        #print [hex(x) for x in buffer]
+        #print "DW_1", hex(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])
+        #print "DW_2", hex(buffer[7] << 24 | buffer[6] << 16 | buffer[5] << 8 | buffer[4])
+        #print "DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
+        #print "DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
+
+        return_buffer = self.aq.NeighborDeviceRequestAq(1,buffer)
+        return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
+        #print "return val: ", return_val
+        return return_val.replace("L","")
 
 ###############################################################################
 #                          LLDP admin commands                                #
 ###############################################################################
 
-    def DisableLldp(self, shutdown=0, persistent=0, debug=0):
+    def StopLldpAgent(self, shutdown=0, persistent=0, debug=0):
         driver = self.driver
         aq_desc = AqDescriptor()
         data_len = 0x0
@@ -605,21 +673,18 @@ class AdminCommandHandler:
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x0
-
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+            print('Failed to send Stop LLDP Agent admin command status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
             status = (False, None)
 
-    def EnableLldp(self, persistent=0, debug=0):
+    def StartLldpAgent(self, persistent=0, debug=0):
         driver = self.driver
-        # helper = LM_Validation()
         aq_desc = AqDescriptor()
-        # helper._debug('SetPhyDebug Admin Command')
         data_len = 0x0
         aq_desc.opcode = 0x0a06
         aq_desc.datalen = data_len
@@ -632,7 +697,7 @@ class AdminCommandHandler:
 
         status = driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Set Phy Debug Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+            print('Failed to send Start LLDP Agent admin command status: ', status, ', FW ret value: ', aq_desc.retval)
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
@@ -792,7 +857,7 @@ class AdminCommandHandler:
     ######################           Support SECTION               ##########################################
     #########################################################################################################
 
-    def _NeighborDeviceRequestAq(self, opcode,Massage):
+    def NeighborDeviceRequestAq(self, opcode,Massage):
         '''
             this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
@@ -843,11 +908,9 @@ class AdminCommandHandler:
         if enable:
             byte16 = 0x1  # bit 0 is 1 to enable AQ logging
             byte18 = 0x1
-            # print "enable configure_logging_dnl"
         else:
             byte16 = 0x0  # bit 0 is 1 to enable AQ logging
             byte18 = 0x1
-            # print "disable configure_logging_dnl"
         param0 = (byte18 & 0xff) << 16
         param0 = param0 | (byte16 & 0xff)
 

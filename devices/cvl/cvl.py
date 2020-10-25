@@ -9,9 +9,9 @@ from core.utilities.SvtDecorator import *
 import time
 
 from devices.cvl.cvlDefines import cvlDefines, cvl_structs, AqOpCodes
-from devices.cvl.cvlTier1 import cvlTier1
 from core.devices.GenericInterface import GenericInterface
-class cvl(cvlTier1):
+
+class cvl(cvlDefines):
     '''
         This class contains methods to interface with a cvl pf
     '''
@@ -55,7 +55,7 @@ class cvl(cvlTier1):
             :return: int
        '''
        reg_data = 0
-       for addr in self.reg_dict[register_name]:
+       for addr in self.data.reg_dict[register_name]:
            reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
            temp_data = self.driver.read_csr(reg_addr)
            reg_data = ((reg_data & size) << 32) | temp_data
@@ -335,7 +335,7 @@ class cvl(cvlTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
+        result = self.aq.GetLinkStatus(gls)
 
         if not result[0]:  # if Admin command was successful - False
             data = result[1]
@@ -349,12 +349,12 @@ class cvl(cvlTier1):
         gls = dict()
         gls['port'] = 0 
         gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
+        result = self.aq.GetLinkStatus(gls)
 
         if not result[0]:
             data = result[1]
         else:
-            raise RuntimeError("Error {}: Admin command was not successful".format(self.GetLinkStatusFields.__name__))
+            raise RuntimeError("Error {}: Admin command was not successful".format(self.aq.GetLinkStatusFields.__name__))
 
         for key, val in data.items():
             print("{} : {}".format(key, val))
@@ -396,7 +396,7 @@ class cvl(cvlTier1):
         '''
         
         gls = {"port": 0, "cmd_flag": 1}
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error _GetCurrentLinkSpeedAq: Admin command was not successful")
@@ -437,7 +437,7 @@ class cvl(cvlTier1):
         args['port'] = 0 #not relevant for CVL according to CVL Spec
         args['restart'] = 1 #to restart the link
         args['enable'] = 1 #to enable the link
-        status = self.SetupLink(args)
+        status = self.aq.SetupLink(args)
 
         if status[0]:
             error_msg = 'Error _RestartAnAq: Admin command was not successful, retval {}'.format(status[1])
@@ -468,7 +468,7 @@ class cvl(cvlTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = 1
         
-        result = self.GetPhyAbilities(get_abils)
+        result = self.aq.GetPhyAbilities(get_abils)
         
         if not result[0]: 
             data = result[1]
@@ -521,7 +521,7 @@ class cvl(cvlTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
         if status:
             raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
 
@@ -567,7 +567,7 @@ class cvl(cvlTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error _GetCurrentFECStatusAq: Admin command was not successful")
@@ -589,7 +589,7 @@ class cvl(cvlTier1):
                 return 'NO_FEC'
 
     def PrintGetPhyAbilitiesFields(self, rep_mode=0):
-        status, data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
         if status: 
             raise RuntimeError("GetPhyAbilities failed")
         for key, val in data.items():
@@ -606,7 +606,7 @@ class cvl(cvlTier1):
         if Enable:
             mode = 0
 
-        status, data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
         if status:
             raise RuntimeError(error_msg)
         config = dict()
@@ -633,7 +633,7 @@ class cvl(cvlTier1):
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
         config['module_compliance_mode'] = mode 
-        status, data = self.SetPhyConfig(config)
+        status, data = self.aq.SetPhyConfig(config)
         if status:
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
@@ -647,7 +647,7 @@ class cvl(cvlTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = 0 
         
-        status, data = self.GetPhyAbilities(get_abils)
+        status, data = self.aq.GetPhyAbilities(get_abils)
         
         if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
@@ -692,7 +692,7 @@ class cvl(cvlTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        status, data = self.GetPhyAbilities(get_abils)
+        status, data = self.aq.GetPhyAbilities(get_abils)
         
         if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
@@ -744,7 +744,7 @@ class cvl(cvlTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = self.GetPhyAbilities(get_abils) 
+        result = self.aq.GetPhyAbilities(get_abils) 
         if not result[0]: # if Admin command was successful - False
             data = result[1]
         else:
@@ -795,7 +795,7 @@ class cvl(cvlTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        result = self.GetPhyAbilities(get_abils)
+        result = self.aq.GetPhyAbilities(get_abils)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -944,7 +944,7 @@ class cvl(cvlTier1):
             return: none 
             level: L2
         '''
-        status, data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
 
         if status:
             raise RuntimeError('Error DisableFECRequests: _GetPhyAbilities Admin command was not successful, retval {}'.format(data))
@@ -974,7 +974,7 @@ class cvl(cvlTier1):
         config['fec_rs544_req'] = 0
         config['fec_rs528_abil'] = data['fec_rs528_abil']
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil']
-        status, data =  self.SetPhyConfig(config)
+        status, data =  self.aq.SetPhyConfig(config)
         
         if status:
             raise RuntimeError('Error DisableFECRequests: Admin command was not successful, retval {}'.format(data))   
@@ -987,7 +987,7 @@ class cvl(cvlTier1):
         '''
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
 
         if data[0]:
             error_msg = 'Error DisableLESM: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -1019,7 +1019,7 @@ class cvl(cvlTier1):
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
 
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         print(status)
 
         if status[0]:
@@ -1029,7 +1029,7 @@ class cvl(cvlTier1):
     def DisableAN37(self, rep_mode = 0):
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode})
+        data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode})
 
         if data[0]:
             error_msg = 'Error DisableAN37: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -1061,7 +1061,7 @@ class cvl(cvlTier1):
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
         config['an_mode'] = 0
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         print(status)
         
         if status[0]:
@@ -1108,7 +1108,7 @@ class cvl(cvlTier1):
 
         config = {}
         phy_type = 0
-        status, data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
 
         if status:
             raise RuntimeError("Error _SetPhyConfigurationAQ: GetPhyAbilities failed with status {}".format(data))
@@ -1188,7 +1188,7 @@ class cvl(cvlTier1):
             error_msg = 'Error _SetPhyConfigurationAQ: fec input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
             raise RuntimeError(error_msg)
 
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
 
         if debug == True:
             if status[0] == 0:
@@ -1248,7 +1248,7 @@ class cvl(cvlTier1):
         args['port'] = 0 #not relevant for CVL according to CVL Spec
         args['rep_qual_mod'] = 0 # 1 will report list of qualified modules, 0 will not
         args['rep_mode'] = rep_mode
-        result = self.GetPhyAbilities(args) 
+        result = self.aq.GetPhyAbilities(args) 
         
         if result[0]:
             error_msg = 'Error _SetPhyTypeAq: GetPhyAbilities Admin command was not successful, retval {}'.format(result[1])
@@ -1288,7 +1288,7 @@ class cvl(cvlTier1):
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
         #print config
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         print(status)
         
         if status[0]:
@@ -1325,13 +1325,13 @@ class cvl(cvlTier1):
         '''
         config = {}
 
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
         abilities = data[1]
         
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         
         if AmIDut:
-            link_status = self.GetLinkStatus({'port':0, 'cmd_flag':1})
+            link_status = self.aq.GetLinkStatus({'port':0, 'cmd_flag':1})
             phy_type = link_status[1]
             
             config['phy_type_0'] = phy_type['phy_type_0']
@@ -1397,7 +1397,7 @@ class cvl(cvlTier1):
             raise RuntimeError(error_msg)
         #print config
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         
         if status[0]:
             error_msg = 'Error _SetFecSetting: Admin command was not successful, retval {}'.format(status[1])
@@ -1679,7 +1679,7 @@ class cvl(cvlTier1):
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
 
         if status[0]:
             error_msg = 'Error EnablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -1697,7 +1697,7 @@ class cvl(cvlTier1):
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
 
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
 
         if status[0]:
             error_msg = 'Error EnablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -1710,7 +1710,7 @@ class cvl(cvlTier1):
         '''
         AQ_args = dict()
         AQ_args["loopback mode"] = 1
-        status = self.SetMacLoopback(AQ_args)
+        status = self.aq.SetMacLoopback(AQ_args)
 
         if status[0]:
             error_msg = "Error EnableMACLoopback: Admin command was not successful, retval {}".format(status[1])
@@ -1728,7 +1728,7 @@ class cvl(cvlTier1):
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
         if status[0]: 
             error_msg = 'Error DisablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
@@ -1744,7 +1744,7 @@ class cvl(cvlTier1):
         phy_lpbk_args['enable'] = 0 #loopback disabled
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
 
         if status[0]: 
             error_msg = 'Error DisablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -1757,7 +1757,7 @@ class cvl(cvlTier1):
         '''
         AQ_args = dict()
         AQ_args["loopback mode"] = 0
-        status = self.SetMacLoopback(AQ_args)
+        status = self.aq.SetMacLoopback(AQ_args)
 
         if status[0]:
             error_msg = "Error DisableMACLoopback: Admin command was not successful, retval{}".format(status[1])
@@ -1907,7 +1907,7 @@ class cvl(cvlTier1):
                 set_eee: [2 bytes] -- bitfield defined in Section 3.5.7.6.8 of CVL has to enable or disable advertisement of EEE capabilities
         '''
         config = {}
-        abilities = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':2}) ##TODO: check values
+        abilities = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':2}) ##TODO: check values
         
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['phy_type_0'] = abilities['phy_type_0']
@@ -1934,13 +1934,12 @@ class cvl(cvlTier1):
         config['fec_opt'] = abilities['fec_opt']
         
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         
         if status[0]:
             error_msg = 'Error _SetEEESetting: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
         
-
     def LinkManagementDisable(self):
         '''This function disable firmware's link managment. 
             argument: none
@@ -1948,7 +1947,7 @@ class cvl(cvlTier1):
         '''
 
         args = {'port':0, 'index':0, 'cmd_flags':0x10}
-        status = self.SetPhyDebug(args)
+        status = self.aq.SetPhyDebug(args)
 
         if status[0]: 
             error_msg = 'Error LinkManagementDisable: Admin command was not successful, retval {}'.format(status[1])
@@ -1961,7 +1960,7 @@ class cvl(cvlTier1):
         '''
 
         args = {'port':0, 'index':0, 'cmd_flags':0}
-        status = self.SetPhyDebug(args)
+        status = self.aq.SetPhyDebug(args)
 
         if status[0]: 
             error_msg = 'Error LinkManagementEnable: Admin command was not successful, retval {}'.format(status[1])
@@ -1980,7 +1979,7 @@ class cvl(cvlTier1):
             return:
                 print all pstors
         '''
-        pstores = self._DnlReadPstore(self, pstores_number_to_read,debug)
+        pstores = self.aq._DnlReadPstore(self, pstores_number_to_read,debug)
         print("Pstors: ",pstores)
      
     def DebugWriteDnlStore(context, store_type, store_index, value,debug=False):
@@ -1991,7 +1990,7 @@ class cvl(cvlTier1):
                 store_index - offest
                 value - value to write
         '''
-        _DnlWriteStore(context, store_type, store_index, value,debug)
+        self.aq._DnlWriteStore(context, store_type, store_index, value,debug)
 
 
     ######################################################################################################
@@ -2037,7 +2036,7 @@ class cvl(cvlTier1):
         sto_1 = 0
         sto_2 = 0
         sto_3 = 0
-        ret_val = self._DnlCallActivity(CVL_DFT_TEST_ACT_IT,context, sto_0, sto_1, sto_2, sto_3,debug=False)
+        ret_val = self.aq._DnlCallActivity(CVL_DFT_TEST_ACT_IT,context, sto_0, sto_1, sto_2, sto_3,debug=False)
         sto_0 = hex(ret_val[0]).replace('L','')
         sto_1 = hex(ret_val[1]).replace('L','')
         sto_2 = hex(ret_val[2]).replace('L','')
@@ -2067,7 +2066,7 @@ class cvl(cvlTier1):
         driver = self.driver
         context = driver.port_number()
 
-        ret_val = self._DnlReadPstore(context,psto_index,debug=False)
+        ret_val = self.aq._DnlReadPstore(context,psto_index,debug=False)
         return hex(ret_val)
 
     def DnlGetPhyInfo(self):
@@ -2092,7 +2091,7 @@ class cvl(cvlTier1):
        
         #helper = LM_Validation()
         act_id = 0x000E
-        status = self._DnlCallActivity(act_id, 0, sto0, sto1, sto2, sto3)
+        status = self.aq._DnlCallActivity(act_id, 0, sto0, sto1, sto2, sto3)
         
         st = {}
 
@@ -2141,8 +2140,7 @@ class cvl(cvlTier1):
             return: 
                 value - return value from the neighbor device.
         ''' 
-        return_val = self.NeighborDeviceRead(0x2,0,1, address)
-        return return_val
+        return self.aq.NeighborDeviceRead(0x2,0,1, address)
 
     def WriteEthwRegister(self,address,data):
         '''
@@ -2152,7 +2150,7 @@ class cvl(cvlTier1):
                 address - address to write in the neighbor device CSRs.
                 data - data to write in the neighbor device CSRs.
         ''' 
-        self.NeighborDeviceWrite(0x2,1,1, address,data)
+        self.aq.NeighborDeviceWrite(0x2,1,1, address,data)
         pass
 
     def ReadMTIPRegister(self, offset,address,debug = False):
@@ -2172,70 +2170,6 @@ class cvl(cvlTier1):
             print("Reading from: ", hex(addr))
             print("return value: ", ret_val)
         return ret_val
-
-    def NeighborDeviceWrite(self,dest,opcode,addrlen,address,data):
-        '''
-            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
-            supporting read/write via SBiosf to neighbor device.
-            arguments: 
-                dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
-                opcode - read/write etc...  according Table 3-34, in 3.3.4.1 CVL Spec
-                addrlen - address length 0: 16 bit, 1: 48 bits. according Table B-8, appandix B.3.1 CVL spec
-                address - address to read in the neighbor device CSRs.
-                data - data to be written
-            return: 
-                None
-        ''' 
-        struct = cvl_structs()
-        SbIosfMassageDict = struct.SbIosfMassageStruct()
-        buffer = []
-     
-        # First DW
-        buffer.append(SbIosfMassageDict['dest'] | dest)
-        buffer.append(SbIosfMassageDict['source'])
-        buffer.append(SbIosfMassageDict['opcode'] | opcode)
-        Byte4_1stDW = (SbIosfMassageDict['EH'] << 7) | ((SbIosfMassageDict['addrlen'] | addrlen ) << 6) | (SbIosfMassageDict['Bar'] << 3 ) | SbIosfMassageDict['Tag']
-        buffer.append(Byte4_1stDW)
-     
-        # Second DW - Should be ignored according tanya
-        # Byte1_2ndDW = (SbIosfMassageDict['EH_2ndDW'] << 7) | SbIosfMassageDict['exphdrid']
-        # buffer.append(Byte1_2ndDW)
-        # Byte2_2ndDW = SbIosfMassageDict['sai'] & 0xFF
-        # buffer.append(Byte2_2ndDW)
-        # Byte3_2ndDW = (SbIosfMassageDict['sai'] >> 8) & 0xFF
-        # buffer.append(Byte3_2ndDW)
-        # Byte4_2ndDW = SbIosfMassageDict['rs'] & 0xF
-        # buffer.append(Byte4_2ndDW)
-     
-        # Third DW
-        Byte1_3rdDW =(SbIosfMassageDict['Sbe'] << 4) | (SbIosfMassageDict['fbe'] | 0xF) # the fbe value taken from BDX team
-        buffer.append(Byte1_3rdDW)
-        buffer.append(SbIosfMassageDict['Fid'])
-        Byte3_3rdDW = address & 0xFF
-        buffer.append(Byte3_3rdDW)
-        Byte4_3rdDW = (address >> 8) & 0xFF
-        buffer.append(Byte4_3rdDW)
-     
-        # four DW
-        Byte1_4rdDW = (address >> 16) & 0xFF
-        buffer.append(Byte1_4rdDW)
-        Byte2_4rdDW = (address >> 24) & 0xFF
-        buffer.append(Byte2_4rdDW)
-        Byte3_4rdDW = 0
-        buffer.append(Byte3_4rdDW)
-        Byte4_4rdDW = 0
-        buffer.append(Byte4_4rdDW)
-
-        # Addidional DW's for writing
-        Byte1_AdDW = data & 0xFF
-        buffer.append(Byte1_AdDW)
-        Byte2_AdDW = (data >> 8 ) & 0xFF
-        buffer.append(Byte2_AdDW)
-        Byte3_AdDW = (data >> 16 ) & 0xFF
-        buffer.append(Byte3_AdDW)
-        Byte4_AdDW = (data >> 24 ) & 0xFF
-        buffer.append(Byte4_AdDW)
-        return_buffer = self._NeighborDeviceRequestAq(0,buffer)
 
     def NeighborDeviceRead(self, dest,opcode,addrlen, address):
         '''
@@ -2301,10 +2235,75 @@ class cvl(cvlTier1):
         #print "DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
         #print "DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
 
-        return_buffer = self._NeighborDeviceRequestAq(1,buffer)
+        return_buffer = self.aq.NeighborDeviceRequestAq(1,buffer)
         return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
         #print "return val: ", return_val
         return return_val.replace("L","")
+
+    def NeighborDeviceWrite(self,dest,opcode,addrlen,address,data):
+        '''
+            this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
+            supporting read/write via SBiosf to neighbor device.
+            arguments: 
+                dest - Neighbor Device address, according Table 3-33, in 3.3.4.1 CVL Spec.
+                opcode - read/write etc...  according Table 3-34, in 3.3.4.1 CVL Spec
+                addrlen - address length 0: 16 bit, 1: 48 bits. according Table B-8, appandix B.3.1 CVL spec
+                address - address to read in the neighbor device CSRs.
+                data - data to be written
+            return: 
+                None
+        ''' 
+        struct = cvl_structs()
+        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        buffer = []
+     
+        # First DW
+        buffer.append(SbIosfMassageDict['dest'] | dest)
+        buffer.append(SbIosfMassageDict['source'])
+        buffer.append(SbIosfMassageDict['opcode'] | opcode)
+        Byte4_1stDW = (SbIosfMassageDict['EH'] << 7) | ((SbIosfMassageDict['addrlen'] | addrlen ) << 6) | (SbIosfMassageDict['Bar'] << 3 ) | SbIosfMassageDict['Tag']
+        buffer.append(Byte4_1stDW)
+     
+        # Second DW - Should be ignored according tanya
+        # Byte1_2ndDW = (SbIosfMassageDict['EH_2ndDW'] << 7) | SbIosfMassageDict['exphdrid']
+        # buffer.append(Byte1_2ndDW)
+        # Byte2_2ndDW = SbIosfMassageDict['sai'] & 0xFF
+        # buffer.append(Byte2_2ndDW)
+        # Byte3_2ndDW = (SbIosfMassageDict['sai'] >> 8) & 0xFF
+        # buffer.append(Byte3_2ndDW)
+        # Byte4_2ndDW = SbIosfMassageDict['rs'] & 0xF
+        # buffer.append(Byte4_2ndDW)
+     
+        # Third DW
+        Byte1_3rdDW =(SbIosfMassageDict['Sbe'] << 4) | (SbIosfMassageDict['fbe'] | 0xF) # the fbe value taken from BDX team
+        buffer.append(Byte1_3rdDW)
+        buffer.append(SbIosfMassageDict['Fid'])
+        Byte3_3rdDW = address & 0xFF
+        buffer.append(Byte3_3rdDW)
+        Byte4_3rdDW = (address >> 8) & 0xFF
+        buffer.append(Byte4_3rdDW)
+     
+        # four DW
+        Byte1_4rdDW = (address >> 16) & 0xFF
+        buffer.append(Byte1_4rdDW)
+        Byte2_4rdDW = (address >> 24) & 0xFF
+        buffer.append(Byte2_4rdDW)
+        Byte3_4rdDW = 0
+        buffer.append(Byte3_4rdDW)
+        Byte4_4rdDW = 0
+        buffer.append(Byte4_4rdDW)
+
+        # Addidional DW's for writing
+        Byte1_AdDW = data & 0xFF
+        buffer.append(Byte1_AdDW)
+        Byte2_AdDW = (data >> 8 ) & 0xFF
+        buffer.append(Byte2_AdDW)
+        Byte3_AdDW = (data >> 16 ) & 0xFF
+        buffer.append(Byte3_AdDW)
+        Byte4_AdDW = (data >> 24 ) & 0xFF
+        buffer.append(Byte4_AdDW)
+        return_buffer = self._NeighborDeviceRequestAq(0,buffer)
+
 
     def _to_unsigned(self, value):
         '''
@@ -2337,24 +2336,11 @@ class cvl(cvlTier1):
         print(hex(reg_value))
         self.driver.write_phy_register(Page, Register, self.driver.port_number(), reg_value)
 
-    def CheckDeviceAliveness(self):
-        '''
-            This function returns true if the device is alive or false otherwise
-            it's done for PCIe issue .
-               return: True/false
-        '''
-        reg_addr = calculate_port_offset(0x001E47A0, 0x4, self.driver.port_number())
-        reg_data = self.driver.read_csr(reg_addr)
-        if ( reg_data == 0xffffffff or reg_data == 0xdeadbeef):
-            return False
-        else:
-            return True
-
     def PrintLoopbackStatus(self):
         gls = dict()
         gls["port"] = 0 
         gls["cmd_flag"] = 0
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error GetLinkStatusAfterParsing: Admin command was not successful")  
@@ -2391,7 +2377,7 @@ class cvl(cvlTier1):
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
      
-        result = self.GetLinkStatus(gls)
+        result = self.aq.GetLinkStatus(gls)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -2793,7 +2779,7 @@ class cvl(cvlTier1):
         stop_polling_event.clear()
         handler = get_handler()
         driver = self.driver
-        self.configure_logging_dnl(True)
+        self.aq.configure_logging_dnl(True)
         print("start dnl logging")
         self.clear_rx_events_queue()
         time.sleep(0.1)
@@ -2817,7 +2803,7 @@ class cvl(cvlTier1):
         '''
         driver = self.driver
         print("stop dnl logging")
-        self.configure_logging_dnl(False)
+        self.aq.configure_logging_dnl(False)
         stop_polling_event.set()
         handler = get_handler()
         p = handler.custom_data["DnlLoggingProccessHandle"]
@@ -2837,7 +2823,7 @@ class cvl(cvlTier1):
             return: None    
         '''
         ttl_timeout = 10
-        self.configure_logging_dnl(True)
+        self.aq.configure_logging_dnl(True)
         self.clear_rx_events_queue()
         time.sleep(0.1)
         log_file = 'raw_data_file.txt'
@@ -2868,7 +2854,7 @@ class cvl(cvlTier1):
         print(ttl_time)
 
         time.sleep(1)
-        self.configure_logging_dnl(False)
+        self.aq.configure_logging_dnl(False)
         msg = q.get()
         while not msg == "queue empty":
             msg = q.get()
@@ -3078,9 +3064,9 @@ class cvl(cvlTier1):
 
         print("Device Power State: ", power_sate.get(val,"Wrong"))
 
-    #########################################################################################################
-    #################################         Power        ##################################################
-    #########################################################################################################
+################################################################################
+##############                          Power                       ############
+################################################################################
 
     def SetD3PowerState(self):
         driver = self.driver
@@ -3120,327 +3106,7 @@ class cvl(cvlTier1):
 
         driver.write_pci(0x44, 0x2008)
 
-
-    #########################################################################################################
-    ######################         Stand alone debug tests      #############################################
-    #########################################################################################################
-
-    def DBG_globr_test(self, num_of_iteration,ttl_timeout):
-        '''This function performs globr_test for debug
-            argument:
-                num_of_iteration
-                ttl_timeout (sec)
-            return:
-                None
-        '''
-        print("Link speed: ",self.GetMacLinkSpeed())
-        for i in range(num_of_iteration):       
-            print("globr num: ",i)
-            self.Reset(1)
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()       
-                if self.GetMacLinkStatus("REG"):
-                    curr_time = time.time()
-                    link_flag = False
-                    print('link up')
-                    
-                    break
-            print("TTL: ",curr_time - start_time)
-            time.sleep(5)
-            if (link_flag):
-                input("Press enter to continue")
-                return(0)
-
-
-    def DBG_restartAN_test_BU(self, num_of_iteration,ttl_timeout):#TODO add link stability check and link drop source
-        '''This function performs  restartAN_test for debug
-            argument:
-                num_of_iteration
-                ttl_timeout
-            return:
-                None
-        '''
-
-        ttl_list = []
-        avg_ttl = 0
-        print("Link speed: ", self.GetMacLinkSpeed())
-        for i in range(num_of_iteration):       
-            print("Restart AN num: ",i)
-            self.RestartAn()
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()
-                if self.GetMacLinkStatus("REG"):
-                    curr_time = time.time()
-                    link_flag = False
-                    print('link up')
-                    time.sleep(1)
-                    break
-            TTL = curr_time - start_time
-            ttl_list.append(TTL)
-            print("TTL: ",TTL)
-            time.sleep(2)
-            if (link_flag):
-                input("Press enter to continue")
-                return(0)
-        for i in ttl_list:
-             avg_ttl = avg_ttl + i
-
-        print("AVG TTL: ",avg_ttl/len(ttl_list))
-
-    def GetTimeStamp(self):
-        '''This function return date and time 
-            argument:
-                None
-            return:
-                Stamp(YYMMDD_HHMINSEC)
-        '''
-        ts = time.localtime()
-        stamp = str(ts.tm_year)+str(ts.tm_mon)+str(ts.tm_mday)+'_'+str(ts.tm_hour)+str(ts.tm_min)+str(ts.tm_sec)
-        return stamp
-
-    def create_log_name(self,path,iter,ttl):
-        '''This function create log name according to path, port number, ttl, number of iteration, date and time.
-            argument:
-                Path - log location
-                Iter - num of iteration
-                ttl
-            return:
-                Fullname of file
-        '''
-        driver = self.driver
-        port = driver.port_number()
-        p = path
-        fullname = p + str(port) + "_" + str(round(ttl)) + "_" + str(iter) + "_" + self.GetTimeStamp() + ".txt"
-        return fullname
-
-    def DBG_restartAN_test(self, num_of_iteration,ttl_timeout,enable_logger = 0,logger_low_limit_ttl = 2):#TODO add link stability check and link drop source
-        '''This function print AVG, MAX and MIN ttl (summary of iterations). for debug only
-            argument:
-                num_of_iteration (int)
-                ttl_timeout (int) - max time for TTL
-                enable_logger (True/False) - if true enable logger
-                logger_low_limit_ttl (int) - if ttl longer then this, save log from logger.
-            return:
-                None
-        '''
-        ttl_list = []
-        avg_ttl = 0
-
-        print("Link speed: ",self.GetMacLinkSpeed())
-        for i in range(num_of_iteration):
-            SaveRawDataFlag = False     
-            
-            if enable_logger:
-                print('logger is enabled')
-                self.StartDnlLogging()
-        
-            print("Restart AN num: ",i)
-            self.RestartAn()
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):       
-                curr_time = time.time()
-                if self.GetMacLinkStatus("REG"):
-                    curr_time = time.time()
-                    link_flag = False
-                    print('link up')
-                    time.sleep(1)
-                    break
-            ttl = curr_time - start_time
-            ttl_list.append(ttl)        
-            print("TTL: ",ttl)
-
-            if enable_logger:
-                LoggerFileName = self.create_log_name("/home/laduser/LoggerRawData/RawData_IterationNum_", i, ttl)
-                if ttl > logger_low_limit_ttl:
-                    SaveRawDataFlag = True
-                    #print "rad data file saved to: ",LoggerFileName
-                print('logger is disable')
-                self.StopDnlLogging(LoggerFileName, SaveRawDataFlag, 1)
-
-            time.sleep(3)
-            if (link_flag):
-                # raw_input("Press enter to continue")
-                input("Press enter to continue")   # Python 3
-                return(0)
-
-        print()
-        print("MIN TTL: ", min(ttl_list))
-        print("MAX TTL: ", max(ttl_list))
-        print("AVG TTL: ", sum(ttl_list)/len(ttl_list))
-
-
-    def DBG_traffic_test(self, num_of_iteration,ber_timeout,packet_size):
-        '''This function performs traffic test for debug and prints trafic stats.
-            The function checks stability during trafic in MAC and PHY
-            argument:
-                num_of_iteration
-                ber_timeout- time for trafic[Sec]
-                packet_size - packet_size for trtafic
-            return:
-                None
-        '''
-        curr_time = 0
-        iter_num = 0
-        ErrorStatistics = {}
-
-        for iter_num in range(num_of_iteration):
-
-            self.ClearMACstat()
-            CurrentMacLinkStatus_old_value = self.GetMacLinkStatus()
-            CurrentPhyLinkStatus_old_value = self.GetPhyLinkStatus()
-            #phy_tuning_paraps_dict = GetPhytuningParams()
-            new_PTC_Dict = self.GetPTC()
-            new_PRC_Dict = self.GetPRC()
-            print("Iteration: ",iter_num)
-            print("PTC: " ,new_PTC_Dict['TotalPTC'])
-            print("PRC: ", new_PRC_Dict['TotalPRC'])
-
-            print("Start TXRX")
-            self.EthStartTraffic(packet_size)
-            start_time = sampling_time_counter = time.time()
-            while (curr_time < ber_timeout):
-                curr_time = time.time() - start_time
-
-                CurrentMacLinkStatus = self.GetMacLinkStatus()
-                CurrentPhyLinkStatus = self.GetPhyLinkStatus()
-                #print "curr time ",curr_time
-                if (CurrentMacLinkStatus == False or CurrentPhyLinkStatus == False):
-                    print("link drop event")
-                #time.sleep(0.005)
-            
-            print("Stop TXRX")
-            self.EthStopTraffic()
-            #phy_tuning_paraps_dict = GetPhytuningParams()
-            new_PTC_Dict = self.GetPTC()
-            new_PRC_Dict = self.GetPRC()
-            print("Iteration: ",iter_num)
-            print("PTC: " ,new_PTC_Dict['TotalPTC'])
-            print("PRC: ", new_PRC_Dict['TotalPRC'])
-
-            ErrorStatistics = self.GetMacErrorsCounters(ErrorStatistics)
-            print()
-            print("######  Mac Error Statistics  #######")
-            print()
-            keylist = ErrorStatistics.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,ErrorStatistics[key])
-            print()
-            print("######  Mac PTC Statistics  #######")
-            print()
-            keylist = new_PTC_Dict.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,new_PTC_Dict[key])
-            print()
-            print("######  Mac PRC Statistics  #######")
-            print()
-            keylist = new_PRC_Dict.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,new_PRC_Dict[key])
-
-    def DBG_globr_test_4_ports(self,num_of_iteration,ttl_timeout):
-        '''This function performs  TTL test after performing global reset for 4 ports.
-            The function prints the TTL time for each port in case linke is up, otherwise prints error 
-            argument:
-                num_of_iteration- Number of times to perform the test
-                ttl_timeout -max time for TTL [Sec]
-            return:
-                None
-        '''
-        driver = self.driver    
-        print("Link speed: ", self.GetMacLinkSpeed())
-        
-        for i in range(num_of_iteration):       
-            print("globr iteration: ", i+1)
-            self.Reset(1)
-            link_flag_port0 = True
-            link_flag_port1 = True
-            link_flag_port2 = True
-            link_flag_port3 = True
-
-
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()
-
-                if link_flag_port0:
-                    reg_addr0 = calculate_port_offset(0x001E47A0, 0x4, 0)
-                    reg_data0 = driver.read_csr(reg_addr0)
-                    LinkStatus0 = get_bit_value(reg_data0,30)       
-                    if LinkStatus0:
-                        curr_time_port0 = time.time()
-                        print('link up on port 0')
-                        print("TTL port 0: ",curr_time_port0 - start_time)
-                        link_flag_port0 = False
-
-                if link_flag_port1:
-                    reg_addr1 = calculate_port_offset(0x001E47A0, 0x4, 1)
-                    reg_data1 = driver.read_csr(reg_addr1)
-                    LinkStatus1 = get_bit_value(reg_data1,30)
-                    if LinkStatus1:
-                        curr_time_port1 = time.time()
-                        print('link up on port 1')
-                        print("TTL port 1: ",curr_time_port1 - start_time)
-                        link_flag_port1 = False
-
-                if link_flag_port2:
-                    reg_addr2 = calculate_port_offset(0x001E47A0, 0x4, 2)
-                    reg_data2 = driver.read_csr(reg_addr2)
-                    LinkStatus2 = get_bit_value(reg_data2,30)       
-                    if LinkStatus2:
-                        curr_time_port2 = time.time()
-                        print('link up on port 2')
-                        print("TTL port 2: ",curr_time_port2 - start_time)
-                        link_flag_port2 = False
-
-                if link_flag_port3:
-                    reg_addr3 = calculate_port_offset(0x001E47A0, 0x4, 3)
-                    reg_data3 = driver.read_csr(reg_addr3)
-                    LinkStatus3 = get_bit_value(reg_data3,30)       
-                    if LinkStatus3:
-                        curr_time_port3 = time.time()
-                        print('link up on port 3')
-                        print("TTL port 3: ",curr_time_port3 - start_time)
-                        link_flag_port3 = False 
-
-                #if link_flag_port3 == False and link_flag_port2 == False and link_flag_port1 == False and link_flag_port0 == False:
-                #   link_flag = False
-                #   break   
-                    
-            time.sleep(2)
-            if link_flag_port0:
-                input("link is down in port 0, Press enter to exit")
-            if link_flag_port1:
-                input("link is down in port 1, Press enter to exit")
-            if link_flag_port2:
-                input("link is down in port 2, Press enter to exit")
-            if link_flag_port3:
-                input("link is down in port 3, Press enter to exit")
-                #return(0)
-
-        #reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
-        #reg_data = driver.read_csr(reg_addr)
-        #LinkStatus = get_bit_value(reg_data,30)
-
-           ############################### Link Topology Admin commands WIP ##########################################
-
-    def ReadEEPROM(self):
+    def ReadSffEeprom(self):
         '''
             this function reads the eeprom of the moudle via I2C
             arguments:None
@@ -3470,7 +3136,7 @@ class cvl(cvlTier1):
             eeprom_dict[port] = list()
             for i in range(16):
                 offset = 16*i
-                I2C = self.ReadI2C(port,handle,offset)
+                I2C = self.aq.ReadI2C(port,handle,offset)
                 data = I2C[2]
                 eeprom_dict[port] = eeprom_dict[port]+data
         return eeprom_dict
@@ -3481,157 +3147,58 @@ class cvl(cvlTier1):
         config["node_handle"] = self.GetLinkTopologyHandle(int(self.driver.port_number()))[2]['node_handle']
         config["i2c_memory_offset"] = offset
         config["i2c_data"] = value
-        status, data = self.WriteI2C(config, debug) 
+        status, data = self.aq.WriteI2C(config, debug) 
         if status:
             raise RuntimeError("WriteI2C Admin command failed with retval {} adn ststus {}".foramt(data, ststus))
 
-
-
-
-###############################################################################
-######################         debug prints auto complete     #############
-###########################################################################
-
-    def PRT_AN_HCD_OUTPUT(self):
-        return self.ReadDnlPstore(0x21)
-
-    def PRT_AN_LP_NP(self):
-        return self.ReadDnlPstore(0x22)
-
-    def PRT_AN_LP_BP(self):
-        return self.ReadDnlPstore(0x23)
-
-    def PRT_AN_LOCAL_NP(self):
-        return self.ReadDnlPstore(0x24)
-
-    def PRT_AN_LOCAL_BP(self):
-        return self.ReadDnlPstore(0x25)
-
-    def PRT_STATE_MACHINE(self):
-        return self.ReadDnlPstore(0x26)
-
-    def PRT_PCS_SELECT(self):
-        return self.ReadDnlPstore(0x27)
-
-    def PRT_SET_PMD_LINK_UP_ARG0(self):
-        return self.ReadDnlPstore(0x28)
-
-    def PRT_SET_PMD_LINK_UP_ARG1(self):
-        return self.ReadDnlPstore(0x29)
-
-    def PRT_SET_PMD_LINK_UP_ARG2(self):
-        return self.ReadDnlPstore(0x2A)
-
-    def PRT_SET_PMD_LINK_UP_ARG3(self):
-        return self.ReadDnlPstore(0x2B)
-
-    def PRT_SRDS_INT_CMD_ADDR(self):
-        return self.ReadDnlPstore(0x2C)
-
-    def PRT_CVL_SERDES_POLARITY(self):
-        return self.ReadDnlPstore(0x2D)
-
-    def PRT_FM_SPEED_OUTPUT(self):
-        return self.ReadDnlPstore(0x2E)
-
-    def PRT_LAST_CONFIG(self):
-        return self.ReadDnlPstore(0x2F)
-
-    def PRT_SET_PMD_LINK_Down_ARG0(self):
-        return self.ReadDnlPstore(0x30)
-
-    def PRT_CVL_FLAGS(self):
-        return self.ReadDnlPstore(0x31)
-
-    def PRT_SERDES_LOOP(self):
-        return self.ReadDnlPstore(0x32)
-
-    def PRT_WATCHDOG_TIMER(self):
-        return self.ReadDnlPstore(0x33)
-
-    def PRT_SCRATCH0(self):
-        return self.ReadDnlPstore(0x41)
-
-    def PRT_LAST_ERROR_CVL_ALL(self):
-        return self.ReadDnlPstore(0x42)
-
-    def PRT_LAST_ERROR_SET_PMD_LINK_UP(self):
-        return self.ReadDnlPstore(0x43)
-
-    def PRT_SET_PMD_LINK_UP_ARG0_BYPASS(self):
-        return self.ReadDnlPstore(0x44)
-
-    def PRT_SET_PMD_LINK_UP_ARG1_BYPASS(self):
-        return self.ReadDnlPstore(0x45)
-
-    def PRT_SET_PMD_LINK_UP_ARG2_BYPASS(self):
-        return self.ReadDnlPstore(0x46)
-
-    def PRT_SET_PMD_LINK_UP_ARG3_BYPASS(self):
-        return self.ReadDnlPstore(0x47)
-
-    def PRT_SET_LINK_UP_INPUT_ARG0(self):
-        return self.ReadDnlPstore(0x06)
-
-    def PRT_SET_LINK_UP_INPUT_ARG1(self):
-        return self.ReadDnlPstore(0x07)
-
-    def PRT_SET_LINK_UP_INPUT_ARG2(self):
-        return self.ReadDnlPstore(0x08)
-
-    def PRT_SET_LINK_UP_INPUT_ARG3(self):
-        return self.ReadDnlPstore(0x09)
-
-    def PRT_TOPO_CAPABILITIES_0(self):
-        return self.ReadDnlPstore(0x0A)
-
-    def PRT_TOPO_CAPABILITIES_1(self):
-        return self.ReadDnlPstore(0x0B)
-
-    def PRT_TOPO_CAPABILITIES_2(self):
-        return self.ReadDnlPstore(0x0C)
-
-    def PRT_TOPO_CAPABILITIES_3(self):
-        return self.ReadDnlPstore(0x0D)
-
-    def PRT_MEDIA_CAPABILITIES_0(self):
-        return self.ReadDnlPstore(0x0E)
-
-    def PRT_GET_CAPABILITIES_SM(self):
-        return self.ReadDnlPstore(0x0F)
-
-    def PRT_SET_LINK_CAPABILITIES_0(self):
-        return self.ReadDnlPstore(0x10)
-
-    def PRT_SET_LINK_CAPABILITIES_1(self):
-        return self.ReadDnlPstore(0x11)
-
-    def PRT_SET_LINK_CAPABILITIES_2(self):
-        return self.ReadDnlPstore(0x12)
-
-    def PRT_SET_LINK_CAPABILITIES_3(self):
-        return self.ReadDnlPstore(0x13)
-
-    def PRT_OUTERLINK_INFO(self):
-        return self.ReadDnlPstore(0x14)
-
-    def PRT_LINK_STATUS(self):
-        return self.ReadDnlPstore(0x15)
-
-    def PRT_LESM_INIT_AN_CONFIG(self):
-        return self.ReadDnlPstore(0x16)
-
-    def PRT_LESM_INIT_AN_LP_CONFIG(self):
-        return self.ReadDnlPstore(0x17)
-
-    def PRT_LESM_INIT_COUNTERS(self):
-        return self.ReadDnlPstore(0x18)
-
-    def PRT_LESM_INIT_FORCED_MODES(self):
-        return self.ReadDnlPstore(0x19)
-
-    def PRT_LESM_INIT_FEC_MODES(self):
-        return self.ReadDnlPstore(0x1A)
-
-    def PRT_LESM_INIT_FORCED_TIMEOUTS(self):
-        return self.ReadDnlPstore(0x1B)
+    def ReadDnlPersistentStores(self):
+        data = dict()
+        data['PRT_AN_HCD_OUTPUT'] = self.ReadDnlPstore(0x20)
+        data['PRT_AN_LP_NP'] = self.ReadDnlPstore(0x22)
+        data['PRT_AN_LP_BP'] = self.ReadDnlPstore(0x23)
+        data['PRT_AN_LOCAL_NP'] = self.ReadDnlPstore(0x24)
+        data['PRT_AN_LOCAL_BP'] = self.ReadDnlPstore(0x25)
+        data['PRT_STATE_MACHINE'] = self.ReadDnlPstore(0x26)
+        data['PRT_PCS_SELECT'] = self.ReadDnlPstore(0x27)
+        data['PRT_SET_PMD_LINK_UP_ARG0'] = self.ReadDnlPstore(0x28)
+        data['PRT_SET_PMD_LINK_UP_ARG1'] = self.ReadDnlPstore(0x29)
+        data['PRT_SET_PMD_LINK_UP_ARG2'] = self.ReadDnlPstore(0x2a)
+        data['PRT_SET_PMD_LINK_UP_ARG3'] = self.ReadDnlPstore(0x2b)
+        data['PRT_SRDS_INT_CMD_ADDR'] = self.ReadDnlPstore(0x2c)
+        data['PRT_CVL_SERDES_POLARITY'] = self.ReadDnlPstore(0x2d)
+        data['PRT_FM_SPEED_OUTPUT'] = self.ReadDnlPstore(0x2e)
+        data['PRT_LAST_CONFIG'] = self.ReadDnlPstore(0x2f)
+        data['PRT_SET_PMD_LINK_Down_ARG0'] = self.ReadDnlPstore(0x30)
+        data['PRT_CVL_FLAGS'] = self.ReadDnlPstore(0x31)
+        data['PRT_SERDES_LOOP'] = self.ReadDnlPstore(0x32)
+        data['PRT_WATCHDOG_TIMER'] = self.ReadDnlPstore(0x33)
+        data['PRT_SCRATCH0'] = self.ReadDnlPstore(0x41)
+        data['PRT_LAST_ERROR_CVL_ALL'] = self.ReadDnlPstore(0x42)
+        data['PRT_LAST_ERROR_SET_PMD_LINK_UP'] = self.ReadDnlPstore(0x43)
+        data['PRT_SET_PMD_LINK_UP_ARG0_BYPASS'] = self.ReadDnlPstore(0x44)
+        data['PRT_SET_PMD_LINK_UP_ARG1_BYPASS'] = self.ReadDnlPstore(0x45)
+        data['PRT_SET_PMD_LINK_UP_ARG2_BYPASS'] = self.ReadDnlPstore(0x46)
+        data['PRT_SET_PMD_LINK_UP_ARG3_BYPASS'] = self.ReadDnlPstore(0x47)
+        data['PRT_SET_LINK_UP_INPUT_ARG0'] = self.ReadDnlPstore(0x06)
+        data['PRT_SET_LINK_UP_INPUT_ARG1'] = self.ReadDnlPstore(0x7)
+        data['PRT_SET_LINK_UP_INPUT_ARG2'] = self.ReadDnlPstore(0x8)
+        data['PRT_SET_LINK_UP_INPUT_ARG3'] = self.ReadDnlPstore(0x9)
+        data['PRT_TOPO_CAPABILITIES_0'] = self.ReadDnlPstore(0xa)
+        data['PRT_TOPO_CAPABILITIES_1'] = self.ReadDnlPstore(0xb)
+        data['PRT_TOPO_CAPABILITIES_2'] = self.ReadDnlPstore(0xc)
+        data['PRT_TOPO_CAPABILITIES_3'] = self.ReadDnlPstore(0xd)
+        data['PRT_MEDIA_CAPABILITIES_0'] = self.ReadDnlPstore(0xe)
+        data['PRT_GET_CAPABILITIES_SM'] = self.ReadDnlPstore(0xf)
+        data['PRT_SET_LINK_CAPABILITIES_0'] = self.ReadDnlPstore(0x10)
+        data['PRT_SET_LINK_CAPABILITIES_1'] = self.ReadDnlPstore(0x11)
+        data['PRT_SET_LINK_CAPABILITIES_2'] = self.ReadDnlPstore(0x12)
+        data['PRT_SET_LINK_CAPABILITIES_3'] = self.ReadDnlPstore(0x13)
+        data['PRT_OUTERLINK_INFO'] = self.ReadDnlPstore(0x14)
+        data['PRT_LINK_STATUS'] = self.ReadDnlPstore(0x15)
+        data['PRT_LESM_INIT_AN_CONFIG'] = self.ReadDnlPstore(0x16)
+        data['PRT_LESM_INIT_AN_LP_CONFIG'] = self.ReadDnlPstore(0x17)
+        data['PRT_LESM_INIT_COUNTERS'] = self.ReadDnlPstore(0x18)
+        data['PRT_LESM_INIT_FORCED_MODES'] = self.ReadDnlPstore(0x19)
+        data['PRT_LESM_INIT_FEC_MODES'] = self.ReadDnlPstore(0x1a)
+        data['PRT_LESM_INIT_FORCED_TIMEOUTS'] = self.ReadDnlPstore(0x1b)
+        return data

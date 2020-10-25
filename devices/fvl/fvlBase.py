@@ -5,6 +5,8 @@
 
 from core.drivers.DriverFactory import DriverFactory
 from core.devices.deviceBase import deviceBase
+from devices.fvl.DataHandler import DataHandler 
+from devices.fvl.AdminCommandHandler import AdminCommandHandler
 import sys
 
 class fvlBase:
@@ -22,6 +24,8 @@ class fvlBase:
         self._host_or_baseT = 0
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
+            self.aq = AdminCommandHandler(self.driver)
+            self.data = DataHandler()
         except Exception as e:
             print("Driver Creation has failed")
             print(str(e))

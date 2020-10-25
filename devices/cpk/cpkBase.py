@@ -1,11 +1,10 @@
 
-#--------------------------------------------
 # @author Shady Ganem <shady.ganem@intel.com>
-#--------------------------------------------
 
 from core.drivers.DriverFactory import DriverFactory
 from core.devices.deviceBase import deviceBase
 from devices.cpk.AdminCommandHandler import AdminCommandHandler
+from devices.cpk.cpkData import cpkData
 import sys
 
 class cpkBase:
@@ -22,7 +21,8 @@ class cpkBase:
         self.hostname = hostname
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
-            self.AdminCommandHandler = AdminCommandHandler(self.driver)
+            self.aq = AdminCommandHandler(self.driver)
+            self.data = cpkData()
         except Exception as e:
             print("Driver Creation has failed")
             raise e
