@@ -4,6 +4,7 @@ import time
 from core.utilities.BitManipulation import *
 from core.utilities.SvtDecorator import *
 from core.structs.AqDescriptor import AqDescriptor
+from core.structs.CapabilityStructure import CapabilityStructure
 from cpkTier1 import *
 
 class cpk(cpkTier1):
