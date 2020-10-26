@@ -3511,3 +3511,49 @@ class cpk(cpkTier1):
     def PRT_LESM_INIT_FORCED_TIMEOUTS(self):
         pass
         #copy from cvl.py
+
+    def _GetAllDiscoveredDeviceCapabilities(self, debug=False):
+        status, data = self.aq.DiscoverDeviceCapabilities(dict(), debug)
+        occured_capability_dict = dict()
+        if not status:
+            DeviceCapabilities = dict()
+            for i in range(0,data['number_of_records']*32,32):
+                all_bytes = list()
+                all_bytes.extend(data['resource_recognized'][i:i+32])
+                if all_bytes[0] in occured_capability_dict.keys():
+                    occured_capability_dict[all_bytes[0]] +=1
+                    key_name = self.data.device_capabilities_dict[all_bytes[0]] + "_"+ str(occured_capability_dict[all_bytes[0]])
+                else: 
+                    occured_capability_dict[all_bytes[0]] = 1
+                    key_name = self.data.device_capabilities_dict[all_bytes[0]] 
+                DeviceCapabilities[key_name] = all_bytes
+            return DeviceCapabilities
+        else:
+             print('Failed to send dicsocer device capabilities Admin Command, status: {} '.format(status))
+
+    def _GetCapabilityStructure(self,capability_name,capability_list):
+        cap_struct = CapabilityStructure()
+        cap_struct.name = capability_name
+        cap_struct.capability = (capability_list[1] << 8) | capability_list[0]
+        cap_struct.major_version = capability_list[2]
+        cap_struct.minor_version = capability_list[3]
+        cap_struct.number = (capability_list[7] << 24) | (capability_list[6] << 16) | (capability_list[5] << 8) | capability_list[4]
+        cap_struct.logical_id = (capability_list[11] << 24) | (capability_list[10] << 16) | (capability_list[9] << 8) | capability_list[8]
+        cap_struct.physical_id = (capability_list[15] << 24) | (capability_list[14] << 16) | (capability_list[13] << 8) | capability_list[12]
+        for index, byte in enumerate(capability_list[16:23]):
+            cap_struct.data1 = (byte << (index*8)) | cap_struct.data1
+        for index, byte in enumerate(capability_list[24:31]):
+            cap_struct.data1 = (byte << (index*8)) | cap_struct.data1
+        return cap_struct
+
+    def GetDiscoveredDeviceCapability(self, capability=None):
+        all_discovered_dev_Caps = self._GetAllDiscoveredDeviceCapabilities()
+        cap_structs_list = list()
+        if capability:
+            duplicate_capabilities = {k:v for k,v in all_discovered_dev_Caps.items() if capability in k}
+            all_discovered_dev_Caps = duplicate_capabilities
+        for capability_name,capability_list in all_discovered_dev_Caps.items():
+            cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
+        return cap_structs_list
+
+

@@ -1078,3 +1078,34 @@ class AdminCommandHandler:
         buffer.append(Byte4_AdDW)
         return_buffer = self._NeighborDeviceRequestAq(0,buffer)
 
+
+
+###############################################################################
+#                  Generic FW admin commnads                                  #
+###############################################################################
+
+    def DiscoverDeviceCapabilities(self, config=None, debug=False):
+        '''
+            This command is used to request the list capabilities of the device. 
+            If the buffer size is not big enough for the whole structure FW will return ENOMEM
+        '''
+        buffer = [0]*0x1000
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0xb 
+        aq_desc.flags = 0x1600 
+        aq_desc.param0 = 0         
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send dicsocer device capabilities Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict()
+            data['number_of_records'] = aq_desc.param1
+            data['resource_recognized'] = buffer
+        return (status, data)
