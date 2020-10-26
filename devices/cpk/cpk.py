@@ -19,7 +19,6 @@ class cpk(cpkTier1):
             return:
                 None
         '''
-        link_status_dict = self.GetLinkStatusAfterParsing()
         fw_info = self.driver.get_fw_info()
         ret_string = "#"*80 +"\n"
         ret_string += "Device info: \n"
@@ -27,12 +26,12 @@ class cpk(cpkTier1):
         ret_string += "Device Name : CPK\n"
         ret_string += "Device Number : {}\n".format(self.driver.device_number())
         ret_string += "Port Number : {}\n".format(self.driver.port_number())
-        ret_string += "Current MAC link status : {}\n".format(link_status_dict['MacLinkStatus'])
-        ret_string += "Current MAC link Speed : {}\n".format(link_status_dict['MacLinkSpeed'])
-        ret_string += "Current Phy Type : {}\n".format(link_status_dict['PhyType'])
-        ret_string += "Current FEC Type : {}\n".format(self.GetCurrentFECStatus())
-        ret_string += "Current PCIe link speed : {}\n".format(self.GetPCIECurrentLinkSpeed())
-        ret_string += "Current PCIe link Width : {}\n".format(self.GetPCIECurrentLinkWidth())
+        ret_string += "Current MAC link status : {}\n".format('N/A')
+        ret_string += "Current MAC link Speed : {}\n".format('N/A')
+        ret_string += "Current Phy Type : {}\n".format('N/A')
+        ret_string += "Current FEC Type : {}\n".format('N/A')
+        ret_string += "Current PCIe link speed : {}\n".format('N/A')
+        ret_string += "Current PCIe link Width : {}\n".format('N/A')
         ret_string += "FW version : {}\n".format(fw_info['FW build'])
         ret_string += "FW build  : {}\n".format(fw_info['FW version'])
         ret_string += "#"*80 +"\n"
@@ -331,7 +330,7 @@ class cpk(cpkTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error _GetMacLinkStatusAQ: Admin command was not successful")
@@ -342,12 +341,12 @@ class cpk(cpkTier1):
         gls = dict()
         gls['port'] = 0 
         gls['cmd_flag'] = 1
-        result = self.GetLinkStatus(gls)
+        result = self.aq.GetLinkStatus(gls)
 
         if not result[0]:
             data = result[1]
         else:
-            raise RuntimeError("Error {}: Admin command was not successful".format(self.GetLinkStatusFields.__name__))
+            raise RuntimeError("Error {}: Admin command was not successful".format(self.aq.GetLinkStatusFields.__name__))
 
         for key, val in data.items():
             print("{} : {}".format(key, val))

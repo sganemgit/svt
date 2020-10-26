@@ -4,7 +4,7 @@
 from core.drivers.DriverFactory import DriverFactory
 from core.devices.deviceBase import deviceBase
 from devices.cpk.AdminCommandHandler import AdminCommandHandler
-from devices.cpk.cpkData import cpkData
+from devices.cpk.DataHandler import DataHandler
 import sys
 
 class cpkBase:
@@ -22,7 +22,7 @@ class cpkBase:
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
             self.aq = AdminCommandHandler(self.driver)
-            self.data = cpkData()
+            self.data = DataHandler()
         except Exception as e:
             print("Driver Creation has failed")
             raise e
