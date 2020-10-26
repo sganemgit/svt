@@ -4,6 +4,10 @@ from core.structs.AqDescriptor import AqDescriptor
 from devices.cvl.temp import *
 
 class AdminCommandHandler:
+    '''
+        This class handles sending Admin commnads to CVL
+        this class depends only on the driver object. no other dependencies should be interduces
+    '''
     def __init__(self, driver_reference):
         self.driver = driver_reference
 
@@ -1871,10 +1875,10 @@ class AdminCommandHandler:
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
-        data = dict()
-        data['number_of_records'] = aq_desc.param1
-        data['resource_recognized'] = buffer
-
+        else:
+            data = dict()
+            data['number_of_records'] = aq_desc.param1
+            data['resource_recognized'] = buffer
         return (status, data)
 
     def Vm_VfReset(self, config, debug):
@@ -1901,7 +1905,6 @@ class AdminCommandHandler:
         byte_18 = config['vmvf_num'] & 0xff
         byte_19= ((config['time_out_time'] & 0x3f ) << 2) |(config['vmvf_num'] >> 8) & 0x3
 
-        
         buffer = [0]*0x1000
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0C31
@@ -1919,6 +1922,7 @@ class AdminCommandHandler:
             status = (True, aq_desc.retval)
         else:
             data = dict()
+            #TODO -reset command buffer table:9-57
             data["num_of_fully_processed_grops"] = (aq_desc.param0 >> 8) & 0xff
             data["blocked_cgds"] = aq_desc.param1  & 0xff
             status = (False, data)
@@ -2064,36 +2068,43 @@ class AdminCommandHandler:
         return status
 
 
+    def debug_NVMConfigRead(self):
+        config = dict()
+
+        config['feature_or_field'] = 1
+        config['single_or_multiple_elements'] = 1
+        config['field_id'] = 0x2
+
+        self.NvmConfigRead(config, True)
+
     def NvmConfigRead(self, config, debug=False):
         '''
        
         input:
              config -- type(dict):
-             'feature_field' : int[1 bit] -- 0: Feature selections 
-                                             1: Immediate fields  are written
-             'single_multiple_elements' : int[1 bit] -- 0:single Feature_ID/ Field_ID is read, 
-                                                        1:Feature_ID/Field_ID iteration is used
+             'feature_or_field' : int[1 bit] -- 0: Feature selections 
+                                                1: Immediate fields  are written
+             'single_or_multiple_elements' : int[1 bit] -- 0: single Feature_ID/ Field_ID is read, 
+                                                           1: Feature_ID/Field_ID iteration is used
              'element_count': :int[2 bytes] -- The number of features/fields returned
              'field_id': int[2 bytes] -- field_id
              'feature_id': int[2 bytes] --Feature_ID
              'field_value':int[2 bytes] --field_value
              'requested_feature_selection':int[2 bytes] --Requested feature selection           
         '''
-        byte_16 = ((config.get('feature_field', 0) & 0x1 )<< 1) | (config.get('single_multiple_elements', 0) & 0x1)
-        byte_20 =0  
-        byte_21 = 0
-        buffer = list()
-        if config.get('feature_field', 0) :
-            buffer.append(config["field_id"])
-            buffer.append(config["field_flags"])
-            buffer.append(config["field_value"])
+        buffer = [0]*0x1000          
+
+        byte_16 = ((config.get('feature_or_field', 0) & 0x1 )<< 1) | (config['single_or_multiple_elements'] & 0x1)
+        if config['feature_or_field']:
+            byte_20 = config['field_id'] & 0xff
+            byte_21 = (config['field_id'] >> 8) & 0xff
         else:
-            buffer.append(config["feature_id"])
-            buffer.append(config["feature_flags"])
-            buffer.append(config["requested_feature_selection"])
+            byte_20 = config['feature_id'] & 0xff
+            byte_21 = (config['feature_id'] >> 8) & 0xff
+
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x704 
-        aq_desc.flags = 0x0 
+        aq_desc.flags = 0x1400
         aq_desc.param0 =  byte_16
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
@@ -2106,8 +2117,7 @@ class AdminCommandHandler:
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
-            data = dict()     
-            data['element_count'] = (aq_desc.param0 >> 16) & 0xffff
+            aq_desc.param0
             status = (False, data)
         return status
 
@@ -2116,25 +2126,45 @@ class AdminCommandHandler:
         writes the feature selections and the values of the immediate fields provided in the attached command buffer to the NVM.
         input:
              config -- type(dict):
-             'feature_field' : int[1 bit] -- 0: Feature selections /1: Immediate fields  are written
+             'feature_or_field' : int[1 bit] -- 0: Feature selections /1: Immediate fields  are written
              'added_new_config' : int[1 bit] -- 0: Existing config / 1:New config added
-             'field_id': int[2 bytes] -- field_id
-             'feature_id': int[2 bytes] --Feature_ID
-             'field_value':int[2 bytes] --field_value
-             'requested_feature_selection':int[2 bytes] --Requested feature selection
-             'element_count': :int[2 bytes] -- The number of features/fields in the command buffer
+             'field_list': list of ImmediateBufferForNvm (found core.structs)
+             or 
+             'feature_list': list of FeatureBufferForNvm (found core.structs)
+             
+             if feature_or_field == 1 -> immediate buffer
+             else -> feature buffer
         '''
 
-        byte_16 = ((config.get("added_new_config", 1) & 0x1) << 2) | ((config.get('feature_field', 0) & 0x1 )<< 1) | 0
-        byte_18 = config["element_count"] & 0xff
-        byte_19 = (config["element_count"] >> 8) & 0xff
         buffer = list()
-        if config.get('feature_field', 0) :
-            buffer.append(config["field_id"])
-            buffer.append(config["field_value"])
+        if config['feature_or_field']:
+            #expecting immediate field
+            immediate_field_list = config['field_list']
+            for field in immediate_field_list:
+                buffer.append(field.field_id & 0xff)
+                buffer.append((field.field_id >> 8) & 0xff)
+                buffer.append(field.field_flags & 0xff)
+                buffer.append((field.field_flags >> 8) & 0xff)
+                buffer.append(field.field_value & 0xff)
+                buffer.append((field.field_value >> 8) & 0xff)           
+            byte_18 = len(immediate_field_list) & 0xff
+            byte_19 = (len(immediate_field_list) >> 8) & 0xff
         else:
-            buffer.append(config["feature_id"])
-            buffer.append(config["requested_feature_selection"])
+            #expecting Feature 
+            features_list = config['feature_list']
+            for feature in features_list:
+                buffer.append(feature.feature_id & 0xff)
+                buffer.append((feature.feature_id >> 8) & 0xff)
+                buffer.append(feature.feature_flags & 0xff)
+                buffer.append((feature.feature_flags >> 8) & 0xff)
+                buffer.append(feature.feature_selection & 0xff)
+                buffer.append((feature.feature_selection >> 8) & 0xff)           
+            byte_18 = len(features_list) & 0xff
+            byte_19 = (len(features_list) >> 8) & 0xff
+
+
+        byte_16 = ((config["added_new_config"] & 0x1) << 2) | ((config['feature_or_field'] & 0x1 )<< 1) | 0
+        
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x705 
         aq_desc.flags = 0x0 
