@@ -388,7 +388,7 @@ class cpk(cpkTier1):
         '''
         
         gls = {"port": 0, "cmd_flag": 1}
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error _GetCurrentLinkSpeedAq: Admin command was not successful")
@@ -513,7 +513,7 @@ class cpk(cpkTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
         if status:
             raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
 
@@ -559,7 +559,7 @@ class cpk(cpkTier1):
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error _GetCurrentFECStatusAq: Admin command was not successful")
@@ -1056,29 +1056,26 @@ class cpk(cpkTier1):
 
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
-
-        if data[0]:
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
+        print(data)
+        if status:
             error_msg = 'Error _SetPhyConfigurationAQ: GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
             raise RuntimeError(error_msg)
 
-        abilities = data[1]
-        
         config['port'] = 0 #not relevant for CVL according to CVL Spec
-        config['tx_pause_req'] = abilities['pause_abil']
-        config['rx_pause_req'] = abilities['asy_dir_abil']
-        config['low_pwr_abil'] = abilities['low_pwr_abil']
+        config['tx_pause_req'] = data['pause_abil']
+        config['rx_pause_req'] = data['asy_dir_abil']
+        config['low_pwr_abil'] = data['low_pwr_abil']
         config['en_link'] = 1
         config['en_auto_update'] = 1
         config['lesm_en'] = 0
-        config['low_pwr_ctrl'] = abilities['low_pwr_ctrl']
-        config['eee_cap_en'] = abilities['eee_cap']
-        config['eeer'] = abilities['eeer']
+        config['low_pwr_ctrl'] = data['low_pwr_ctrl']
+        config['eee_cap_en'] = data['eee_cap']
+        config['eeer'] = data['eeer']
         if '50GBase-CR2' in phy_type_list:
             config['auto_fec_en'] = 0
         else:
             config['auto_fec_en'] = 1
-
         
         for recieved_phy_type in phy_type_list:
             if recieved_phy_type in self.set_Ability_PhyType_dict:
@@ -1091,27 +1088,26 @@ class cpk(cpkTier1):
         config['phy_type_2'] = get_bits_slice_value(phy_type,64,95)
         config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
 
-
         if set_fec == 'NO_FEC':
-            config['fec_firecode_10g_abil'] = 0 #abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_abil'] = 0 #data['fec_firecode_10g_abil'] 
             config['fec_firecode_10g_req'] = 0 
             config['fec_rs528_req'] = 0 
             config['fec_firecode_25g_req'] = 0 
             config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0 #abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = 0 #abilities['fec_firecode_25g_abil']
+            config['fec_rs528_abil'] = 0 #data['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = 0 #data['fec_firecode_25g_abil']
             
         elif set_fec == '10G_KR_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] 
             config['fec_firecode_10g_req'] = 1
             config['fec_rs528_req'] = 0 
             config['fec_firecode_25g_req'] = 0 
             config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+            config['fec_rs528_abil'] = data['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil']
         
         elif set_fec == '25G_KR_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] 
             config['fec_firecode_10g_req'] = 0 
             config['fec_rs528_req'] = 0 
             config['fec_firecode_25g_req'] = 1 
@@ -1120,29 +1116,29 @@ class cpk(cpkTier1):
             config['fec_firecode_25g_abil'] = 0
             
         elif set_fec == '25G_RS_528_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] 
             config['fec_firecode_10g_req'] = 0 
             config['fec_rs528_req'] = 1
             config['fec_firecode_25g_req'] = 0 
             config['fec_rs544_req'] = 0
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+            config['fec_rs528_abil'] = data['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil']
 
         elif set_fec == '25G_RS_544_FEC':
-            config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] 
             config['fec_firecode_10g_req'] = 0 
             config['fec_rs528_req'] = 0 
             config['fec_firecode_25g_req'] = 0 
             config['fec_rs544_req'] = 1
-            config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
+            config['fec_rs528_abil'] = data['fec_rs528_abil']
+            config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil']
             
         else:
             error_msg = 'Error _SetPhyConfigurationAQ: fec input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
             raise RuntimeError(error_msg)
 
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
 
         if debug == True:
             if status[0] == 0:
@@ -1285,7 +1281,7 @@ class cpk(cpkTier1):
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         
         if AmIDut:
-            link_status = self.GetLinkStatus({'port':0, 'cmd_flag':1})
+            link_status = self.aq.GetLinkStatus({'port':0, 'cmd_flag':1})
             phy_type = link_status[1]
             
             config['phy_type_0'] = phy_type['phy_type_0']
@@ -2241,7 +2237,7 @@ class cpk(cpkTier1):
         gls = dict()
         gls["port"] = 0 
         gls["cmd_flag"] = 0
-        status, data = self.GetLinkStatus(gls)
+        status, data = self.aq.GetLinkStatus(gls)
 
         if status:
             raise RuntimeError("Error GetLinkStatusAfterParsing: Admin command was not successful")  
@@ -2278,7 +2274,7 @@ class cpk(cpkTier1):
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
      
-        result = self.GetLinkStatus(gls)
+        result = self.aq.GetLinkStatus(gls)
         
         if not result[0]: # if Admin command was successful - False
             data = result[1]
@@ -2417,17 +2413,17 @@ class cpk(cpkTier1):
             quad = 0
             pmd_num = 0
         if number_of_ports == 2:        
-            quad = self.quad_for_2_ports_dict[port_num]        
-            pmd_num = self.pmd_num_for_2_ports_dict[port_num]
+            quad = self.data.quad_for_2_ports_dict[port_num]        
+            pmd_num = self.data.pmd_num_for_2_ports_dict[port_num]
         elif number_of_ports == 4:     
             if self.GetMuxStatus():
-                quad = self.quad_for_4_ports_mux_dict[port_num]
+                quad = self.data.quad_for_4_ports_mux_dict[port_num]
                 pmd_num = self.pmd_num_for_4_ports_mux_dict[port_num]
             else:
-                quad = self.quad_for_4_ports_dict[port_num]        
+                quad = self.data.quad_for_4_ports_dict[port_num]        
                 pmd_num = self.pmd_num_for_4_ports_dict[port_num]
         elif number_of_ports == 8:        
-            quad = self.quad_for_8_ports_dict[port_num]
+            quad = self.data.quad_for_8_ports_dict[port_num]
             pmd_num = self.pmd_num_for_8_ports_dict[port_num]
 
         #print "quad: ", quad
@@ -2450,7 +2446,7 @@ class cpk(cpkTier1):
         #print "link_speed: ",link_speed
 
         if link_speed == "100G":
-            pcs_offset = self.MTIP_100_PCS_Addr_Dict[quad]
+            pcs_offset = self.data.MTIP_100_PCS_Addr_Dict[quad]
 
         elif (link_speed == "10G" or link_speed == "25G" or link_speed == "40G" or link_speed == "50G"):
             if quad == 0:
