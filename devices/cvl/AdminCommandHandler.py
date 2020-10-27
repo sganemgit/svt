@@ -1612,22 +1612,22 @@ class AdminCommandHandler:
         
         input:
              config -- type(dict):
-             'driver_version' : int[4 bytes] -- [16-19]: byte_16= major version, 
-                                                         byte_17= minor version,
-                                                         byte_18= build version, 
-                                                         byte_19= sub-build version
+             'major_version' : int[1 bytes] --  major version, 
+             'minor_version' : int[1 bytes] -- minor version,
+             'build_version' : int[1 bytes] -- build version, 
+             'sub_build_version' : int[1 bytes] -- sub-build version
                      
         '''
-        byte_16 = config['driver_version'] & 0xff
-        byte_17 =(config['driver_version'] >> 8) & 0xff
-        byte_18 = (config['driver_version'] >> 16) & 0xff
-        byte_19 = (config['driver_version'] >> 24) & 0xff
+        byte_16 = config['major_version'] & 0xff
+        byte_17 = config['minor_version']  & 0xff
+        byte_18 = config['build_version'] & 0xff
+        byte_19 = config['sub_build_version']  & 0xff
         
         buffer = [0]*0x1000 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0002 
         aq_desc.flags = 0x0 
-        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  # config['driver_version']
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -1659,7 +1659,7 @@ class AdminCommandHandler:
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0003
         aq_desc.flags = 0x0 
-        aq_desc.param0 =   byte_16
+        aq_desc.param0 =   byte_16 & 0xffffffff
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -1689,7 +1689,7 @@ class AdminCommandHandler:
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0004
         aq_desc.flags = 0x0 
-        aq_desc.param0 =   byte_16
+        aq_desc.param0 =   byte_16 & 0xffffffff
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -1742,9 +1742,10 @@ class AdminCommandHandler:
              config -- type(dict):
              'resource_id' : int[2 bytes] -- see table 9-50
              'access_type' : int[2 bytes] -- see table 9-50
-             'timeout' : int[4 bytes] -- Timeout in ms 
+             'timeout' : int[4 bytes] -- Timeout in ms used by SW to override the default timeout for the operation 
              'resource_number' : int[4 bytes] -- For an SDP, this is the pin ID of the SDP
-
+        return :
+            'timeout' : int[4 bytes] --indicates the timeout used for the specific resource
                                                       
                      
         '''
@@ -2217,7 +2218,7 @@ class AdminCommandHandler:
         else:
             data = dict() 
             if (byte_16 & 0x1):
-                data["checksum"]= (aq_desc.param0 >> 16) & 0xff
+                data["checksum"]= (aq_desc.param0 >> 16) & 0xffff
 
             status = (False, data)
         return status

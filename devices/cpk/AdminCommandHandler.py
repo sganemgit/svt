@@ -1078,11 +1078,311 @@ class AdminCommandHandler:
         buffer.append(Byte4_AdDW)
         return_buffer = self._NeighborDeviceRequestAq(0,buffer)
 
-
-
 ###############################################################################
 #                  Generic FW admin commnads                                  #
 ###############################################################################
+
+
+    def GetVersion(self, config, debug):
+        '''
+        
+        input:
+             config -- type(dict):
+             'rom_build_id' : int[4 bytes] -- device ROM Build version
+             'fw_build_id' : int[4 bytes] --  Device FW build version
+             'fw_branch' : int[1 byte] --  FW Branch Identifier
+             'fw_major_version': int[1 bytes] -- FW major version
+             'fw_minor_version': int[1 bytes] --FW minor version 
+             'fw_patch_version': int[1 bytes] --FW patch version
+             'aq_api_branch': int[1 bytes] --AQ API Branch Identifier
+             'aq_api_major_version': int[1 bytes] --AQ API major version
+             'aq_api_minor_version': int[1 bytes] --AQ API minor version
+             'aq_api_patch_version': int[1 bytes] --AQ API patch version
+                     
+        '''
+        byte_16 = config['rom_build_id'] & 0xff
+        byte_17 =(config['rom_build_id'] >> 8) & 0xff
+        byte_18 = (config['rom_build_id'] >> 16) & 0xff
+        byte_19 = (config['rom_build_id'] >> 24) & 0xff
+        byte_20 = config['fw_build_id'] & 0xff
+        byte_21 = (config['fw_build_id'] >> 8) & 0xff
+        byte_22 = (config['fw_build_id'] >> 16) & 0xff
+        byte_23 = (config['fw_build_id'] >> 24) & 0xff
+        byte_24 = config['fw_branch'] & 0xff
+        byte_25 = config['fw_major_version'] & 0xff
+        byte_26 = config['fw_minor_version'] & 0xff
+        byte_27 = config['fw_patch_version'] & 0xff
+        byte_28 = config['aq_api_branch'] & 0xff
+        byte_29 = config['aq_api_major_version'] & 0xff
+        byte_30 = config['aq_api_minor_version'] & 0xff
+        byte_31 = config['aq_api_patch_version'] & 0xff
+        
+        buffer = list() 
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0001 
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  # config['rom_build_id']
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20) # config['fw_build_id']
+        aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_25 << 8| byte_24)
+        aq_desc.addr_low = (byte_31 << 24 | byte_30 << 16 | byte_29 << 8| byte_28)
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Get Version Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def DriverVersion(self, config, debug):
+        '''
+        
+        input:
+             config -- type(dict):
+             'major_version' : int[1 bytes] --  major version, 
+             'minor_version' : int[1 bytes] -- minor version,
+             'build_version' : int[1 bytes] -- build version, 
+             'sub_build_version' : int[1 bytes] -- sub-build version
+                     
+        '''
+        byte_16 = config['major_version'] & 0xff
+        byte_17 = config['minor_version']  & 0xff
+        byte_18 = config['build_version'] & 0xff
+        byte_19 = config['sub_build_version']  & 0xff
+        
+        buffer = [0]*0x1000 
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0002 
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Driver Version Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict()
+            data["driver_version"] = buffer
+            status = (False, data)
+        return status
+
+    def QueueShutdown(self, config, debug):
+        '''
+        
+        input:
+             config -- type(dict):
+             'driver_unloading' : int[1 bit] -- 1 if the driver intends to unload
+                     
+        '''
+        byte_16 = config['driver_unloading'] & 0x1
+ 
+        
+        buffer = []
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0003
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =   byte_16 & 0xffffffff
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Queue Shutdown Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def setPfContext(self, config, debug):
+        '''
+            input:
+                config -- type(dict):
+                'pf_id' : int[1 byte] -- Physical function ID
+                     
+        '''
+        byte_16 = config['pf_id'] & 0xff
+ 
+        
+        buffer = []
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0004
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =   byte_16 & 0xffffffff
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send set Pf Context Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def GetExpandedAqErrorReason(self, config, debug):
+        '''
+            input:
+                config -- type(dict):
+                
+                     
+        '''
+
+        buffer = []
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0005
+        aq_desc.flags = 0x0 
+        aq_desc.param0 = 0
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Get Expanded Aq Error Reason Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict()
+            data["error_reason"] = aq_desc.param0
+            data["error_identifier"] = aq_desc.param1
+            status = (False, None)
+        return status
+
+    def RequestResourceOwnership(self, config, debug):
+        '''
+        
+        input:
+             config -- type(dict):
+             'resource_id' : int[2 bytes] -- see table 9-50
+             'access_type' : int[2 bytes] -- see table 9-50
+             'timeout' : int[4 bytes] -- Timeout in ms used by SW to override the default timeout for the operation 
+             'resource_number' : int[4 bytes] -- For an SDP, this is the pin ID of the SDP
+        return :
+            'timeout' : int[4 bytes] --indicates the timeout used for the specific resource
+                                                      
+                     
+        '''
+        byte_16 = config['resource_id'] & 0xff
+        byte_17 =(config['resource_id'] >> 8) & 0xff
+        byte_18 = config['access_type'] & 0xff
+        byte_19 = (config['access_type'] >> 8) & 0xff
+        byte_20 = config['timeout'] & 0xff
+        byte_21 = (config['timeout'] >> 8) & 0xff
+        byte_22 = (config['timeout'] >> 16) & 0xff
+        byte_23 = (config['timeout'] >> 24) & 0xff
+        byte_24 = config['resource_number'] & 0xff
+        byte_25 = (config['resource_number'] >> 8) & 0xff
+        byte_26 = (config['resource_number'] >> 16) & 0xff
+        byte_27 = (config['resource_number'] >> 24) & 0xff
+
+        
+        buffer = list()
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0008
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)  #config['timeout']
+        aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_25 << 8| byte_24)  #config['resource_number']
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Request Resource Ownership Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict()
+            data["timeout"] = aq_desc.param1
+            data["status"] = aq_desc.addr_low & 0xffff
+            status = (False, data)
+        return status
+
+
+    def ReleaseResourceOwnership(self, config, debug):
+        '''
+        
+        input:
+             config -- type(dict):
+             'resource_id' : int[2 bytes] -- see table 9-50
+             'access_type' : int[2 bytes] -- see table 9-50
+             'timeout' : int[4 bytes] -- Timeout in ms 
+             'resource_number' : int[4 bytes] -- For an SDP, this is the pin ID of the SDP
+
+                                                      
+                     
+        '''
+        byte_16 = config['resource_id'] & 0xff
+        byte_17 =(config['resource_id'] >> 8) & 0xff
+        byte_18 = 0
+        byte_19 = 0
+        
+        byte_24 = config['resource_number'] & 0xff
+        byte_25 = (config['resource_number'] >> 8) & 0xff
+        byte_26 = (config['resource_number'] >> 16) & 0xff
+        byte_27 = (config['resource_number'] >> 24) & 0xff
+
+        
+        buffer = list()
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0009
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
+        aq_desc.param1 = 0
+        aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_25 << 8| byte_24)  #config['resource_number']
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Request Resource Ownership Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def DiscoverFunctionCapabilities(self, config, debug=False):
+        '''
+            This command is used to request the list capabilities of the function. 
+            If the buffer size is not big enough for the whole structure FW will return ENOMEM
+            
+        '''
+        buffer = [0]*0x1000
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0xa 
+        aq_desc.flags = 0x1600 
+        aq_desc.param0 = 0         
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+
+        data = dict()
+        data['number_of_records'] = aq_desc.param1
+        data['resource_recognized'] = buffer
+
+        return (status, data)
 
     def DiscoverDeviceCapabilities(self, config=None, debug=False):
         '''
@@ -1109,3 +1409,430 @@ class AdminCommandHandler:
             data['number_of_records'] = aq_desc.param1
             data['resource_recognized'] = buffer
         return (status, data)
+
+    def Vm_VfReset(self, config, debug):
+        '''
+        
+        input:
+             config -- type(dict):
+             'reset_operation' : int[2 bits] -- 01= VM Reset operation, 10= VF Reset operation, 11=PF Reset
+             'command_type' : int[1 bit] -- 0: This is and initial call / 1: This is a Subsequent call
+             'on_time_out' : int[1 bit] -- 0: Return EAGAIN on Time out / 1: Flush Pipe on Time out
+             'num_of_queue_grops' : int[1 bytes] -- Number of Disabled Queue Groups(1..127)
+             'vmvf_num':int[10 bit] --  VM or VF numbers
+             'time_out_time' :int[6 bit] --Command Time out in units of 100 micro seconds (Valid values 0-50)
+
+         return:
+
+             'num_of_fully_processed_grops' : int[1 bytes] -- Number of fully processed groups                                    
+             'blocked_cgds' : int[1 bytes] -- A Bitmap of blocked CGDs. Set by EMP FW when returns with EAGAIN     
+        '''
+    
+        
+        byte_16 = ((config['on_time_out'] & 0x1 ) << 3) |((config['command_type'] & 0x1 ) << 2) |(config['reset_operation'] & 0x3)  
+        byte_17 = config['num_of_queue_grops'] & 0xff
+        byte_18 = config['vmvf_num'] & 0xff
+        byte_19= ((config['time_out_time'] & 0x3f ) << 2) |(config['vmvf_num'] >> 8) & 0x3
+
+        buffer = [0]*0x1000
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x0C31
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
+        aq_desc.param1 = 0
+        aq_desc.addr_high =0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Request Resource Ownership Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict()
+            #TODO -reset command buffer table:9-57
+            data["num_of_fully_processed_grops"] = (aq_desc.param0 >> 8) & 0xff
+            data["blocked_cgds"] = aq_desc.param1  & 0xff
+            status = (False, data)
+        return status
+
+
+################################################################################
+#                      NVM admin commands                                      #
+################################################################################
+    
+    def NvmRead(self, config, debug=False):
+        '''
+        
+        input:
+             config -- type(dict):
+             'offset' : int[3 bytes] -- Offset in the module
+             'read_from_flash' : int[1 bit] --  1: read is done directly from the flash and not from shadow RAM
+             'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
+             'module_typeID': int[2 bytes] -- Module typeID (from Table 6-6 ;6.1.5.3)
+             'length': int[2 bytes] --Length of the section to be read
+                     
+        '''
+        byte_16 = config['offset'] & 0xff
+        byte_17 =(config['offset'] >> 8) & 0xff
+        byte_18 = (config['offset'] >> 8) & 0xff
+        byte_19 = ((config.get("read_from_flash", 0) & 0x1) << 7) | (config.get("last_command_bit", 0) & 0x1)
+        byte_20 = config['module_typeID'] & 0xff
+        byte_21 = (config['module_typeID'] >> 8) & 0xff
+        byte_22 = config['length'] & 0xff
+        byte_23 = (config['length'] >> 8) & 0xff
+        buffer = [0]*0x1000
+        
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x701 
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Nvm Read Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, buffer)
+        return status
+
+    def NvmErase(self, config, debug=False):
+        '''
+        Erase consecutive 4 KB sectors of the Flash
+        input:
+             config -- type(dict):
+             'offset' : int[3 bytes] -- Offset in the module
+             'read_from_flash' : int[1 bit] --  1: read is done directly from the flash and not from shadow RAM
+             'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
+             'module_typeID': int[2 bytes] -- Module typeID
+             'length': int[2 bytes] --Length of the section to be read
+                     
+        '''
+        byte_16 = 0
+        byte_17 = 0
+        byte_18 = 0
+        byte_22 = 0
+        byte_23 = 0
+        if debug:
+            byte_16 = config['offset'] & 0xff
+            byte_17 =(config['offset'] >> 8) & 0xff
+            byte_18 = (config['offset'] >> 8) & 0xff
+            byte_22 = config['length'] & 0xff
+            byte_23 = (config['length'] >> 8) & 0xff
+        
+        byte_19 = config.get("last_command_bit", 0) & 0x1
+        byte_20 = config['module_typeID'] & 0xff
+        byte_21 = (config['module_typeID'] >> 8) & 0xff
+
+        buffer = []
+        
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x702 
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Nvm Erase Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def NvmWrite(self, config, debug=False):
+        '''
+        write the data given by the attached buffer into a specified location in the NVM
+
+        input:
+             config -- type(dict):
+             'offset' : int[3 bytes] -- Offset in the module
+             'preserrvation_mode' : int[2 bit] -- 00=No preservation,
+                                                  01=Preserve all, 
+                                                  10=Return to factory settings,
+                                                  11= Preserve Only Selected Fields
+             'flash_only' : int[1 bit] --   When this bit is set, any flat write (null Module_typeID) into the first 64 KB of the Flash is written directly to the Flash
+             'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
+             'module_typeID': int[2 bytes] -- Module typeID (Table 6-6)
+             'length': int[2 bytes] --Length of the section to be read
+
+        return:
+             'reset_flag' : int[1 bit] -- the type of reset required to get the NVM bank update effective (NVM Bank update only)
+                                            0= POR, 1=PERST
+                     
+        '''
+        byte_16 = config['offset'] & 0xff
+        byte_17 =(config['offset'] >> 8) & 0xff
+        byte_18 = (config['offset'] >> 8) & 0xff
+        byte_19 =  ((config.get("flash_only", 0) & 0x1) << 7) | ((config.get("preserrvation_mode", 0) & 0x1) << 1) | config.get("last_command_bit", 0) & 0x1
+        byte_20 = config['module_typeID'] & 0xff
+        byte_21 = (config['module_typeID'] >> 8) & 0xff
+        byte_22 = config['length'] & 0xff
+        byte_23 = (config['length'] >> 8) & 0xff
+        buffer = [0]*0x1000
+        
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x703
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)
+        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Nvm Write Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict()
+            data["reset_flag"] = (aq_desc.param0 >> 24) & 0xff
+            status = (False, data)
+        return status
+
+
+    def debug_NVMConfigRead(self):
+        config = dict()
+
+        config['feature_or_field'] = 1
+        config['single_or_multiple_elements'] = 1
+        config['field_id'] = 0x2
+
+        self.NvmConfigRead(config, True)
+
+    def NvmConfigRead(self, config, debug=False):
+        '''
+       
+        input:
+             config -- type(dict):
+             'feature_or_field' : int[1 bit] -- 0: Feature selections 
+                                                1: Immediate fields  are written
+             'single_or_multiple_elements' : int[1 bit] -- 0: single Feature_ID/ Field_ID is read, 
+                                                           1: Feature_ID/Field_ID iteration is used
+             'element_count': :int[2 bytes] -- The number of features/fields returned
+             'field_id': int[2 bytes] -- field_id
+             'feature_id': int[2 bytes] --Feature_ID
+             'field_value':int[2 bytes] --field_value
+             'requested_feature_selection':int[2 bytes] --Requested feature selection           
+        '''
+        buffer = [0]*0x1000          
+
+        byte_16 = ((config.get('feature_or_field', 0) & 0x1 )<< 1) | (config['single_or_multiple_elements'] & 0x1)
+        if config['feature_or_field']:
+            byte_20 = config['field_id'] & 0xff
+            byte_21 = (config['field_id'] >> 8) & 0xff
+        else:
+            byte_20 = config['feature_id'] & 0xff
+            byte_21 = (config['feature_id'] >> 8) & 0xff
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x704 
+        aq_desc.flags = 0x1400
+        aq_desc.param0 =  byte_16
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Nvm Config Read Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            aq_desc.param0
+            status = (False, data)
+        return status
+
+    def NvmConfigWrite(self, config, debug=False):
+        '''
+        writes the feature selections and the values of the immediate fields provided in the attached command buffer to the NVM.
+        input:
+             config -- type(dict):
+             'feature_or_field' : int[1 bit] -- 0: Feature selections /1: Immediate fields  are written
+             'added_new_config' : int[1 bit] -- 0: Existing config / 1:New config added
+             'field_list': list of ImmediateBufferForNvm (found core.structs)
+             or 
+             'feature_list': list of FeatureBufferForNvm (found core.structs)
+             
+             if feature_or_field == 1 -> immediate buffer
+             else -> feature buffer
+        '''
+
+        buffer = list()
+        if config['feature_or_field']:
+            #expecting immediate field
+            immediate_field_list = config['field_list']
+            for field in immediate_field_list:
+                buffer.append(field.field_id & 0xff)
+                buffer.append((field.field_id >> 8) & 0xff)
+                buffer.append(field.field_flags & 0xff)
+                buffer.append((field.field_flags >> 8) & 0xff)
+                buffer.append(field.field_value & 0xff)
+                buffer.append((field.field_value >> 8) & 0xff)           
+            byte_18 = len(immediate_field_list) & 0xff
+            byte_19 = (len(immediate_field_list) >> 8) & 0xff
+        else:
+            #expecting Feature 
+            features_list = config['feature_list']
+            for feature in features_list:
+                buffer.append(feature.feature_id & 0xff)
+                buffer.append((feature.feature_id >> 8) & 0xff)
+                buffer.append(feature.feature_flags & 0xff)
+                buffer.append((feature.feature_flags >> 8) & 0xff)
+                buffer.append(feature.feature_selection & 0xff)
+                buffer.append((feature.feature_selection >> 8) & 0xff)           
+            byte_18 = len(features_list) & 0xff
+            byte_19 = (len(features_list) >> 8) & 0xff
+
+
+        byte_16 = ((config["added_new_config"] & 0x1) << 2) | ((config['feature_or_field'] & 0x1 )<< 1) | 0
+        
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x705 
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_16)
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Nvm Config Write Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            status = (False, None)
+        return status
+
+    def NvmUpdateChecksum(self, config, debug=False):
+        '''
+        recalculates/verifies the PFA checksum
+        input:
+             config -- type(dict):
+             'verify_checksum' : int[1 bit] -- Verify Checksum
+             'recalculate_checksum' : int[1 bit] -- Recalculate Checksum 
+            
+        returnd:
+             'checksum': int[2 bytes] --  Returned only if Verify Checksum flag was set in command
+
+
+        '''
+
+        byte_16 = ((config.get("recalculate_checksum", 0) & 0x1) << 1) | (config.get('verify_checksum', 1) & 0x1 )
+
+        buffer = list()
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x706
+        aq_desc.flags = 0x0 
+        aq_desc.param0 =  byte_16  & 0xffffffff
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Nvm Update Checksum Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            data = dict() 
+            if (byte_16 & 0x1):
+                data["checksum"]= (aq_desc.param0 >> 16) & 0xffff   #bytes 18-19
+
+            status = (False, data)
+        return status
+
+
+    # def NvmWriteActivate(self, config, debug=False):
+    #     '''
+    #     must be called after NVM Write AQ Command was successfully must be called after NVM Write AQ Command was successfully 
+    #     input:
+    #          config -- type(dict):
+    #          'preserrvation_mode' : int[2 bit] -- 00=No preservation,
+    #                                               01=Preserve all, 
+    #                                               10=Return to factory settings,
+    #                                               11= Preserve Only Selected Fields
+
+    #          'switch_to_invaled_nvm_bank' : int[1 bit] -- 0=Keep current NVM Bank  
+    #          'switch_to_invaled_orom_bank': int[1 bit] -- 0=Keep current NV OROM Bank
+    #          'switch_to_invaled_ext_tlv_bank': int[1 bit] -- 0= Keep current EXT TLV Bank
+
+    #     '''
+
+    #     byte_19 = ((config.get("switch_to_invaled_ext_tlv_bank", 0) & 0x1) << 5) |((config.get("switch_to_invaled_orom_bank", 0) & 0x1) << 4) |((config.get("switch_to_invaled_nvm_bank", 0) & 0x1) << 3) | ((config.get('preserrvation_mode', 1) & 0x3 )<< 1) | 0
+ 
+    #     buffer = list()
+ 
+    #     aq_desc = AqDescriptor()
+    #     aq_desc.opcode = 0x707
+    #     aq_desc.flags = 0x0 
+    #     aq_desc.param0 =  (byte_19 << 24) & 0xffffffff
+    #     aq_desc.param1 = 0
+    #     aq_desc.addr_high = 0
+    #     aq_desc.addr_low = 0
+    #     aq_desc.datalen = len(buffer)
+    #     status = self.driver.send_aq_command(aq_desc, buffer, debug)
+    #     if status != 0 or aq_desc.retval != 0:
+    #         print('Failed to send Nvm Config Write Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+    #     err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+    #     if status or err_flag:
+    #         status = (True, aq_desc.retval)
+    #     else:
+    #         status = (False, None)
+    #     return status
+
+    # def SaveFactorySettings(self, debug=False):
+    #     '''
+    #         saves the PFA, active Topology Netlist, and 32B header to a permanent read only NVM location
+
+    #     '''
+
+    #     buffer = list() 
+    #     aq_desc = AqDescriptor()
+    #     aq_desc.opcode = 0x708
+    #     aq_desc.datalen = len(buffer)
+    #     status = self.driver.send_aq_command(aq_desc, buffer, debug)
+    #     if status != 0 or aq_desc.retval != 0:
+    #         print('Failed to send Save Factory Settings Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+    #     err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+    #     if status or err_flag:
+    #         status = (True, aq_desc.retval)
+    #     else:
+    #         status = (False, None)
+    #     return status
+
+
+    # def NvmUpdateEmpr(self, debug=False):
+    #     '''
+    #        request an EMPR after a successful reset to allow activation of the new firmware
+
+    #     '''
+
+    #     buffer = list() 
+    #     aq_desc = AqDescriptor()
+    #     aq_desc.opcode = 0x709
+    #     aq_desc.datalen = len(buffer)
+    #     status = self.driver.send_aq_command(aq_desc, buffer, debug)
+    #     if status != 0 or aq_desc.retval != 0:
+    #         print('Failed to send Save Factory Settings Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
+    #     err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+    #     if status or err_flag:
+    #         status = (True, aq_desc.retval)
+    #     else:
+    #         status = (False, None)
+    #     return status
+###############################################################################

@@ -474,5 +474,4 @@ class DataHandler:
                                 0x71: '0x71_reserved',
                                 0X74: 'SKU',
                                 0x75: 'port_mapping',
-                                0x80: '0x80_unknown'
-                                }
+                                0x80: '0x80_unknown'}

@@ -391,7 +391,7 @@ class DataHandler:
     PRT_STATE_MACHINE_AN = {0x28:'AutonegTOP when WAIT_FOR_INT after serdes configuration done',0x14:'AutonegTOP when Determine link mode starts',0xA:'AutonegTOP when WAIT_FOR_INT / Interrupt Handling starts',5:'AutonegTOP when Config PHY for AN starts',1:'AutonegTOP before Init PHY'}
     PRT_STATE_MACHINE_FM = {0x1E:'exit set_pmd_link_up once called from other activity',0x14:'Wait for link up indication',0xA:'Setup SOW done, wait for signal OK ',1:'ForcedModeTOP'}
 
-    device_capabilities_dict = {0x1: 'switching_mode', # TODO change the keys to be the nubmers 
+    device_capabilities_dict = {0x1: 'switching_mode', 
                                 0x2: 'managaeablitiy_mode',
                                 0x4: 'OS2_BMC_capable',
                                 0x5: 'functions_valid',
@@ -426,7 +426,10 @@ class DataHandler:
                                 0x64: '0x64_unknown',
                                 0x65: '0x65_unknown',
                                 0x66: '0x66_unknown',
+                                0x70: 'inline_IPsec',
                                 0x71: '0x71_reserved',
+                                0x72: 'num_of_en_port_in_sw_mode',
+                                0x73: 'logical_to_phy_port_mapping',
                                 0X74: 'SKU',
                                 0x75: 'port_mapping',
                                 0x80: '0x80_unknown'}
