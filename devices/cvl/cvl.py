@@ -3248,4 +3248,12 @@ class cvl(cvlDefines):
             cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
         return cap_structs_list
 
+    def ReadPfa(self, moudle_id):
+        '''
+            flow: 1) request resource onwnership over the nvm (must release within 3 sec)
+                  2) read TLV based on moudle ID 
+                  3) release resource onwnership
+        '''
+        config = dict()
+        config['resource_id'] = 0x1 
 

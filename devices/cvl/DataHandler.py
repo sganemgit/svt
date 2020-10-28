@@ -475,3 +475,9 @@ class DataHandler:
                                 0X74: 'SKU',
                                 0x75: 'port_mapping',
                                 0x80: '0x80_unknown'}
+
+    #This dict maps the shared resouce to it's ID. CVL HAS table 9-50 
+    shared_resources_dict = {'nvm': 0x1,
+                             'sdp': 0x2,
+                             'change_lock': 0x3,
+                             'global_config_lock':0x4}
