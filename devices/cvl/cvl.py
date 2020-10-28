@@ -596,68 +596,6 @@ class cvl(cvlDefines):
         for key, val in data.items():
             print("{} : {}".format(key, val))
 
-    def EnableLenientMode(self):
-        self.SetLenientMode(True)
-
-    def DisableLenientMode(self):
-        self.SetLenientMode(False)
-
-    def SetLenientMode(self, Enable):
-        mode = 1
-        if Enable:
-            mode = 0
-
-        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
-        if status:
-            raise RuntimeError(error_msg)
-        config = dict()
-        config['port'] = 0 
-        config['tx_pause_req'] = data['pause_abil']
-        config['rx_pause_req'] = data['asy_dir_abil']
-        config['low_pwr_abil'] = data['low_pwr_abil']
-        config['en_link'] = 1
-        config['en_auto_update'] = 1
-        config['lesm_en'] = data['lesm_en']
-        config['low_pwr_ctrl'] = data['low_pwr_ctrl']
-        config['eee_cap_en'] = data['eee_cap']
-        config['eeer'] = data['eeer']
-        config['auto_fec_en'] = data['auto_fec_en']
-        config['phy_type_0'] = data['phy_type_0'] 
-        config['phy_type_1'] = data['phy_type_1']
-        config['phy_type_2'] = data['phy_type_2'] 
-        config['phy_type_3'] = data['phy_type_3'] 
-        config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] #data['fec_firecode_10g_abil'] 
-        config['fec_firecode_10g_req'] = data['fec_firecode_10g_req'] 
-        config['fec_rs528_req'] = data['fec_rs528_req'] 
-        config['fec_firecode_25g_req'] = data['fec_firecode_25g_req'] 
-        config['fec_rs544_req'] = data['fec_rs544_req'] 
-        config['fec_rs528_abil'] = data['fec_rs528_abil'] 
-        config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
-        config['module_compliance_mode'] = mode 
-        status, data = self.aq.SetPhyConfig(config)
-        if status:
-            error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
-            raise RuntimeError(error_msg)
-
-    def GetCurrentModuleComplianceEnforcement(self):
-        '''
-            CPK DCR 102
-        '''
-        get_abils = {}
-        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
-        get_abils['rep_qual_mod'] = 0
-        get_abils['rep_mode'] = 0 
-        
-        status, data = self.aq.GetPhyAbilities(get_abils)
-        
-        if status:
-            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
-        
-        if data['module_compliance_enforcement'] & 0x1:
-            return 'strict'
-        else:
-            return 'lenient'
-         
     def GetPhyTypeAbilities(self, rep_mode = 0, Location = "AQ"):
         '''
             This function return list of phy types
@@ -3204,7 +3142,6 @@ class cvl(cvlDefines):
         data['PRT_LESM_INIT_FORCED_TIMEOUTS'] = self.ReadDnlPstore(0x1b)
         return data
 
-<<<<<<< HEAD
     def _GetAllDiscoveredDeviceCapabilities(self, debug=False):
         status, data = self.aq.DiscoverDeviceCapabilities(dict(), debug)
         occured_capability_dict = dict()
@@ -3249,28 +3186,111 @@ class cvl(cvlDefines):
             cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
         return cap_structs_list
 
-    def ReadPfa(self, nvm_module):
+    def EnableLenientMode(self):
+        self.SetLenientMode(True)
+
+    def DisableLenientMode(self):
+        self.SetLenientMode(False)
+
+    def SetLenientMode(self, Enable):
+        mode = 1
+        if Enable:
+            mode = 0
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
+        if status:
+            raise RuntimeError(error_msg)
+        config = dict()
+        config['port'] = 0 
+        config['tx_pause_req'] = data['pause_abil']
+        config['rx_pause_req'] = data['asy_dir_abil']
+        config['low_pwr_abil'] = data['low_pwr_abil']
+        config['en_link'] = 1
+        config['en_auto_update'] = 1
+        config['lesm_en'] = data['lesm_en']
+        config['low_pwr_ctrl'] = data['low_pwr_ctrl']
+        config['eee_cap_en'] = data['eee_cap']
+        config['eeer'] = data['eeer']
+        config['auto_fec_en'] = data['auto_fec_en']
+        config['phy_type_0'] = data['phy_type_0'] 
+        config['phy_type_1'] = data['phy_type_1']
+        config['phy_type_2'] = data['phy_type_2'] 
+        config['phy_type_3'] = data['phy_type_3'] 
+        config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] #data['fec_firecode_10g_abil'] 
+        config['fec_firecode_10g_req'] = data['fec_firecode_10g_req'] 
+        config['fec_rs528_req'] = data['fec_rs528_req'] 
+        config['fec_firecode_25g_req'] = data['fec_firecode_25g_req'] 
+        config['fec_rs544_req'] = data['fec_rs544_req'] 
+        config['fec_rs528_abil'] = data['fec_rs528_abil'] 
+        config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
+        config['module_compliance_mode'] = mode 
+        status, data = self.aq.SetPhyConfig(config)
+        if status:
+            error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
+            raise RuntimeError(error_msg)
+
+    def GetCurrentModuleComplianceEnforcement(self):
+        '''
+            CPK DCR 102
+        '''
+        get_abils = {}
+        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
+        get_abils['rep_qual_mod'] = 0
+        get_abils['rep_mode'] = 0 
+        
+        status, data = self.aq.GetPhyAbilities(get_abils)
+        
+        if status:
+            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
+        
+        if data['module_compliance_enforcement'] & 0x1:
+            return 'strict'
+        else:
+            return 'lenient'
+
+    def ReadNvmModuleByTypeId(self, module_type_id):
         '''
             flow: 1) request resource onwnership over the nvm (must release within 3 sec)
                   2) read TLV based on moudle ID 
                   3) release resource onwnership
         '''
-
-
         nvm_read_config = dict()
-        nvm_read_config['module_typeID'] = self.data.module_type_id_dict['nvm_module']
-        config = dict()
-        config['resource_id'] = 0x1 #NVM
-        config['access_type'] = 1 #read 
-        status, data = self.aq.RequestResourceOwnership(config)
-        if status: 
-            raise RuntimeError('RequestResourceOwnership AQ faild status: {} revalue: {}'.format(status, data))
-            
-        
+        nvm_read_config['offset'] = 0
+        #nvm_read_config['module_typeID'] = self.data.nvm_module_type_id_dict[module_type_id]
+        nvm_read_config['module_typeID'] = module_type_id
+        nvm_read_config['length'] = 0xffff
+        nvm_read_config['last_command_bit'] = 1
+
+        request_resource_config = dict()
+        request_resource_config['resource_id'] = 0x1 #NVM
+        request_resource_config['access_type'] = 1 #read 
+        status1, data1 = self.aq.RequestResourceOwnership(request_resource_config)
+        if status1: 
+            raise RuntimeError('RequestResourceOwnership AQ faild status: {} revalue: {}'.format(status1, data1))
+
         #we have successfully aquired ownership over the nvm. Default timeout for this operation is 3000ms. need to be quick
+        try: 
+            status, data = self.aq.NvmRead(nvm_read_config)
+            if status: 
+                raise RuntimeError("NVM read Admin command failed. status: {} retval: {}".format(status, data))
+        finally:
+            stuts1, data1 = self.aq.ReleaseResourceOwnership(request_resource_config)
+            if stuts1: 
+                raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
+        return data
+
+    def SetDefaultOverrideMask(self, **kwargs):
+        lenient_bitmap = kwargs.get('lenient_bitmap', 0x0)
+        port_disable_bitmap = kwargs.get('port_disable_bitmap', 0x0)
+        override_enable_bitmap = kwargs.get('override_enable_bitmap', 0x0)
+        eee_enable_bitmap = kwargs.get('eee_enable_bitmap', 0x0) 
+        disable_automatic_link_bitmap = kwargs.get('disable_automatic_link_bitmap', 0x0)
+        
+        data = self.ReadNvmModuleByTypeId(0x134)
+        pfa_data = data['nvm_module'][2:]
+        print pfa_data
+        word_list = convert_byte_list_to_16bitword_list(pfa_data)
+        new_pfa_data = conver_16bitword_list_to_byte_list(word_list)
 
 
-        stutus, data = self.aq.ReleaseResourceOwnership(config)
-        if status: 
-            raise RuntimeError('Release Resource Ownership Amdin command fails status: {} retval: {}'.format(status, data))
+
         

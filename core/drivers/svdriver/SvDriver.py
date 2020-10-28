@@ -425,7 +425,7 @@ class SvDriver(object):
 
     def read_shadow_ram(self, word_offset):
         '''
-            This methods reads from the FW shadow ram
+            This methods reads from the Internal shadow RAM
         '''
         nvm_block = self._driver_proxy.nvm()
         value = nvm_block.shadow_ram_read(word_offset)
@@ -620,7 +620,7 @@ class SvDriver(object):
             print()
 
         # send command, response will update the desc fields and aq_buffer
-        status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, True)
+        status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, False)
 
         if debug_print:
             print("admin queue desciptor response:\n")

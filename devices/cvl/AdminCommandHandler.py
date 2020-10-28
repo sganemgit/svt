@@ -736,7 +736,7 @@ class AdminCommandHandler:
         #val1 = buf[0]
         #val2 = buf[1]
 
-        self.driver.send_aq_command(aq_desc,buffer)
+        self.driver.send_aq_command(aq_desc, buffer, debug)
 
         print('retval: ', hex(aq_desc.retval))
         print('flags: ', hex(aq_desc.flags))
@@ -1761,7 +1761,7 @@ class AdminCommandHandler:
         buffer = list()
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0008
-        aq_desc.flags = 0x0 
+        aq_desc.flags = 0x2000 
         aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
         aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)  #config['timeout']
         aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_25 << 8| byte_24)  #config['resource_number']
@@ -1782,16 +1782,12 @@ class AdminCommandHandler:
 
     def ReleaseResourceOwnership(self, config, debug=False):
         '''
-        
         input:
              config -- type(dict):
              'resource_id' : int[2 bytes] -- see table 9-50
              'access_type' : int[2 bytes] -- see table 9-50
              'timeout' : int[4 bytes] -- Timeout in ms 
              'resource_number' : int[4 bytes] -- For an SDP, this is the pin ID of the SDP
-
-                                                      
-                     
         '''
         byte_16 = config['resource_id'] & 0xff
         byte_17 =(config['resource_id'] >> 8) & 0xff
@@ -1807,7 +1803,7 @@ class AdminCommandHandler:
         buffer = list()
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0009
-        aq_desc.flags = 0x0 
+        aq_desc.flags = 0x2000 
         aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)  
         aq_desc.param1 = 0
         aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_25 << 8| byte_24)  #config['resource_number']
@@ -1815,9 +1811,7 @@ class AdminCommandHandler:
         aq_desc.datalen = len(buffer)
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print('Failed to send Request Resource Ownership Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
-        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
-        if status or err_flag:
+            print('Failed to send Release Resource Ownership Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
             status = (True, aq_desc.retval)
         else:
             status = (False, None)
@@ -1947,11 +1941,12 @@ class AdminCommandHandler:
         byte_21 = (config.get('module_typeID', 0)  >> 8) & 0xff
         byte_22 = config['length'] & 0xff
         byte_23 = (config['length'] >> 8) & 0xff
+        
         buffer = [0]*0x1000
         
         aq_desc = AqDescriptor()
-        aq_desc.opcode = 0x701 
-        aq_desc.flags = 0x0 
+        aq_desc.opcode = 0x701
+        aq_desc.flags = 0x3200
         aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)
         aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)
         aq_desc.addr_high = 0
@@ -1964,7 +1959,13 @@ class AdminCommandHandler:
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
-            status = (False, buffer)
+            data = dict()
+            data['datalen'] = aq_desc.datalen
+            data['offset'] = aq_desc.param0 & 0xffffff
+            data['module_typeID'] = aq_desc.param1 & 0xffff
+            data['length'] = (aq_desc.param1 >> 16) & 0xffff
+            data['nvm_module'] = buffer[0:data['length']]
+            status = (False, data)
         return status
 
     def NvmErase(self, config, debug=False):
@@ -1986,8 +1987,8 @@ class AdminCommandHandler:
         byte_23 = 0
         if debug:
             byte_16 = config['offset'] & 0xff
-            byte_17 =(config['offset'] >> 8) & 0xff
-            byte_18 = (config['offset'] >> 8) & 0xff
+            byte_17 = (config['offset'] >> 8) & 0xff
+            byte_18 = (config['offset'] >> 16) & 0xff
             byte_22 = config['length'] & 0xff
             byte_23 = (config['length'] >> 8) & 0xff
         
@@ -2032,19 +2033,22 @@ class AdminCommandHandler:
                                             0= POR, 1=PERST
                      
         '''
-        byte_16 = config['offset'] & 0xff
-        byte_17 =(config['offset'] >> 8) & 0xff
-        byte_18 = (config['offset'] >> 8) & 0xff
+        byte_16 = config.get('offset', 0) & 0xff
+        byte_17 = (config.get('offset', 0) >> 8) & 0xff
+        byte_18 = (config.get('offset', 0) >> 16) & 0xff
         byte_19 = ((config.get("flash_only", 0) & 0x1) << 7) | config.get("last_command_bit", 0) & 0x1
-        byte_20 = config['module_typeID'] & 0xff
-        byte_21 = (config['module_typeID'] >> 8) & 0xff
+        byte_20 = config.get('module_typeID', 0) & 0xff
+        byte_21 = (config.get('module_typeID', 0) >> 8) & 0xff
         byte_22 = config['length'] & 0xff
         byte_23 = (config['length'] >> 8) & 0xff
+
+        data_to_write = confg['data']
         buffer = [0]*0x1000
+        buffer[0:len(data_to_write)] = data_to_write
         
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x703
-        aq_desc.flags = 0x0 
+        aq_desc.flags = 0x3200 
         aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)
         aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)
         aq_desc.addr_high = 0

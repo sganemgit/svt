@@ -71,3 +71,17 @@ def turn_arg_to_bytes(number):
             byte_list[i] = temp_inp & 0xFF
             temp_inp = temp_inp >> 8
     return byte_list
+
+def convert_byte_list_to_16bitword_list(byte_list):
+    word_list = list()
+    for i in range(0,int(len(byte_list)), 2):
+        word_list.append((byte_list[i+1] << 8) | byte_list[i])
+    return word_list
+
+def conver_16bitword_list_to_byte_list(word_list):
+    byte_list = list()
+    for item in word_list:
+        byte_list.append(item & 0xff)
+        byte_list.append((item>>8) & 0xff)
+    return byte_list
+    
