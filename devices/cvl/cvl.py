@@ -3204,6 +3204,7 @@ class cvl(cvlDefines):
         data['PRT_LESM_INIT_FORCED_TIMEOUTS'] = self.ReadDnlPstore(0x1b)
         return data
 
+<<<<<<< HEAD
     def _GetAllDiscoveredDeviceCapabilities(self, debug=False):
         status, data = self.aq.DiscoverDeviceCapabilities(dict(), debug)
         occured_capability_dict = dict()
@@ -3248,12 +3249,28 @@ class cvl(cvlDefines):
             cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
         return cap_structs_list
 
-    def ReadPfa(self, moudle_id):
+    def ReadPfa(self, nvm_module):
         '''
             flow: 1) request resource onwnership over the nvm (must release within 3 sec)
                   2) read TLV based on moudle ID 
                   3) release resource onwnership
         '''
-        config = dict()
-        config['resource_id'] = 0x1 
 
+
+        nvm_read_config = dict()
+        nvm_read_config['module_typeID'] = self.data.module_type_id_dict['nvm_module']
+        config = dict()
+        config['resource_id'] = 0x1 #NVM
+        config['access_type'] = 1 #read 
+        status, data = self.aq.RequestResourceOwnership(config)
+        if status: 
+            raise RuntimeError('RequestResourceOwnership AQ faild status: {} revalue: {}'.format(status, data))
+            
+        
+        #we have successfully aquired ownership over the nvm. Default timeout for this operation is 3000ms. need to be quick
+
+
+        stutus, data = self.aq.ReleaseResourceOwnership(config)
+        if status: 
+            raise RuntimeError('Release Resource Ownership Amdin command fails status: {} retval: {}'.format(status, data))
+        

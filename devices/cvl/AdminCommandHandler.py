@@ -1734,10 +1734,8 @@ class AdminCommandHandler:
             status = (False, None)
         return status
 
-
-    def RequestResourceOwnership(self, config, debug):
+    def RequestResourceOwnership(self, config, debug=False):
         '''
-        
         input:
              config -- type(dict):
              'resource_id' : int[2 bytes] -- see table 9-50
@@ -1746,23 +1744,20 @@ class AdminCommandHandler:
              'resource_number' : int[4 bytes] -- For an SDP, this is the pin ID of the SDP
         return :
             'timeout' : int[4 bytes] --indicates the timeout used for the specific resource
-                                                      
-                     
         '''
         byte_16 = config['resource_id'] & 0xff
         byte_17 =(config['resource_id'] >> 8) & 0xff
         byte_18 = config['access_type'] & 0xff
         byte_19 = (config['access_type'] >> 8) & 0xff
-        byte_20 = config['timeout'] & 0xff
-        byte_21 = (config['timeout'] >> 8) & 0xff
-        byte_22 = (config['timeout'] >> 16) & 0xff
-        byte_23 = (config['timeout'] >> 24) & 0xff
-        byte_24 = config['resource_number'] & 0xff
-        byte_25 = (config['resource_number'] >> 8) & 0xff
-        byte_26 = (config['resource_number'] >> 16) & 0xff
-        byte_27 = (config['resource_number'] >> 24) & 0xff
+        byte_20 = config.get('timeout', 0) & 0xff
+        byte_21 = (config.get('timeout', 0) >> 8) & 0xff
+        byte_22 = (config.get('timeout', 0) >> 16) & 0xff
+        byte_23 = (config.get('timeout', 0) >> 24) & 0xff
+        byte_24 = config.get('resource_number', 0) & 0xff
+        byte_25 = (config.get('resource_number', 0) >> 8) & 0xff
+        byte_26 = (config.get('resource_number', 0) >> 16) & 0xff
+        byte_27 = (config.get('resource_number', 0) >> 24) & 0xff
 
-        
         buffer = list()
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x0008
@@ -1785,7 +1780,7 @@ class AdminCommandHandler:
             status = (False, data)
         return status
 
-    def ReleaseResourceOwnership(self, config, debug):
+    def ReleaseResourceOwnership(self, config, debug=False):
         '''
         
         input:
@@ -1803,10 +1798,10 @@ class AdminCommandHandler:
         byte_18 = 0
         byte_19 = 0
         
-        byte_24 = config['resource_number'] & 0xff
-        byte_25 = (config['resource_number'] >> 8) & 0xff
-        byte_26 = (config['resource_number'] >> 16) & 0xff
-        byte_27 = (config['resource_number'] >> 24) & 0xff
+        byte_24 = config.get('resource_number', 0) & 0xff
+        byte_25 = (config.get('resource_number', 0) >> 8) & 0xff
+        byte_26 = (config.get('resource_number', 0) >> 16) & 0xff
+        byte_27 = (config.get('resource_number', 0) >> 24) & 0xff
 
         
         buffer = list()
@@ -1935,7 +1930,6 @@ class AdminCommandHandler:
     
     def NvmRead(self, config, debug=False):
         '''
-        
         input:
              config -- type(dict):
              'offset' : int[3 bytes] -- Offset in the module
@@ -1945,12 +1939,12 @@ class AdminCommandHandler:
              'length': int[2 bytes] --Length of the section to be read
                      
         '''
-        byte_16 = config['offset'] & 0xff
-        byte_17 =(config['offset'] >> 8) & 0xff
-        byte_18 = (config['offset'] >> 8) & 0xff
+        byte_16 = config.get('offset', 0) & 0xff
+        byte_17 =(config.get('offset', 0) >> 8) & 0xff
+        byte_18 = (config.get('offset', 0) >> 8) & 0xff
         byte_19 = ((config.get("read_from_flash", 0) & 0x1) << 7) | (config.get("last_command_bit", 0) & 0x1)
-        byte_20 = config['module_typeID'] & 0xff
-        byte_21 = (config['module_typeID'] >> 8) & 0xff
+        byte_20 = config.get('module_typeID', 0) & 0xff
+        byte_21 = (config.get('module_typeID', 0)  >> 8) & 0xff
         byte_22 = config['length'] & 0xff
         byte_23 = (config['length'] >> 8) & 0xff
         buffer = [0]*0x1000
