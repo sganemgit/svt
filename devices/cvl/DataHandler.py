@@ -475,3 +475,25 @@ class DataHandler:
                                 0X74: 'SKU',
                                 0x75: 'port_mapping',
                                 0x80: '0x80_unknown'}
+
+    #This dict maps the shared resouce to it's ID. CVL HAS table 9-50 
+    shared_resources_dict = {'nvm': 0x1,
+                             'sdp': 0x2,
+                             'change_lock': 0x3,
+                             'global_config_lock':0x4}
+
+    #This Dictionary maps the moudles typeID based on table 6-6 in section 6.1.5.3 Moudle TypeIDs
+    nvm_module_type_id_dict = {'reserved': 0x0, 
+                               'RO PCIR REgister Auto-load': 0x06,
+                               'auto genrated pointer module': 0x07, 
+                               'PCIR Registers Auto-load Moudle': 0x08,
+                               'EMP Golbal Modle': 0x09,
+                               'Guarded Zone Module': 0x0A,
+                               'PE Image Module': 0x0C,
+                               'Manageablitiy Module':0x0E,
+                               'Link Topology Scratch Pas Area Module': 0x4A,
+                               'Immediate Values Module': 0x4E,
+                               'Link Topology Netlist Module': 0x11b,
+                               'Link Topology Module': 0x120,
+                               'LLDP Preserved': 0x129,
+                               'Link Default Override Mask': 0x134}

@@ -423,15 +423,15 @@ class SvDriver(object):
         '''
         return self._driver_proxy.get_module_name()
 
-    def read_shadow_ram(word_offset):
+    def read_shadow_ram(self, word_offset):
         '''
-            This methods reads from the FW shadow ram
+            This methods reads from the Internal shadow RAM
         '''
         nvm_block = self._driver_proxy.nvm()
         value = nvm_block.shadow_ram_read(word_offset)
         if value[0]:
             raise RuntimeError("shadow ram read failed status {}".format(value[0]))
-        return vlue[1]
+        return value[1]
 
     def dump_show_ram_to_file(self, filename):
         '''
@@ -450,7 +450,7 @@ class SvDriver(object):
         value = nvm_block.read(word_offset)
         if value[0]:
             raise RuntimeError("nvm read failed status {}".format(value[0]))
-        return vlaue[1]
+        return value[1]
 
     def read_nvm_memory_mapped(self, word_offset):
         '''
@@ -460,7 +460,8 @@ class SvDriver(object):
         value = nvm_block.memory_mapped_read(word_offset)
         if value[0]:
             raise RuntimeError("nvm read failed status {}".format(value[0]))
-        return vlaue[1]        
+        return value[1]        
+
     def write_nvm(slef, word_offset, value_16bit):
         '''
             this method reads from the device's nvm
@@ -619,7 +620,7 @@ class SvDriver(object):
             print()
 
         # send command, response will update the desc fields and aq_buffer
-        status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, True)
+        status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, False)
 
         if debug_print:
             print("admin queue desciptor response:\n")
