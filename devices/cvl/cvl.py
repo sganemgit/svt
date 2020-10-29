@@ -3284,13 +3284,44 @@ class cvl(cvlDefines):
         override_enable_bitmap = kwargs.get('override_enable_bitmap', 0x0)
         eee_enable_bitmap = kwargs.get('eee_enable_bitmap', 0x0) 
         disable_automatic_link_bitmap = kwargs.get('disable_automatic_link_bitmap', 0x0)
-        
+
+
+
+
+
+
         data = self.ReadNvmModuleByTypeId(0x134)
         pfa_data = data['nvm_module'][2:]
-        print pfa_data
         word_list = convert_byte_list_to_16bitword_list(pfa_data)
+
+
+
+        
+
         new_pfa_data = conver_16bitword_list_to_byte_list(word_list)
+        nvm_write_config = dict()
+        nvm_write_config['offset'] = 0
+        #nvm_write_config['module_typeID'] = self.data.nvm_module_type_id_dict[module_type_id]
+        nvm_write_config['module_typeID'] = data['module_typeID']
+        nvm_write_config['length'] = data['length']
+        nvm_write_config['last_command_bit'] = 1
+        nvm_write_config['data'] = new_pfa_data
 
+        request_resource_config = dict()
+        request_resource_config['resource_id'] = 0x1 #NVM
+        request_resource_config['access_type'] = 1 #read 
+        status1, data1 = self.aq.RequestResourceOwnership(request_resource_config)
+        if status1: 
+            raise RuntimeError('RequestResourceOwnership AQ faild status: {} revalue: {}'.format(status1, data1))
 
-
+        #we have successfully aquired ownership over the nvm. Default timeout for this operation is 3000ms. need to be quick
+        try: 
+            status, data = self.aq.NvmWrite(nvm_write_config)
+            if status: 
+                raise RuntimeError("NVM read Admin command failed. status: {} retval: {}".format(status, data))
+        finally:
+            stuts1, data1 = self.aq.ReleaseResourceOwnership(request_resource_config)
+            if stuts1: 
+                raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
+        return data
         

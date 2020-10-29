@@ -496,4 +496,4 @@ class DataHandler:
                                'Link Topology Netlist Module': 0x11b,
                                'Link Topology Module': 0x120,
                                'LLDP Preserved': 0x129,
-                               'PFA Link Default Override Mask': 0x134}
+                               'Link Default Override Mask': 0x134}

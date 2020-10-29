@@ -1,10 +1,9 @@
 
-TEST = True 
+TEST = True
 
 from core.tests.testBase import testBase
 
-class LmLenientModeTest(testBase):
+class LmPersistencyTest(testBase):
 
     def run(self):
-
-
+        pass

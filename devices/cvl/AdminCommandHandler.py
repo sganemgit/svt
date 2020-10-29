@@ -1873,7 +1873,6 @@ class AdminCommandHandler:
 
     def Vm_VfReset(self, config, debug):
         '''
-        
         input:
              config -- type(dict):
              'reset_operation' : int[2 bits] -- 01= VM Reset operation, 10= VF Reset operation, 11=PF Reset
@@ -1888,8 +1887,6 @@ class AdminCommandHandler:
              'num_of_fully_processed_grops' : int[1 bytes] -- Number of fully processed groups                                    
              'blocked_cgds' : int[1 bytes] -- A Bitmap of blocked CGDs. Set by EMP FW when returns with EAGAIN     
         '''
-    
-        
         byte_16 = ((config['on_time_out'] & 0x1 ) << 3) |((config['command_type'] & 0x1 ) << 2) |(config['reset_operation'] & 0x3)  
         byte_17 = config['num_of_queue_grops'] & 0xff
         byte_18 = config['vmvf_num'] & 0xff
@@ -1924,14 +1921,13 @@ class AdminCommandHandler:
     
     def NvmRead(self, config, debug=False):
         '''
-        input:
-             config -- type(dict):
-             'offset' : int[3 bytes] -- Offset in the module
-             'read_from_flash' : int[1 bit] --  1: read is done directly from the flash and not from shadow RAM
-             'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
-             'module_typeID': int[2 bytes] -- Module typeID
-             'length': int[2 bytes] --Length of the section to be read
-                     
+            input:
+                 config -- type(dict):
+                 'offset' : int[3 bytes] -- Offset in the module
+                 'read_from_flash' : int[1 bit] --  1: read is done directly from the flash and not from shadow RAM
+                 'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
+                 'module_typeID': int[2 bytes] -- Module typeID
+                 'length': int[2 bytes] --Length of the section to be read
         '''
         byte_16 = config.get('offset', 0) & 0xff
         byte_17 =(config.get('offset', 0) >> 8) & 0xff
@@ -1970,15 +1966,14 @@ class AdminCommandHandler:
 
     def NvmErase(self, config, debug=False):
         '''
-        Erase consecutive 4 KB sectors of the Flash
-        input:
-             config -- type(dict):
-             'offset' : int[3 bytes] -- Offset in the module
-             'read_from_flash' : int[1 bit] --  1: read is done directly from the flash and not from shadow RAM
-             'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
-             'module_typeID': int[2 bytes] -- Module typeID
-             'length': int[2 bytes] --Length of the section to be read
-                     
+            Erase consecutive 4 KB sectors of the Flash
+            input:
+                 config -- type(dict):
+                 'offset' : int[3 bytes] -- Offset in the module
+                 'read_from_flash' : int[1 bit] --  1: read is done directly from the flash and not from shadow RAM
+                 'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
+                 'module_typeID': int[2 bytes] -- Module typeID
+                 'length': int[2 bytes] --Length of the section to be read
         '''
         byte_16 = 0
         byte_17 = 0
@@ -2018,20 +2013,19 @@ class AdminCommandHandler:
 
     def NvmWrite(self, config, debug=False):
         '''
-        write the data given by the attached buffer into a specified location in the NVM
+            write the data given by the attached buffer into a specified location in the NVM
 
-        input:
-             config -- type(dict):
-             'offset' : int[3 bytes] -- Offset in the module
-             'flash_only' : int[1 bit] --  
-             'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
-             'module_typeID': int[2 bytes] -- Module typeID
-             'length': int[2 bytes] --Length of the section to be read
+            input:
+                 config -- type(dict):
+                 'offset' : int[3 bytes] -- Offset in the module
+                 'flash_only' : int[1 bit] --  
+                 'last_command_bit' : int[1 bit] --  this is the last admin command of a sequence. (Ignored by EMP)
+                 'module_typeID': int[2 bytes] -- Module typeID
+                 'length': int[2 bytes] --Length of the section to be read
 
-        return:
-             'reset_flag' : int[1 bit] -- the type of reset required to get the NVM bank update effective (NVM Bank update only)
-                                            0= POR, 1=PERST
-                     
+            return:
+                 'reset_flag' : int[1 bit] -- the type of reset required to get the NVM bank update effective (NVM Bank update only)
+                                                0= POR, 1=PERST
         '''
         byte_16 = config.get('offset', 0) & 0xff
         byte_17 = (config.get('offset', 0) >> 8) & 0xff
@@ -2042,7 +2036,7 @@ class AdminCommandHandler:
         byte_22 = config['length'] & 0xff
         byte_23 = (config['length'] >> 8) & 0xff
 
-        data_to_write = confg['data']
+        data_to_write = config['data']
         buffer = [0]*0x1000
         buffer[0:len(data_to_write)] = data_to_write
         
@@ -2078,7 +2072,6 @@ class AdminCommandHandler:
 
     def NvmConfigRead(self, config, debug=False):
         '''
-       
         input:
              config -- type(dict):
              'feature_or_field' : int[1 bit] -- 0: Feature selections 
@@ -2122,17 +2115,17 @@ class AdminCommandHandler:
 
     def NvmConfigWrite(self, config, debug=False):
         '''
-        writes the feature selections and the values of the immediate fields provided in the attached command buffer to the NVM.
-        input:
-             config -- type(dict):
-             'feature_or_field' : int[1 bit] -- 0: Feature selections /1: Immediate fields  are written
-             'added_new_config' : int[1 bit] -- 0: Existing config / 1:New config added
-             'field_list': list of ImmediateBufferForNvm (found core.structs)
-             or 
-             'feature_list': list of FeatureBufferForNvm (found core.structs)
-             
-             if feature_or_field == 1 -> immediate buffer
-             else -> feature buffer
+            writes the feature selections and the values of the immediate fields provided in the attached command buffer to the NVM.
+            input:
+                 config -- type(dict):
+                 'feature_or_field' : int[1 bit] -- 0: Feature selections /1: Immediate fields  are written
+                 'added_new_config' : int[1 bit] -- 0: Existing config / 1:New config added
+                 'field_list': list of ImmediateBufferForNvm (found core.structs)
+                 or 
+                 'feature_list': list of FeatureBufferForNvm (found core.structs)
+                 
+                 if feature_or_field == 1 -> immediate buffer
+                 else -> feature buffer
         '''
 
         buffer = list()
@@ -2161,9 +2154,7 @@ class AdminCommandHandler:
             byte_18 = len(features_list) & 0xff
             byte_19 = (len(features_list) >> 8) & 0xff
 
-
         byte_16 = ((config["added_new_config"] & 0x1) << 2) | ((config['feature_or_field'] & 0x1 )<< 1) | 0
-        
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x705 
         aq_desc.flags = 0x0 
@@ -2184,20 +2175,16 @@ class AdminCommandHandler:
 
     def NvmUpdateChecksum(self, config, debug=False):
         '''
-        recalculates/verifies the PFA checksum
-        input:
-             config -- type(dict):
-             'verify_checksum' : int[1 bit] -- Verify Checksum
-             'recalculate_checksum' : int[1 bit] -- Recalculate Checksum 
-            
-        returnd:
-             'checksum': int[2 bytes] --  Returned only if Verify Checksum flag was set in command
-
-
+            recalculates/verifies the PFA checksum
+            input:
+                 config -- type(dict):
+                 'verify_checksum' : int[1 bit] -- Verify Checksum
+                 'recalculate_checksum' : int[1 bit] -- Recalculate Checksum 
+                
+            returnd:
+                 'checksum': int[2 bytes] --  Returned only if Verify Checksum flag was set in command
         '''
-
         byte_16 = ((config.get("recalculate_checksum", 0) & 0x1) << 1) | (config.get('verify_checksum', 1) & 0x1 )
-
         buffer = list()
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x706
@@ -2221,7 +2208,6 @@ class AdminCommandHandler:
             status = (False, data)
         return status
 
-
     def NvmWriteActivate(self, config, debug=False):
         '''
         must be called after NVM Write AQ Command was successfully must be called after NVM Write AQ Command was successfully 
@@ -2237,11 +2223,9 @@ class AdminCommandHandler:
              'switch_to_invaled_ext_tlv_bank': int[1 bit] -- 0= Keep current EXT TLV Bank
 
         '''
-
         byte_19 = ((config.get("switch_to_invaled_ext_tlv_bank", 0) & 0x1) << 5) |((config.get("switch_to_invaled_orom_bank", 0) & 0x1) << 4) |((config.get("switch_to_invaled_nvm_bank", 0) & 0x1) << 3) | ((config.get('preserrvation_mode', 1) & 0x3 )<< 1) | 0
  
         buffer = list()
- 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x707
         aq_desc.flags = 0x0 
@@ -2265,7 +2249,6 @@ class AdminCommandHandler:
             saves the PFA, active Topology Netlist, and 32B header to a permanent read only NVM location
 
         '''
-
         buffer = list() 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x708
@@ -2286,7 +2269,6 @@ class AdminCommandHandler:
            request an EMPR after a successful reset to allow activation of the new firmware
 
         '''
-
         buffer = list() 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x709
