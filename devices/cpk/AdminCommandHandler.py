@@ -1377,12 +1377,12 @@ class AdminCommandHandler:
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
         if status or err_flag:
             status = (True, aq_desc.retval)
-
-        data = dict()
-        data['number_of_records'] = aq_desc.param1
-        data['resource_recognized'] = buffer
-
-        return (status, data)
+        else:
+            data = dict()
+            data['number_of_records'] = aq_desc.param1
+            data['resource_recognized'] = buffer
+            status = (False, data)
+        return status
 
     def DiscoverDeviceCapabilities(self, config=None, debug=False):
         '''
@@ -1408,7 +1408,8 @@ class AdminCommandHandler:
             data = dict()
             data['number_of_records'] = aq_desc.param1
             data['resource_recognized'] = buffer
-        return (status, data)
+            status = (False, data)
+        return status
 
     def Vm_VfReset(self, config, debug):
         '''
