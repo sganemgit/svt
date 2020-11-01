@@ -31,6 +31,7 @@ class testBase():
             test_obj = cls()
             test_obj.args = args
             test_obj.setup = setup
+            #TODO create only the devices that appear in the Links section and not based on Devices
             test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
             test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
             return test_obj

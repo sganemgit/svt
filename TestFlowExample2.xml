@@ -32,10 +32,28 @@
     </TestCase>
 
     <TestCase>
-        <Test name='mistake'/>
+        <Test name='LmPersistencyTest'/>
         <Input>
+            <Parameter name='phy_type' value='25GBase-CR'/>
+            <Parameter name='module_type_id' value='0x134'/>
         </Input>
         <Setup>
+            <Devices>
+                <Device name='cvl' hostname='' number='0'>
+                    <Port ID='cvl0:0' number='0'/>
+                    <Port ID='cvl0:1' number='1'/>
+                </Device>
+                <Device name='cvl' hostname='' number='1'>
+                    <Port ID='cvl1:0' number='0'/>
+                    <Port ID='cvl1:1' number='1'/>
+                </Device>
+            </Devices>
+            <Links>
+                <Link>
+                    <Port ID='cvl0:0' role='dut'/>  
+                    <Port ID='cvl1:0' role='lp'/>
+                </Link>
+            </Links>    
         </Setup>
     </TestCase>
 </TestFlow>

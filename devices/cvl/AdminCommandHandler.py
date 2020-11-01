@@ -656,7 +656,7 @@ class AdminCommandHandler:
         #print "DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
         #print "DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
 
-        return_buffer = self.aq.NeighborDeviceRequestAq(1,buffer)
+        return_buffer = self.NeighborDeviceRequestAq(1,buffer)
         return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
         #print "return val: ", return_val
         return return_val.replace("L","")
@@ -1948,7 +1948,7 @@ class AdminCommandHandler:
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.datalen = len(buffer)
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Nvm Read Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
@@ -1980,12 +1980,11 @@ class AdminCommandHandler:
         byte_18 = 0
         byte_22 = 0
         byte_23 = 0
-        if debug:
-            byte_16 = config['offset'] & 0xff
-            byte_17 = (config['offset'] >> 8) & 0xff
-            byte_18 = (config['offset'] >> 16) & 0xff
-            byte_22 = config['length'] & 0xff
-            byte_23 = (config['length'] >> 8) & 0xff
+        byte_16 = config.get('offset', 0) & 0xff
+        byte_17 = (config.get('offset', 0) >> 8) & 0xff
+        byte_18 = (config.get('offset', 0) >> 16) & 0xff
+        byte_22 = config.get('length',0) & 0xff
+        byte_23 = (config.get('length',0) >> 8) & 0xff
         
         byte_19 = config.get("last_command_bit", 0) & 0x1
         byte_20 = config['module_typeID'] & 0xff
@@ -2037,18 +2036,18 @@ class AdminCommandHandler:
         byte_23 = (config['length'] >> 8) & 0xff
 
         data_to_write = config['data']
-        buffer = [0]*0x1000
+        buffer = [0]*0x100
         buffer[0:len(data_to_write)] = data_to_write
         
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x703
-        aq_desc.flags = 0x3200 
+        aq_desc.flags = 0x3000 
         aq_desc.param0 =  (byte_19 << 24 | byte_18 << 16 | byte_17 << 8| byte_16)
         aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8| byte_20)
         aq_desc.addr_high = 0
-        aq_desc.addr_low = 0
+        aq_desc.addr_low = 2
         aq_desc.datalen = len(buffer)
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, True)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Nvm Write Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
@@ -2223,7 +2222,7 @@ class AdminCommandHandler:
              'switch_to_invaled_ext_tlv_bank': int[1 bit] -- 0= Keep current EXT TLV Bank
 
         '''
-        byte_19 = ((config.get("switch_to_invaled_ext_tlv_bank", 0) & 0x1) << 5) |((config.get("switch_to_invaled_orom_bank", 0) & 0x1) << 4) |((config.get("switch_to_invaled_nvm_bank", 0) & 0x1) << 3) | ((config.get('preserrvation_mode', 1) & 0x3 )<< 1) | 0
+        byte_19 = ((config.get("switch_to_invaled_ext_tlv_bank", 0) & 0x1) << 5) |((config.get("switch_to_invaled_orom_bank", 0) & 0x1) << 4) |((config.get("switch_to_invaled_nvm_bank", 0) & 0x1) << 3) | ((config.get('preserrvation_mode', 0x3) & 0x3 )<< 1) | 0
  
         buffer = list()
         aq_desc = AqDescriptor()
@@ -2283,3 +2282,29 @@ class AdminCommandHandler:
             status = (False, None)
         return status
 ###############################################################################
+
+
+#TODO delete this class and move it's functionality somewhere else
+class cvl_structs:
+
+    def SbIosfMassageStruct(self):
+        Massage = {}
+        Massage['dest'] = 0
+        Massage['source'] = 0
+        Massage['opcode'] = 0
+        Massage['Tag'] = 0
+        Massage['Bar'] = 0
+        Massage['addrlen'] = 0
+        Massage['EH'] = 0
+        Massage['exphdrid'] = 0
+        Massage['EH_2ndDW'] = 0
+        Massage['sai'] = 0
+        Massage['rs'] = 0
+        Massage['fbe'] = 0
+        Massage['Sbe'] = 0
+        Massage['Fid'] = 0
+        Massage['address'] = 0
+        Massage['address_4thDW'] = 0
+        return Massage
+        #TODO finish this dict based on table 9-55 Resoruce recognized by this verison of the command
+        #TODO implement a new calss that holds these values as class member and not as instance members

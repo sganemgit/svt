@@ -562,7 +562,7 @@ class SvDriver(object):
         csr_block.write_64(register_offset, write_value)
         self._driver_proxy.dispose_csr_block(csr_block)
  
-    def send_aq_command(self, aq_descriptor, aq_buffer = None, debug_print = False):
+    def send_aq_command(self, aq_descriptor, aq_buffer = None, debug_print = False, auto_fill=False):
         '''This function sends AQ command.
             Arguments:
                 aq_descriptor - aq command data descriptor with following fields
@@ -620,7 +620,7 @@ class SvDriver(object):
             print()
 
         # send command, response will update the desc fields and aq_buffer
-        status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, False)
+        status = aq.admin_queue_send_command(desc, aq_buffer_out, buffer_size, auto_fill)
 
         if debug_print:
             print("admin queue desciptor response:\n")

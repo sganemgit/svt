@@ -5,6 +5,5 @@ from core.tests.testBase import testBase
 
 class LmLenientModeTest(testBase):
 
-    def run(self):
-
-
+	def run(self):
+		pass
