@@ -3584,20 +3584,19 @@ class cpk(cpkTier1):
             raise RuntimeError(error_msg)
         config = dict()
         config['port'] = 0 
-        config['tx_pause_req'] = data['pause_abil']
-        config['rx_pause_req'] = data['asy_dir_abil']
-        config['low_pwr_abil'] = data['low_pwr_abil']
-        config['en_link'] = 1
-        config['en_auto_update'] = 1
-        config['lesm_en'] = data['lesm_en']
-        config['low_pwr_ctrl'] = data['low_pwr_ctrl']
-        config['eee_cap_en'] = data['eee_cap']
-        config['eeer'] = data['eeer']
-        config['auto_fec_en'] = data['auto_fec_en']
         config['phy_type_0'] = data['phy_type_0'] 
         config['phy_type_1'] = data['phy_type_1']
         config['phy_type_2'] = data['phy_type_2'] 
         config['phy_type_3'] = data['phy_type_3'] 
+        config['pause_abil'] = data['pause_abil']
+        config['low_pwr_abil'] = data['low_pwr_abil']
+        config['en_link'] = 1
+        config['en_auto_update'] = 1
+        config['lesm_en'] = data['lesm_en']
+        config['auto_fec_en'] = data['auto_fec_en']
+        config['low_pwr_ctrl'] = data['low_pwr_ctrl']
+        config['eee_cap_en'] = data['eee_cap']
+        config['eeer'] = data['eeer']        
         config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] #data['fec_firecode_10g_abil'] 
         config['fec_firecode_10g_req'] = data['fec_firecode_10g_req'] 
         config['fec_rs528_req'] = data['fec_rs528_req'] 
@@ -3605,7 +3604,7 @@ class cpk(cpkTier1):
         config['fec_rs544_req'] = data['fec_rs544_req'] 
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
-        config['module_compliance_mode'] = mode 
+        config['module_complinance_enforcement'] = mode 
         status, data = self.aq.SetPhyConfig(config)
         if status:
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)

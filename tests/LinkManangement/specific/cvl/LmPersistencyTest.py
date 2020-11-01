@@ -71,7 +71,7 @@ class LmPersistencyTest(testBase):
                 #create new config dict for DUT port
                 new_config= dict()
                 new_config['port'] = dut.port_number
-                new_config['lenient'] = 0x0
+                new_config['lenient'] = 0x1
                 new_config['epct_ability_enable'] = 0x0
                 new_config['port_disable'] = 0x0
                 new_config['override_enable'] = 0x1

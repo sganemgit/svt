@@ -56,7 +56,6 @@ class AdminCommandHandler:
         byte_21 = (config['eeer'] >> 8) & 0xff
         byte_22 = (config['fec_firecode_25g_abil'] << 7) | (config['fec_rs528_abil'] << 6) | (config['fec_rs544_req'] << 4) | (config['fec_firecode_25g_req'] << 3) | (config['fec_rs528_req'] << 2) | (config['fec_firecode_10g_req'] << 1) | config['fec_firecode_10g_abil']
         byte_23 = config.get('module_complinance_enforcement', 1) & 0x1 #Based on DCR 102
-
         buffer.append(byte_16)
         buffer.append(byte_17)
         buffer.append(byte_18)
@@ -74,7 +73,7 @@ class AdminCommandHandler:
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.datalen = len(buffer)
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, True)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
@@ -202,7 +201,6 @@ class AdminCommandHandler:
                     'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
                     'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
                     'pause_abil': int[1 bit] -- 1 if capable of PAUSE advertisement, 0 if not capable
-                    'asy_dir_abil' : int[1 bit] -- 1 if capable of ASY_DIR pause advertisement, 0 if not capable
                     'low_pwr_abil': int[1 bit] -- 0 for high power mode, 1 for low power mode
                     'link_mode' : int[1 bit] -- 1 if link is enabled, 0 if link is disabled
                     'an_mode' : int[1 bit] -- 1 if AN is enabled, 0 if AN is disabled
