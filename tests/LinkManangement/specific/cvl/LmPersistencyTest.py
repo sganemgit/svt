@@ -77,9 +77,9 @@ class LmPersistencyTest(testBase):
                 new_config['override_enable'] = 0x1
                 new_config['disable_automatic_link'] = 0x0
                 new_config['eee_enable'] =  1 #data['eee_cap'] 
-                new_config['pause_ability'] = 1 #data['pause_abil']
-                new_config['lesm_enable'] = data['lesm_en']
-                new_config['auto_fec_enable'] = data['auto_fec_en'] 
+                new_config['pause_ability'] = 0x3 #data['pause_abil']
+                new_config['lesm_enable'] = 0x1
+                new_config['auto_fec_enable'] = data['auto_fec_en']
                 new_config['fec_options'] = data['fec_opt']
                 new_config['override_phy_types'] = 0x1
                 new_config['override_disable_automatic_link'] = 0x1
@@ -87,8 +87,7 @@ class LmPersistencyTest(testBase):
                 new_config['override_pause'] = 0x1
                 new_config['override_lesm_enable'] = 0x1
                 new_config['override_fec'] = 0x1
-                new_config['phy_types'] = 0xffffffffffffffffffffffffffffffff
-
+                new_config['phy_types'] = 0xffffffffffffffffffffffffffffffff #this is a mask for bitwise with 128 bit phy_type 
 
                 self.log.info("Setting the fields in the DefaultOverrideMask PFA to the following values")
                 for key, val in new_config.items():
