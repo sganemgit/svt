@@ -62,7 +62,10 @@ class LmPersistencyTest(testBase):
                         raise RuntimeError("can not alter lenient mode")
 
                 #read current PFA 
-                current_NVM_PFA = dut.ReadNvmModuleByTypeId(self.module_type_id)
+                self.log.info('reading module type id {}'.format(self.module_type_id))
+                current_pfa_value = dut.ReadNvmModuleByTypeId(self.module_type_id)
+
+                pfa_data = current_pfa_value['nvm_module']
 
                 data = dut.GetPhyAbiliesFields()
                 #create new config dict for DUT port
@@ -73,8 +76,8 @@ class LmPersistencyTest(testBase):
                 new_config['port_disable'] = 0x0
                 new_config['override_enable'] = 0x1
                 new_config['disable_automatic_link'] = 0x0
-                new_config['eee_enable'] = data['eee_cap'] 
-                new_config['pause_ability'] = data['pause_abil']
+                new_config['eee_enable'] =  1 #data['eee_cap'] 
+                new_config['pause_ability'] = 1 #data['pause_abil']
                 new_config['lesm_enable'] = data['lesm_en']
                 new_config['auto_fec_enable'] = data['auto_fec_en'] 
                 new_config['fec_options'] = data['fec_opt']
@@ -86,16 +89,25 @@ class LmPersistencyTest(testBase):
                 new_config['override_fec'] = 0x1
                 new_config['phy_types'] = 0xffffffffffffffffffffffffffffffff
 
-                #setdefaultmask by calling the method for the dut 
 
-                print(new_config)
+                self.log.info("Setting the fields in the DefaultOverrideMask PFA to the following values")
+                for key, val in new_config.items():
+                    self.log.info("{} : {}".format(key, hex(val)))  
+                #setdefaultmask by calling the method for the dut 
                 dut.SetDefaultOverrideMask(new_config)
                 
-
                 #perform empr reset . could be that we will need POR
                 for dut, lp in self.dut_lp_pairs:
                     self.reset_both_sides(dut, lp, 'empr')
                 
+                self.log.info('reading module type id {} after changes'.format(hex(self.module_type_id)))
+                current_pfa_value = dut.ReadNvmModuleByTypeId(self.module_type_id)
+
+                new_pfa_data = current_pfa_value['nvm_module']
+
+                if new_pfa_data == pfa_data:
+                    self.log.info("The pfa values have not changed",'o')
+
                 #read new configurations
                 new_lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
 

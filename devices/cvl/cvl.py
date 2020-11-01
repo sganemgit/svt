@@ -3326,8 +3326,6 @@ class cvl(cvlDefines):
         byte_4 = ((override_fec & 0x1) << 5) | ((override_lesm_enable & 0x1) << 4) | ((override_pause & 0x1) << 3) | ((override_eee & 0x1) <<2) | ((override_disable_automatic_link & 0x1) <<1) | (override_phy_types & 0x1)
 
         data = self.ReadNvmModuleByTypeId(0x134)
-        print("data as read from nvm")
-        print(data)
         
         word_list = convert_byte_list_to_16bitword_list(data['nvm_module'])
         # a word is 16 bit long
@@ -3342,12 +3340,8 @@ class cvl(cvlDefines):
         word_list[8+10*port] = int((phy_types >> 80) & 0xffff)
         word_list[9+10*port] = int((phy_types >> 96) &  0xffff)
         word_list[10+10*port] = int((phy_types >> 112) & 0xffff)
-        print("worl list after modifaction")
-        print word_list
 
         new_pfa_data = conver_16bitword_list_to_byte_list(word_list)
-        print("byte list after modifaction")
-        print new_pfa_data
 
         request_resource_config = dict()
         request_resource_config['resource_id'] = 0x1 #NVM
@@ -3371,8 +3365,6 @@ class cvl(cvlDefines):
             nvm_write_config['length'] = data['length']
             nvm_write_config['last_command_bit'] = 0
             nvm_write_config['data'] = new_pfa_data
-            print("nvm write config")
-            print nvm_write_config
             status, data = self.aq.NvmWrite(nvm_write_config)
             if status:
                 raise RuntimeError("NVM Write Admin command failed. status: {} retval: {}".format(status, data))
@@ -3384,7 +3376,3 @@ class cvl(cvlDefines):
             stuts1, data1 = self.aq.ReleaseResourceOwnership(request_resource_config)
             if stuts1:
                 raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
-
-        print('after sending the write aq')
-        data = self.ReadNvmModuleByTypeId(0x134)
-        print(data)
