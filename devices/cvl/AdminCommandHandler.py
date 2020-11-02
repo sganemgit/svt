@@ -2059,7 +2059,6 @@ class AdminCommandHandler:
             status = (False, data)
         return status
 
-
     def debug_NVMConfigRead(self):
         config = dict()
 

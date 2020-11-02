@@ -511,7 +511,7 @@ class SvDriver(object):
         pci_block = self._driver_proxy.create_pci_block()
         value = pci_block.read_word(register_offset)
         self._driver_proxy.dispose_pci_block(pci_block)
-        return  value
+        return  value[1]
 
     def write_pci(self, register_offset, write_value):
         '''

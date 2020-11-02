@@ -1,5 +1,7 @@
 
-class DataHandler:
+from devices.common.DeviceCommon import DeviceCommon
+
+class DataHandler(DeviceCommon):
     # list should hold the high values before the low
     reg_dict = {"PTC64": [0x00380B84, 0x00380B80],
                 "PTC127": [0x00380BC4, 0x00380BC0],

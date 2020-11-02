@@ -16,6 +16,9 @@ class cvl(cvlDefines):
     '''
         This class contains methods to interface with a cvl pf
     '''
+    def PrintInfo(self):
+        print(self.info())
+
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
             argument:
@@ -37,8 +40,8 @@ class cvl(cvlDefines):
         ret_string += "Current MAC link Speed : {}\n".format(link_status_dict['MacLinkSpeed'])
         ret_string += "Current Phy Type : {}\n".format(link_status_dict['PhyType'])
         ret_string += "Current FEC Type : {}\n".format(self.GetCurrentFECStatus())
-        ret_string += "Current PCIe link speed : {}\n".format(self.GetPCIECurrentLinkSpeed())
-        ret_string += "Current PCIe link Width : {}\n".format(self.GetPCIECurrentLinkWidth())
+        ret_string += "Current PCIe link speed : {}\n".format(self.GetCurrentPcieLinkSpeed())
+        ret_string += "Current PCIe link Width : {}\n".format(self.GetCurrentPcieLinkWidth())
         ret_string += "FW version : {}\n".format(fw_info['FW build'])
         ret_string += "FW build  : {}\n".format(fw_info['FW version'])
         ret_string += "#"*80 +"\n"
@@ -2935,7 +2938,6 @@ class cvl(cvlDefines):
         #print hex(val)
         return val
 
-
     def WriteLcbRegister(self, offset,data):
         '''This function writes a data to LCB register by register-offset
             Section 13.2.2.3.130  PCIe LCB Address Port - GLPCI_LCBADD(0x0009E944)
@@ -2954,39 +2956,19 @@ class cvl(cvlDefines):
         driver.write_csr(0x0009E944, self._GetValAddrLCB(offset)) # write the LCB reg address to the PCIe LCB Address Port
         driver.write_csr(0x0009E940, data) #write the reg data to the PCIe LCB Data Port
 
-    def GetPCIECurrentLinkSpeed(self):
-        '''This function returns PCIE link speed: 
-            argument: None
-            return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
-        '''
-        reg = (self.ReadLcbRegister(0x50))
-        val = get_bits_slice_value(reg,16,19) #speed
+    def GetCurrentPcieLinkSpeed(self):
+        link_status_register = self.driver.read_pci(0xB2)
 
-        link_speed = {
-            1: "Gen1",
-            2: "Gen2",
-            3: "Gen3",
-            4: "Gen4"
-        }
-        return link_speed.get(val,"Wrong")
+        link_speed = link_status_register & 0xF
 
-    def GetPCIECurrentLinkWidth(self):
-        '''This function returns PCIE link width: 
-            argument: None
-            return: 'x1' / 'x2' / 'x4' / 'x8' / 'x16'
-        '''
-        reg = (self.ReadLcbRegister(0x50))
-        val = get_bits_slice_value(reg,20,24) #width
+        vector_bit = self.data.link_speed_encoding[link_speed]
+        return self.data.supported_Link_speed_vector[vector_bit]
 
-        link_width = {
-            0: "Reserved",
-            1: "x1",
-            2: "x2",
-            4: "x4",
-            8: "x8",
-            16: "x16"
-        }
-        return link_width.get(val, "Wrong")
+    def GetCurrentPcieLinkWidth(self):
+        link_status_register = self.driver.read_pci(0xB2)
+
+        negotiated_link_width = (link_status_register >> 4) & 0x3f
+        return self.data.link_width_encoding[negotiated_link_width]
 
     def GetDevicePowerState(self):
         '''

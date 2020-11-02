@@ -10,7 +10,10 @@ from cpkTier1 import *
 class cpk(cpkTier1):
     '''
         This class contains all the methods to interface with a cvl pf
-    '''    
+    '''
+    def PrintInfo(self):
+        print(self.info())
+
     def info(self, advance = False, Location = "AQ"):
         '''
             This function print cpk info
@@ -27,12 +30,12 @@ class cpk(cpkTier1):
         ret_string += "Device Name : CPK\n"
         ret_string += "Device Number : {}\n".format(self.driver.device_number())
         ret_string += "Port Number : {}\n".format(self.driver.port_number())
-        ret_string += "Current MAC link status : {}\n".format('N/A')
-        ret_string += "Current MAC link Speed : {}\n".format('N/A')
-        ret_string += "Current Phy Type : {}\n".format('N/A')
+        ret_string += "Current MAC link status : {}\n".format(self.GetCurrentLinkStatus())
+        ret_string += "Current MAC link Speed : {}\n".format(self.GetCurrentLinkSpeed())
+        ret_string += "Current Phy Type : {}\n".format(self.GetCurrentPhyType())
         ret_string += "Current FEC Type : {}\n".format('N/A')
-        ret_string += "Current PCIe link speed : {}\n".format('N/A')
-        ret_string += "Current PCIe link Width : {}\n".format('N/A')
+        ret_string += "Current PCIe link speed : {}\n".format(self.GetCurrentPcieLinkSpeed())
+        ret_string += "Current PCIe link Width : {}\n".format(self.GetCurrentPcieLinkWidth())
         ret_string += "FW version : {}\n".format(fw_info['FW build'])
         ret_string += "FW build  : {}\n".format(fw_info['FW version'])
         ret_string += "#"*80 +"\n"
@@ -352,7 +355,33 @@ class cpk(cpkTier1):
         for key, val in data.items():
             print("{} : {}".format(key, val))
 
+    def GetCurrentPhyType(self):
+        gls = dict()
+        gls['port'] = 0 
+        gls['cmd_flag'] = 1
+        status, data = self.aq.GetLinkStatus(gls)
+        if status:
+            raise RuntimeError("Error {}: Admin command was not successful".format(self.aq.GetLinkStatusFields.__name__))
+
+        phy_type = data['phy_type']
         
+        for offset, phy_type_str in self.data.get_Ability_Phy_Type_dict.items():
+            if phy_type & (1<<offset):
+                return phy_type_str
+    
+    def GetCurrentLinkStatus(self):
+        gls = dict()
+        gls['port'] = 0 
+        gls['cmd_flag'] = 1
+        status, data = self.aq.GetLinkStatus(gls)
+        if status:
+            raise RuntimeError("Error {}: Admin command was not successful".format(self.aq.GetLinkStatusFields.__name__))
+        link_status = data['link_sts']
+        if link_status: 
+            return 'UP'
+        else:
+            return 'DOWN'
+
     def GetCurrentLinkSpeed(self, Location = "AQ"):
         '''
             This function return Mac Link Speed.
@@ -1739,94 +1768,19 @@ class cpk(cpkTier1):
         (output, err) = p.communicate()
         return output
 
-    def GetPCIECurrentLinkSpeed_WA(self):
-        '''This function returns PCIE link speed from linux command.
-            argument: None
-            return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
-        '''
-        driver = self.driver
-        dev_info_dict = driver.get_device_info()
+    def GetCurrentPcieLinkSpeed(self):
+        link_status_register = self.driver.read_pci(0xB2)
 
-        tmp_str = "lspci | grep " + dev_info_dict['dev_id']
-        #print tmp_str
-        tmp = self._ExecuteLinuxCommand(tmp_str)
-        tmp = tmp.split(" ")
+        link_speed = link_status_register & 0xF
 
+        vector_bit = self.data.link_speed_encoding[link_speed]
+        return self.data.supported_Link_speed_vector[vector_bit]
 
-        comm = "ls -la /sys/bus/pci/devices | grep " + tmp[0]
+    def GetCurrentPcieLinkWidth(self):
+        link_status_register = self.driver.read_pci(0xB2)
 
-        tmp = self._ExecuteLinuxCommand(comm)
-        tmp = tmp.split("/")
-
-
-        domain = tmp[-2].split(":")
-        domain = domain[1] + ":" + domain[2]
-
-        comm = "sudo lspci -vvv -s " + domain + " | grep LnkSta"
-        tmp = self._ExecuteLinuxCommand(comm)
-
-
-        if "16GT/s" in tmp:
-            #print "Gen4"   
-            return "Gen4"
-        elif "8GT/s" in tmp:
-            #print "Gen3"   
-            return "Gen3"
-        elif "5GT/s" in tmp:
-            #print "Gen2"
-            return "Gen2"
-        elif "2.5GT/s" in tmp:
-            #print "Gen1"   
-            return "Gen1"
-        else:
-            #print "N/A"
-            return "N/A"
-
-    def GetPCIECurrentLinkWidth_WA(self):
-        '''This function returns PCIE link width from linux command.
-            argument: None
-            return: 'x1' / 'x2' / 'x4' / 'x16'
-        '''
-        driver = self.driver
-        dev_info_dict = driver.get_device_info()
-
-        tmp_str = "lspci | grep " + dev_info_dict['dev_id']
-        #print tmp_str
-        tmp = self._ExecuteLinuxCommand(tmp_str)
-        tmp = tmp.split(" ")
-
-
-        comm = "ls -la /sys/bus/pci/devices | grep " + tmp[0]
-
-        tmp = self._ExecuteLinuxCommand(comm)
-        tmp = tmp.split("/")
-
-
-        domain = tmp[-2].split(":")
-        domain = domain[1] + ":" + domain[2]
-
-        comm = "sudo lspci -vvv -s " + domain + " | grep LnkSta"
-        tmp = self._ExecuteLinuxCommand(comm)
-
-
-        if "Width x16" in tmp:
-            #print "x16"    
-            return "x16"
-        elif "Width x8" in tmp:
-            #print "Gx8"    
-            return "x8"
-        elif "Width x4" in tmp:
-            #print "x4"
-            return "x4"
-        elif "Width x2" in tmp:
-            #print "x2" 
-            return "x2"
-        elif "Width x1" in tmp:
-            #print "x1" 
-            return "x1"
-        else:
-            #print "N/A"
-            return "N/A"
+        negotiated_link_width = (link_status_register >> 4) & 0x3f
+        return self.data.link_width_encoding[negotiated_link_width]
 
     ######################################################################################################
     ###############################          Rotem - debug is needed            ##########################
@@ -2919,37 +2873,6 @@ class cpk(cpkTier1):
         driver.write_csr(0x0009E944, self._GetValAddrLCB(offset)) # write the LCB reg address to the PCIe LCB Address Port
         driver.write_csr(0x0009E940, data) #write the reg data to the PCIe LCB Data Port
 
-    def GetPCIECurrentLinkSpeed(self):
-        '''This function returns PCIE link speed: 
-            argument: None
-            return: 'Gen1' / 'Gen2' / 'Gen3' / 'Gen4'
-        '''
-        #TODO implement this methdo
-
-        link_speed = {
-            1: "Gen1",
-            2: "Gen2",
-            3: "Gen3",
-            4: "Gen4"
-        }
-
-        return link_speed.get(val,"Wrong")
-
-    def GetPCIECurrentLinkWidth(self):
-        '''This function returns PCIE link width: 
-            argument: None
-            return: 'x1' / 'x2' / 'x4' / 'x8' / 'x16'
-        '''
-        #TODO implement this method for cpk
-        link_width = {
-            0: "Reserved",
-            1: "x1",
-            2: "x2",
-            4: "x4",
-            8: "x8",
-            16: "x16"
-        }
-        return link_width.get(val, "Wrong")
 
     def GetDevicePowerState(self):
         '''
@@ -3576,18 +3499,22 @@ class cpk(cpkTier1):
         self.SetLenientMode(False)
 
     def SetLenientMode(self, Enable):
+
+        status, data1 = self.aq.GetLinkStatus({'port':0, 'cmd_flag':0})
+        print data
         mode = 1
         if Enable:
             mode = 0
         status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
         if status:
             raise RuntimeError(error_msg)
+
         config = dict()
         config['port'] = 0 
-        config['phy_type_0'] = data['phy_type_0'] 
-        config['phy_type_1'] = data['phy_type_1']
-        config['phy_type_2'] = data['phy_type_2'] 
-        config['phy_type_3'] = data['phy_type_3'] 
+        config['phy_type_0'] = data1['phy_type_0'] 
+        config['phy_type_1'] = data1['phy_type_1']
+        config['phy_type_2'] = data1['phy_type_2'] 
+        config['phy_type_3'] = data1['phy_type_3'] 
         config['pause_abil'] = data['pause_abil']
         config['low_pwr_abil'] = data['low_pwr_abil']
         config['en_link'] = 1
@@ -3605,6 +3532,7 @@ class cpk(cpkTier1):
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
         config['module_complinance_enforcement'] = mode 
+
         status, data = self.aq.SetPhyConfig(config)
         if status:
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
