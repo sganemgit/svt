@@ -3291,150 +3291,57 @@ class cpk(cpkTier1):
 ######################         debug prints auto complete     #############
 ###########################################################################
 
-    def PRT_AN_HCD_OUTPUT(self):
-        return self.ReadDnlPstore(0x21)
-
-    def PRT_AN_LP_NP(self):
-        return self.ReadDnlPstore(0x22)
-
-    def PRT_AN_LP_BP(self):
-        return self.ReadDnlPstore(0x23)
-
-    def PRT_AN_LOCAL_NP(self):
-        return self.ReadDnlPstore(0x24)
-
-    def PRT_AN_LOCAL_BP(self):
-        return self.ReadDnlPstore(0x25)
-
-    def PRT_STATE_MACHINE(self):
-        return self.ReadDnlPstore(0x26)
-
-    def PRT_PCS_SELECT(self):
-        return self.ReadDnlPstore(0x27)
-
-    def PRT_SET_PMD_LINK_UP_ARG0(self):
-        return self.ReadDnlPstore(0x28)
-
-    def PRT_SET_PMD_LINK_UP_ARG1(self):
-        return self.ReadDnlPstore(0x29)
-
-    def PRT_SET_PMD_LINK_UP_ARG2(self):
-        return self.ReadDnlPstore(0x2A)
-
-    def PRT_SET_PMD_LINK_UP_ARG3(self):
-        return self.ReadDnlPstore(0x2B)
-
-    def PRT_SRDS_INT_CMD_ADDR(self):
-        return self.ReadDnlPstore(0x2C)
-
-    def PRT_CVL_SERDES_POLARITY(self):
-        return self.ReadDnlPstore(0x2D)
-
-    def PRT_FM_SPEED_OUTPUT(self):
-        return self.ReadDnlPstore(0x2E)
-
-    def PRT_LAST_CONFIG(self):
-        return self.ReadDnlPstore(0x2F)
-
-    def PRT_SET_PMD_LINK_Down_ARG0(self):
-        return self.ReadDnlPstore(0x30)
-
-    def PRT_CVL_FLAGS(self):
-        return self.ReadDnlPstore(0x31)
-
-    def PRT_SERDES_LOOP(self):
-        return self.ReadDnlPstore(0x32)
-
-    def PRT_WATCHDOG_TIMER(self):
-        return self.ReadDnlPstore(0x33)
-
-    def PRT_SCRATCH0(self):
-        return self.ReadDnlPstore(0x41)
-
-    def PRT_LAST_ERROR_CVL_ALL(self):
-        return self.ReadDnlPstore(0x42)
-
-    def PRT_LAST_ERROR_SET_PMD_LINK_UP(self):
-        return self.ReadDnlPstore(0x43)
-
-    def PRT_SET_PMD_LINK_UP_ARG0_BYPASS(self):
-        return self.ReadDnlPstore(0x44)
-
-    def PRT_SET_PMD_LINK_UP_ARG1_BYPASS(self):
-        return self.ReadDnlPstore(0x45)
-
-    def PRT_SET_PMD_LINK_UP_ARG2_BYPASS(self):
-        return self.ReadDnlPstore(0x46)
-
-    def PRT_SET_PMD_LINK_UP_ARG3_BYPASS(self):
-        return self.ReadDnlPstore(0x47)
-
-    def PRT_SET_LINK_UP_INPUT_ARG0(self):
-        return self.ReadDnlPstore(0x06)
-
-    def PRT_SET_LINK_UP_INPUT_ARG1(self):
-        return self.ReadDnlPstore(0x07)
-
-    def PRT_SET_LINK_UP_INPUT_ARG2(self):
-        return self.ReadDnlPstore(0x08)
-
-    def PRT_SET_LINK_UP_INPUT_ARG3(self):
-        return self.ReadDnlPstore(0x09)
-
-    def PRT_TOPO_CAPABILITIES_0(self):
-        return self.ReadDnlPstore(0x0A)
-
-    def PRT_TOPO_CAPABILITIES_1(self):
-        return self.ReadDnlPstore(0x0B)
-
-    def PRT_TOPO_CAPABILITIES_2(self):
-        return self.ReadDnlPstore(0x0C)
-
-    def PRT_TOPO_CAPABILITIES_3(self):
-        return self.ReadDnlPstore(0x0D)
-
-    def PRT_MEDIA_CAPABILITIES_0(self):
-        return self.ReadDnlPstore(0x0E)
-
-    def PRT_GET_CAPABILITIES_SM(self):
-        return self.ReadDnlPstore(0x0F)
-
-    def PRT_SET_LINK_CAPABILITIES_0(self):
-        return self.ReadDnlPstore(0x10)
-
-    def PRT_SET_LINK_CAPABILITIES_1(self):
-        return self.ReadDnlPstore(0x11)
-
-    def PRT_SET_LINK_CAPABILITIES_2(self):
-        return self.ReadDnlPstore(0x12)
-
-    def PRT_SET_LINK_CAPABILITIES_3(self):
-        return self.ReadDnlPstore(0x13)
-
-    def PRT_OUTERLINK_INFO(self):
-        return self.ReadDnlPstore(0x14)
-
-    def PRT_LINK_STATUS(self):
-        return self.ReadDnlPstore(0x15)
-
-    def PRT_LESM_INIT_AN_CONFIG(self):
-        return self.ReadDnlPstore(0x16)
-
-    def PRT_LESM_INIT_AN_LP_CONFIG(self):
-        return self.ReadDnlPstore(0x17)
-
-    def PRT_LESM_INIT_COUNTERS(self):
-        return self.ReadDnlPstore(0x18)
-
-    def PRT_LESM_INIT_FORCED_MODES(self):
-        return self.ReadDnlPstore(0x19)
-
-    def PRT_LESM_INIT_FEC_MODES(self):
-        return self.ReadDnlPstore(0x1A)
-
-    def PRT_LESM_INIT_FORCED_TIMEOUTS(self):
-        pass
-        #copy from cvl.py
+    def ReadDnlPersistentStores(self):
+        data = dict()
+        data['PRT_AN_HCD_OUTPUT'] = self.ReadDnlPstore(0x21)
+        data['PRT_AN_LP_NP'] = self.ReadDnlPstore(0x22)
+        data['PRT_AN_LP_BP'] = self.ReadDnlPstore(0x23)
+        data['PRT_AN_LOCAL_NP'] = self.ReadDnlPstore(0x24)
+        data['PRT_AN_LOCAL_BP'] = self.ReadDnlPstore(0x25)
+        data['PRT_STATE_MACHINE'] = self.ReadDnlPstore(0x26)
+        data['PRT_PCS_SELECT'] = self.ReadDnlPstore(0x27)
+        data['PRT_SET_PMD_LINK_UP_ARG0'] = self.ReadDnlPstore(0x28)
+        data['PRT_SET_PMD_LINK_UP_ARG1'] = self.ReadDnlPstore(0x29)
+        data['PRT_SET_PMD_LINK_UP_ARG2'] = self.ReadDnlPstore(0x2a)
+        data['PRT_SET_PMD_LINK_UP_ARG3'] = self.ReadDnlPstore(0x2b)
+        data['PRT_SRDS_INT_CMD_ADDR'] = self.ReadDnlPstore(0x2c)
+        data['PRT_CVL_SERDES_POLARITY'] = self.ReadDnlPstore(0x2d)
+        data['PRT_FM_SPEED_OUTPUT'] = self.ReadDnlPstore(0x2e)
+        data['PRT_LAST_CONFIG'] = self.ReadDnlPstore(0x2f)
+        data['PRT_SET_PMD_LINK_Down_ARG0'] = self.ReadDnlPstore(0x30)
+        data['PRT_CVL_FLAGS'] = self.ReadDnlPstore(0x31)
+        data['PRT_SERDES_LOOP'] = self.ReadDnlPstore(0x32)
+        data['PRT_WATCHDOG_TIMER'] = self.ReadDnlPstore(0x33)
+        data['PRT_SCRATCH0'] = self.ReadDnlPstore(0x41)
+        data['PRT_LAST_ERROR_CVL_ALL'] = self.ReadDnlPstore(0x42)
+        data['PRT_LAST_ERROR_SET_PMD_LINK_UP'] = self.ReadDnlPstore(0x43)
+        data['PRT_SET_PMD_LINK_UP_ARG0_BYPASS'] = self.ReadDnlPstore(0x44)
+        data['PRT_SET_PMD_LINK_UP_ARG1_BYPASS'] = self.ReadDnlPstore(0x45)
+        data['PRT_SET_PMD_LINK_UP_ARG2_BYPASS'] = self.ReadDnlPstore(0x46)
+        data['PRT_SET_PMD_LINK_UP_ARG3_BYPASS'] = self.ReadDnlPstore(0x47)
+        data['PRT_SET_LINK_UP_INPUT_ARG0'] = self.ReadDnlPstore(0x06)
+        data['PRT_SET_LINK_UP_INPUT_ARG1'] = self.ReadDnlPstore(0x07)
+        data['PRT_SET_LINK_UP_INPUT_ARG2'] = self.ReadDnlPstore(0x08)
+        data['PRT_SET_LINK_UP_INPUT_ARG3'] = self.ReadDnlPstore(0x09)
+        data['PRT_TOPO_CAPABILITIES_0'] = self.ReadDnlPstore(0x0a)
+        data['PRT_TOPO_CAPABILITIES_1'] = self.ReadDnlPstore(0x0b)
+        data['PRT_TOPO_CAPABILITIES_2'] = self.ReadDnlPstore(0x0c)
+        data['PRT_TOPO_CAPABILITIES_3'] = self.ReadDnlPstore(0x0d)
+        data['PRT_MEDIA_CAPABILITIES_0'] = self.ReadDnlPstore(0x0e)
+        data['PRT_GET_CAPABILITIES_SM'] = self.ReadDnlPstore(0x0f)
+        data['PRT_SET_LINK_CAPABILITIES_0'] = self.ReadDnlPstore(0x10)
+        data['PRT_SET_LINK_CAPABILITIES_1'] = self.ReadDnlPstore(0x11)
+        data['PRT_SET_LINK_CAPABILITIES_2'] = self.ReadDnlPstore(0x12)
+        data['PRT_SET_LINK_CAPABILITIES_3'] = self.ReadDnlPstore(0x13)
+        data['PRT_OUTERLINK_INFO'] = self.ReadDnlPstore(0x14)
+        data['PRT_LINK_STATUS'] = self.ReadDnlPstore(0x15)
+        data['PRT_LESM_INIT_AN_CONFIG'] = self.ReadDnlPstore(0x16)
+        data['PRT_LESM_INIT_AN_LP_CONFIG'] = self.ReadDnlPstore(0x17)
+        data['PRT_LESM_INIT_COUNTERS'] = self.ReadDnlPstore(0x18)
+        data['PRT_LESM_INIT_FORCED_MODES'] = self.ReadDnlPstore(0x19)
+        data['PRT_LESM_INIT_FEC_MODES'] = self.ReadDnlPstore(0x1a)
+        data['PRT_LESM_INIT_FORCED_TIMEOUTS'] = self.ReadDnlPstore(0x1b)
+        return data
 
     def _GetAllDiscoveredDeviceCapabilities(self, debug=False):
         status, data = self.aq.DiscoverDeviceCapabilities(dict(), debug)
