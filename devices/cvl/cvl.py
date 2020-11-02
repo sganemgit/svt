@@ -9,15 +9,19 @@ from core.utilities.SvtDecorator import *
 
 import time
 
-from devices.cvl.cvlDefines import cvlDefines, cvl_structs, AqOpCodes
-from core.devices.GenericInterface import GenericInterface
+from devices.cpk.cpkBase import cpkBase
 
-class cvl(cvlDefines):
+class cvl(cvlBase):
     '''
         This class contains methods to interface with a cvl pf
     '''
     def PrintInfo(self):
         print(self.info())
+
+    def PrintSkuInfo(self):
+        sku_info = self.GetSkuInfo()
+        for key, val in sku_info.items():
+            print('{} : {}'.format(key, val))
 
     def info(self, advance = False, Location = "AQ"):
         '''This function print cvl info
@@ -3168,6 +3172,36 @@ class cvl(cvlDefines):
             cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
         return cap_structs_list
 
+    def GetSkuInfo(self):
+        sku_cap = self.GetDiscoveredDeviceCapability('SKU')[0]
+        sku_info = dict()
+        ports = sku_cap.number & 0x3
+        if ports == 0x0: 
+            sku_info['enabled_ports'] = '8'
+        elif ports == 0x1:
+            sku_info['enabled_ports'] = '4'
+        elif ports == 0x2:
+            sku_info['enabled_ports'] = '2'
+        elif ports == 0x3:
+            sku_info['enabled_ports'] = '1'
+
+        bandwidth = (sku_cap.number >> 2) & 0x3
+
+        if bandwidth == 0x0:
+            sku_info['bandwidth'] = '200G'
+        elif bandwidth == 0x1: 
+            sku_info['bandwidth'] = '100G'
+        elif bandwidth == 0x2:
+            sku_info['bandwidth'] = '50G'
+        elif bandwidth == 0x3:
+            sku_info['bandwidth'] = '25G'
+        sku_info['PE Engine'] = 'disabled' if sku_cap.number & 0x10 else 'enabled'
+        sku_info['Switch Mode'] = 'enabled' if sku_cap.number & 0x20 else 'disabled'
+        sku_info['CSR Protcetion'] = 'enabled' if sku_cap.number & 0x40 else 'disabled'
+        sku_info['Block BME to FW'] = 'not_writable_by_fw' if sku_cap.number & 0x200 else 'writable_by_fw'
+        sku_info['SOC Type'] = 'SNR' if sku_cap.number & 0x400 else 'ICX-D'
+        sku_info['BTS Mode'] = 'non_bts' if sku_cap.number & 0x800 else 'bts'
+
     def EnableLenientMode(self):
         self.SetLenientMode(True)
 
@@ -3209,50 +3243,6 @@ class cvl(cvlDefines):
         if status:
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
-
-    def _GetAllDiscoveredDeviceCapabilities(self, debug=False):
-        status, data = self.aq.DiscoverDeviceCapabilities(dict(), debug)
-        occured_capability_dict = dict()
-        if not status:
-            DeviceCapabilities = dict()
-            for i in range(0,data['number_of_records']*32,32):
-                all_bytes = list()
-                all_bytes.extend(data['resource_recognized'][i:i+32])
-                if all_bytes[0] in occured_capability_dict.keys():
-                    occured_capability_dict[all_bytes[0]] +=1
-                    key_name = self.data.device_capabilities_dict[all_bytes[0]] + "_"+ str(occured_capability_dict[all_bytes[0]])
-                else: 
-                    occured_capability_dict[all_bytes[0]] = 1
-                    key_name = self.data.device_capabilities_dict[all_bytes[0]] 
-                DeviceCapabilities[key_name] = all_bytes
-            return DeviceCapabilities
-        else:
-             print('Failed to send dicsocer device capabilities Admin Command, status: {} '.format(status))
-
-    def _GetCapabilityStructure(self,capability_name,capability_list):
-        cap_struct = CapabilityStructure()
-        cap_struct.name = capability_name
-        cap_struct.capability = (capability_list[1] << 8) | capability_list[0]
-        cap_struct.major_version = capability_list[2]
-        cap_struct.minor_version = capability_list[3]
-        cap_struct.number = (capability_list[7] << 24) | (capability_list[6] << 16) | (capability_list[5] << 8) | capability_list[4]
-        cap_struct.logical_id = (capability_list[11] << 24) | (capability_list[10] << 16) | (capability_list[9] << 8) | capability_list[8]
-        cap_struct.physical_id = (capability_list[15] << 24) | (capability_list[14] << 16) | (capability_list[13] << 8) | capability_list[12]
-        for index, byte in enumerate(capability_list[16:23]):
-            cap_struct.data1 = (byte << (index*8)) | cap_struct.data1
-        for index, byte in enumerate(capability_list[24:31]):
-            cap_struct.data1 = (byte << (index*8)) | cap_struct.data1
-        return cap_struct
-
-    def GetDiscoveredDeviceCapability(self, capability=None):
-        all_discovered_dev_Caps = self._GetAllDiscoveredDeviceCapabilities()
-        cap_structs_list = list()
-        if capability:
-            duplicate_capabilities = {k:v for k,v in all_discovered_dev_Caps.items() if capability in k}
-            all_discovered_dev_Caps = duplicate_capabilities
-        for capability_name,capability_list in all_discovered_dev_Caps.items():
-            cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
-        return cap_structs_list
 
     def GetCurrentModuleComplianceEnforcement(self):
         '''

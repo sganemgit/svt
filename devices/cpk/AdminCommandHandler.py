@@ -681,7 +681,7 @@ class AdminCommandHandler:
 
         return (sto_0, sto_1, sto_2, sto_3)
 
-    def _DnlReadPstore(self, context, psto_index_to_read, debug=False):
+    def DnlReadPstore(self, context, psto_index_to_read, debug=False):
         '''
             Function that returns the value of the specific PSTO requested
             arguments:
@@ -751,7 +751,7 @@ class AdminCommandHandler:
     ######################           Support SECTION               ##########################################
     #########################################################################################################
 
-    def _NeighborDeviceRequestAq(self, opcode,Massage):
+    def NeighborDeviceRequestAq(self, opcode,Massage):
         '''
             this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
@@ -972,7 +972,23 @@ class AdminCommandHandler:
             return: 
                 value - return value from the neighbor device.
         ''' 
-        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        SbIosfMassageDict = {}
+        SbIosfMassageDict['dest'] = 0
+        SbIosfMassageDict['source'] = 0
+        SbIosfMassageDict['opcode'] = 0
+        SbIosfMassageDict['Tag'] = 0
+        SbIosfMassageDict['Bar'] = 0
+        SbIosfMassageDict['addrlen'] = 0
+        SbIosfMassageDict['EH'] = 0
+        SbIosfMassageDict['exphdrid'] = 0
+        SbIosfMassageDict['EH_2ndDW'] = 0
+        SbIosfMassageDict['sai'] = 0
+        SbIosfMassageDict['rs'] = 0
+        SbIosfMassageDict['fbe'] = 0
+        SbIosfMassageDict['Sbe'] = 0
+        SbIosfMassageDict['Fid'] = 0
+        SbIosfMassageDict['address'] = 0
+        SbIosfMassageDict['address_4thDW'] = 0
         buffer = []
      
         # First DW
@@ -1007,7 +1023,7 @@ class AdminCommandHandler:
         buffer.append(0)
         buffer.append(0)
 
-        return_buffer = self._NeighborDeviceRequestAq(1,buffer)
+        return_buffer = self.NeighborDeviceRequestAq(1,buffer)
         return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
         #print "return val: ", return_val
         return return_val.replace("L","")
@@ -1025,8 +1041,23 @@ class AdminCommandHandler:
             return: 
                 None
         ''' 
-        struct = cvl_structs()
-        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        SbIosfMassageDict = {}
+        SbIosfMassageDict['dest'] = 0
+        SbIosfMassageDict['source'] = 0
+        SbIosfMassageDict['opcode'] = 0
+        SbIosfMassageDict['Tag'] = 0
+        SbIosfMassageDict['Bar'] = 0
+        SbIosfMassageDict['addrlen'] = 0
+        SbIosfMassageDict['EH'] = 0
+        SbIosfMassageDict['exphdrid'] = 0
+        SbIosfMassageDict['EH_2ndDW'] = 0
+        SbIosfMassageDict['sai'] = 0
+        SbIosfMassageDict['rs'] = 0
+        SbIosfMassageDict['fbe'] = 0
+        SbIosfMassageDict['Sbe'] = 0
+        SbIosfMassageDict['Fid'] = 0
+        SbIosfMassageDict['address'] = 0
+        SbIosfMassageDict['address_4thDW'] = 0
         buffer = []
      
         # First DW
@@ -1382,7 +1413,7 @@ class AdminCommandHandler:
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.datalen = len(buffer)
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, True)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send dicsocer device capabilities Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag

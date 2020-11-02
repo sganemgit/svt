@@ -5,23 +5,23 @@ from core.utilities.BitManipulation import *
 from core.utilities.SvtDecorator import *
 from core.structs.AqDescriptor import AqDescriptor
 from core.structs.CapabilityStructure import CapabilityStructure
-from cpkTier1 import *
+from devices.cpk.cpkBase import cpkBase
 
-class cpk(cpkTier1):
+class cpk(cpkBase):
     '''
         This class contains all the methods to interface with a cvl pf
     '''
     def PrintInfo(self):
         print(self.info())
 
-    def info(self, advance = False, Location = "AQ"):
+    def PrintSkuInfo(self):
+        sku_info = self.GetSkuInfo()
+        for key, val in sku_info.items():
+            print('{} : {}'.format(key, val))
+
+    def info(self):
         '''
             This function print cpk info
-            argument:
-                Advance - True/False. if true print more info.
-                Location - AQ/REG
-            return:
-                None
         '''
         fw_info = self.driver.get_fw_info()
         ret_string = "#"*80 +"\n"
@@ -33,7 +33,7 @@ class cpk(cpkTier1):
         ret_string += "Current MAC link status : {}\n".format(self.GetCurrentLinkStatus())
         ret_string += "Current MAC link Speed : {}\n".format(self.GetCurrentLinkSpeed())
         ret_string += "Current Phy Type : {}\n".format(self.GetCurrentPhyType())
-        ret_string += "Current FEC Type : {}\n".format('N/A')
+        ret_string += "Current FEC Type : {}\n".format(self.GetCurrentFec())
         ret_string += "Current PCIe link speed : {}\n".format(self.GetCurrentPcieLinkSpeed())
         ret_string += "Current PCIe link Width : {}\n".format(self.GetCurrentPcieLinkWidth())
         ret_string += "FW version : {}\n".format(fw_info['FW build'])
@@ -300,7 +300,7 @@ class cpk(cpkTier1):
         end_PTC = self.GetPTC()[ConvertPacketSizeToPTC(packet_size)]
         return int((end_PTC - start_PTC)*8*packet_size/(curr_time - start_time))
 
-    def GetMacLinkStatus(self, Location = "AQ"):
+    def GetCurrentMacLinkStatus(self, Location = "AQ"):
         '''
             This function returns the link status.
             argument: read by AQ/REG
@@ -424,7 +424,7 @@ class cpk(cpkTier1):
             raise RuntimeError("Error _GetCurrentLinkSpeedAq: Admin command was not successful")
 
         current_link_speed = data['current_link_speed']
-        for key, val in self.Get_Speed_Status_dict.items():
+        for key, val in self.data.get_speed_status_dict.items():
             mask = 1 << key
             if current_link_speed & mask:
                 return val
@@ -490,11 +490,9 @@ class cpk(cpkTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = 1
         
-        result = self.GetPhyAbilities(get_abils)
+        status, data = self.aq.GetPhyAbilities(get_abils)
         
-        if not result[0]: 
-            data = result[1]
-        else:
+        if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
         
         module_type_info_dict = dict()    
@@ -504,7 +502,7 @@ class cpk(cpkTier1):
 
         byte1 = (current_module_type >> 8) & 0xFF
         supported_tecknologies_list = list()
-        for key, val in self.suppoted_module_technologies_dict.items():
+        for key, val in self.data.suppoted_module_technologies_dict.items():
             mask = 1 << key
             if byte1 & mask: 
                 supported_tecknologies_list.append(val)
@@ -514,85 +512,23 @@ class cpk(cpkTier1):
         module_type_info_dict['GBE_compliance_code'] = (current_module_type >> 16) & 0xFF
         return module_type_info_dict
 
-    def GetPhyType(self, Location = "AQ"):
-        '''
-            This function return Phy type
-            input: Location = "AQ"
-            return: phy type (str)
-        '''
-        if Location == "REG":
-            Phy_Type = self._GetPhyTypeReg()
-        elif Location == "AQ":
-            Phy_Type = self._GetPhyTypeAq()
-        else:
-            raise RuntimeError("Error GetPhyType: Error Location, please insert location REG/AQ")
-        return Phy_Type
-
-    def _GetPhyTypeReg(self):
-        '''
-            This function return Phy type.
-            for debug only because GetPhyType by REG is not implimented.
-        '''
-        raise RuntimeError("Get Phy type by Reg is not implemented")
-
-    def _GetPhyTypeAq(self):
-        '''
-            This function return Phy type using Get link status AQ.
-            return: Phy type in str
-        '''
-        gls = {}
-        gls['port'] = 0 #not relevant for CVL according to CVL Spec
-        gls['cmd_flag'] = 1
-        status, data = self.aq.GetLinkStatus(gls)
-        if status:
-            raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
-
-        phy_type = data['phy_type'] 
-        if self.Get_Phy_Type_Status_dict:
-            for i in range(len(self.Get_Phy_Type_Status_dict)):
-                if ((phy_type >> i) & 0x1):
-                    return self.Get_Phy_Type_Status_dict[i]
-        else:
-            raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
-
-    def GetCurrentFECStatus(self, Location = "AQ"):
+    def GetCurrentFec(self):
         '''
             This function return the current FEC status
-            argument:
-                Location = "REG" / "AQ"
         '''
-        if Location == "REG":
-            self._GetCurrentFECStatusReg()
-        elif Location == "AQ":
-            FEC_Type = self._GetCurrentFECStatusAq()
-        else:
-            raise RuntimeError("Err GetCurrentFECStatus: Error Location, please insert location REG/AQ")
-        return FEC_Type
-
-    def _GetCurrentFECStatusReg(self):
-        '''
-            This function returns the FEC status using register.
-            for debug only because GetCurrentFecStatus by REG is not implimented.
-            return: None
-        '''
-        raise RuntimeError("Get current FEC status by Reg is not implimented")
-
-    def _GetCurrentFECStatusAq(self):
-        '''
-            This function returns the FEC status using Get link status AQ.
-            return: FEC type by str
-        '''
-        link_speed = self.GetPhyLinkSpeed()
-
-        if self.GetPhyType() == 'N/A':
-            return 'N/A'
         gls = {}
-        gls['port'] = 0 #not relevant for CVL according to CVL Spec
+        gls['port'] = 0 
         gls['cmd_flag'] = 1
         status, data = self.aq.GetLinkStatus(gls)
-
         if status:
-            raise RuntimeError("Error _GetCurrentFECStatusAq: Admin command was not successful")
+            raise RuntimeError("Error GetLinkStatus: Admin command failed")
+
+        link_speed = data['current_link_speed']
+        for key, val in self.data.get_speed_status_dict.items():
+            mask = 1 << key
+            if link_speed & mask:
+                link_speed = val
+                break
 
         FEC_list = ['10G_KR_FEC','25G_KR_FEC','25G_RS_528_FEC','25G_RS_544_FEC']
         if link_speed == '10G':
@@ -619,7 +555,7 @@ class cpk(cpkTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = 0 
         
-        status, data = self.GetPhyAbilities(get_abils)
+        status, data = self.aq.GetPhyAbilities(get_abils)
         
         if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
@@ -628,30 +564,8 @@ class cpk(cpkTier1):
             return 'strict'
         else:
             return 'lenient'
-         
-    def GetPhyTypeAbilities(self, rep_mode = 0, Location = "AQ"):
-        '''
-            This function return list of phy types
-            argument:
-                rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ"
-        '''
-        if Location == "REG":
-            self._GetPhyTypeAbilitiesReg()
-        elif Location == "AQ":
-            phy_type_list = self._GetPhyTypeAbilitiesAq(rep_mode)
-        else:
-            raise RuntimeError("Err GetPhyTypeAbilities: Error Location, please insert location REG/AQ")
-        return phy_type_list
 
-    def _GetPhyTypeAbilitiesReg(self):
-        '''
-            This function return list of phy types
-            for debug only because reset by AQ is not implimented.
-        '''
-        raise RuntimeError("Get Phy Type Abilities by Reg is not implimented")      
-
-    def _GetPhyTypeAbilitiesAq(self, rep_mode):
+    def GetPhyTypeAbilities(self, rep_mode=0):
         '''
             Description: Get various PHY type abilities supported on the port.
             input:
@@ -664,7 +578,7 @@ class cpk(cpkTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        status, data = self.GetPhyAbilities(get_abils)
+        status, data = self.aq.GetPhyAbilities(get_abils)
         
         if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
@@ -673,37 +587,13 @@ class cpk(cpkTier1):
         
         phy_type_list = list()
         
-        for i in range(len(self.get_Ability_Phy_Type_dict)):
+        for i in range(len(self.data.get_Ability_Phy_Type_dict)):
             if ((phy_type >> i) & 0x1):
-                phy_type_list.append(self.get_Ability_Phy_Type_dict[i])
+                phy_type_list.append(self.data.get_Ability_Phy_Type_dict[i])
                
         return phy_type_list
-
-    def GetEEEAbilities(self, rep_mode, Location = "AQ"):
-        '''
-            This function return list of EEE abilities
-            argument:
-                rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ" 
      
-        '''
-        if Location == "REG":
-            self._GetEEEAbilitiesReg()
-        elif Location == "AQ":
-            EEE_list = self._GetEEEAbilitiesAq(rep_mode)
-        else:
-            raise RuntimeError("Err GetEEEAbilities: Error Location, please insert location REG/AQ")
-
-        return EEE_list 
-     
-    def _GetEEEAbilitiesReg(self):
-        '''
-            This function return list of EEE abilities
-            for debug only because FecAbilities by REG is not implimented.
-        '''
-        raise RuntimeError("Get EEE Abilities by Reg is not implimented")   
-     
-    def _GetEEEAbilitiesAq(self, rep_mode):
+    def GetEeeAbilities(self, rep_mode=0):
         '''
             Description: Get EEE abilities supported on the port.
             input:
@@ -716,182 +606,19 @@ class cpk(cpkTier1):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = rep_mode
         
-        status, data = self.GetPhyAbilities(get_abils) 
+        status, data = self.aq.GetPhyAbilities(get_abils) 
         if status:
             raise RuntimeError("Error _GetEEEAbilitiesAq: Admin command was not successful")  
             
         EEE_list = list()
         eee_cap = data['eee_cap']
-        for key, val in self.get_Ability_EEE_dict.items():
+        for key, val in self.aq.get_Ability_EEE_dict.items():
             mask = 1 << key
             if mask & eee_cap:
                 EEE_list.append(val)
         return EEE_list
 
-    def GetFecAbilities(self,rep_mode = 1, Location = "AQ"):
-        '''
-            This function return list of FEC abilities
-            argument:
-                rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ" 
-            return:
-                FEC_list - contain FEC options by str
-        '''
-        if Location == "REG":
-            self._GetFecAbilitiesReg()
-        elif Location == "AQ":
-            FEC_list = self._GetFecAbilitiesAq(rep_mode)
-        else:
-            raise RuntimeError("Err GetFecAbilities: Error Location, please insert location REG/AQ")    
-       
-        return FEC_list
-
-    def _GetFecAbilitiesReg(self):
-        '''
-            This function return list of FEC abilities
-            for debug only because FecAbilities by REG is not implimented.
-        '''
-        raise RuntimeError("Get FEC Abilities by Reg is not implimented")
-
-    def _GetFecAbilitiesAq(self,rep_mode):
-        '''
-            Description: Get available FEC options for the link
-            input:
-                rep_mode : int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-            return:
-                FEC_list - contain FEC options by str
-        '''
-        
-        get_abils = {}
-        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
-        get_abils['rep_qual_mod'] = 0
-        get_abils['rep_mode'] = rep_mode
-        
-        result = self.GetPhyAbilities(get_abils)
-        
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
-            raise RuntimeError("Error _GetFecAbilitiesAq: Admin command was not successful")  
-            
-        FEC_list = []
-        if data['fec_firecode_10g_abil']:
-            FEC_list.append(self.get_Ability_FEC_dict[0])
-        
-        if data['fec_firecode_10g_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[1])
-        
-        if data['fec_rs528_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[2])
-            
-        if data['fec_firecode_25g_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[3])
-            
-        if data['fec_rs544_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[4])
-            
-        if data['fec_rs528_abil']:
-            FEC_list.append(self.get_Ability_FEC_dict[6])
-            
-        if data['fec_firecode_25g_abil']:
-            FEC_list.append(self.get_Ability_FEC_dict[7])
-                
-        #print FEC_list
-        return FEC_list
-
-    def GetPhyLinkSpeed(self, Location = "REG"):
-        '''
-            This function return Phy Link Speed.
-            argument:
-                Location = "REG" / "AQ" 
-            return: 
-                link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G'
-        '''
-        if Location == "REG":
-            LinkSpeed = self._GetPhyLinkSpeedReg() 
-        elif Location == "AQ":
-            LinkSpeed = self._GetPhyLinkSpeedAq() 
-        else:
-            raise RuntimeError("Err GetPhyLinkSpeed: Error Location, please insert location REG/AQ")    
-            
-        return LinkSpeed    
-        
-    def _GetPhyLinkSpeedReg(self):
-        '''
-            This function return Phy Link Speed.
-            return: 
-                link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G'
-        '''
-        driver = self.driver
-        reg_addr = calculate_port_offset(0x03001030, 0x100, driver.port_number())
-        value = self.ReadEthwRegister(reg_addr)
-        return self.Phy_link_speed_dict[int(value,16)]
-        
-    def _GetPhyLinkSpeedAq(self):
-        '''
-            This function return Phy Link Speed using Get link status AQ.
-            return:
-                link speed by str - '10M' / '100M' / '1G' / '2.5G' / '5G' / '10G' / '20G' / '25G' / '40G' / '50G' / '100G' / '200G' 
-        '''
-        raise RuntimeError("_GetPhyLinkSpeedAq need to be done")
-
-    def GetPhyLinkStatus(self, Location = "AQ"):
-        '''
-            This function return Phy Link status.
-            argument:
-                Location = "REG" / "AQ" 
-            return: 
-                True/False
-        '''
-        if Location == "REG":
-            LinkStatus = self._GetPhyLinkStatusReg() 
-        elif Location == "AQ":
-            LinkStatus = self._GetPhyLinkStatusAq() 
-        else:
-            raise RuntimeError("Err GetPhyLinkStatus: Error Location, please insert location REG/AQ")   
-            
-        return LinkStatus   
-
-    def _GetPhyLinkStatusReg(self):
-        '''This function return PCS Link Status
-            for debug only because GetPhyLinkStatus by REG is not implimented.
-        '''
-        raise RuntimeError("Get link status by Reg is not implimented")
-        
-    def _GetPhyLinkStatusAq(self):
-        '''
-            This function return PCS Link Status .
-            return: true (link up)/false (link down)
-        '''
-        quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        
-        link_speed = self.GetPhyLinkSpeed()
-        
-        if link_speed == "100M" or link_speed == "1G":
-            offset_base = calculate_port_offset(0x03000180, 0x4, pmd_num)
-            reg_addr = calculate_port_offset(offset_base, 0x100, quad)  
-            value = self.ReadEthwRegister(reg_addr)
-            link_speed_from_reg = get_bits_slice_value(int(value,16), 2, 3)
-            link_speed_from_reg_dict = {1: "100M", 2: "1G"}
-            
-            if link_speed == link_speed_from_reg_dict[link_speed_from_reg]:
-                link_status = get_bit_value(int(value,16), 0)
-            else:
-                return 0    
-            
-        else:
-            reg_addr = calculate_port_offset(0x03000108, 0x100, quad)
-            value = self.ReadEthwRegister(reg_addr)
-            
-            if link_speed == "100G":
-                link_status = get_bit_value(int(value,16), 8) #according PCS-Status register
-            else:
-                value = get_bits_slice_value(int(value,16), 0, 3)
-                link_status = get_bit_value(value, pmd_num)
-        
-        return link_status
-
-
+    #TODO change to DisableFecRequest camelcase compliante
     def DisableFECRequests(self, rep_mode = 1, Location = "AQ"):
         '''This function diables all feq requests by the device while keeping all other abillities intact 
             argument:
@@ -918,7 +645,7 @@ class cpk(cpkTier1):
         '''
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
 
         if data[0]:
             error_msg = 'Error DisableFECRequests: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -951,13 +678,13 @@ class cpk(cpkTier1):
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
 
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         
         if status[0]:
             error_msg = 'Error DisableFECRequests: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
 
-    def DisableLESM(self, rep_mode = 1):
+    def DisableLesm(self, rep_mode = 1):
         '''this function diable LESM while keeping all other abillities intact 
             arguments: rep_mode
             return: none 
@@ -965,7 +692,7 @@ class cpk(cpkTier1):
         '''
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+        data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
 
         if data[0]:
             error_msg = 'Error DisableLESM: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -995,11 +722,8 @@ class cpk(cpkTier1):
         config['fec_rs544_req'] = abilities['fec_rs544_req']
         config['fec_rs528_abil'] = abilities['fec_rs528_abil']
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
-
         status = ()
-        status =  self.SetPhyConfig(config)
-        print(status)
-
+        status =  self.aq.SetPhyConfig(config)
         if status[0]:
             error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
@@ -1007,7 +731,7 @@ class cpk(cpkTier1):
     def DisableAN37(self, rep_mode = 0):
         config = {}
         phy_type = 0
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode})
+        data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode})
 
         if data[0]:
             error_msg = 'Error DisableAN37: _GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
@@ -1039,7 +763,7 @@ class cpk(cpkTier1):
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
         config['an_mode'] = 0
         status = ()
-        status =  self.SetPhyConfig(config)
+        status =  self.aq.SetPhyConfig(config)
         print(status)
         
         if status[0]:
@@ -1167,482 +891,11 @@ class cpk(cpkTier1):
             error_msg = 'Error _SetPhyConfigurationAQ: fec input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
             raise RuntimeError(error_msg)
 
-        status = ()
-        status =  self.aq.SetPhyConfig(config)
+        status, data =  self.aq.SetPhyConfig(config)
 
-        if debug == True:
-            if status[0] == 0:
-                print("Admin command successded") #TODO print admin command message 
-            else:
-                print("Admin command failed")
-                print(config)
-        if status[0] :
-            error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(status[1])
-            raise RuntimeError(error_msg)   
-        
-    def SetPhyType(self, PhyType, rep_mode = 1, Location = "AQ"):
-        '''This function sets Phy type
-            argument:
-                PhyType = str or list(for consortium phy type)
-                rep_mode - int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "AQ"     
-            return:
-                None
-        '''
-        if Location == "REG":
-            self._SetPhyTypeReg()
-        elif Location == "AQ":
-            self._SetPhyTypeAq(PhyType, rep_mode)
-     
-        else:
-            raise RuntimeError("Error SetLinkSpeed: Error Location, please insert location REG/AQ")
-
-    def _SetPhyTypeReg(self):
-        '''This function configures the phy type
-            for debug only because SetPhyType by REG is not implimented.
-        '''     
-        raise RuntimeError("Set phy type by Reg is not implimented")
-            
-    def _SetPhyTypeAq(self, phy_type_list, rep_mode = 1):
-        '''This function configure the Phy type on link
-            argument:
-                phy_type_list - list of phy types (list) bit definitions in Section 3.5.3.2.1 of CVL HAS
-                rep_mode - int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-            return:
-                None
-        '''
-        # for support str and list toghter
-
-        if (type(phy_type_list) == str ):
-            tmp_str = phy_type_list
-            phy_type_list = []
-            phy_type_list.append(tmp_str)
-        else:
-            pass
-        
-
-        config = {}
-        phy_type = 0
-        
-        args = {}
-        args['port'] = 0 #not relevant for CVL according to CVL Spec
-        args['rep_qual_mod'] = 0 # 1 will report list of qualified modules, 0 will not
-        args['rep_mode'] = rep_mode
-        result = self.GetPhyAbilities(args) 
-        
-        if result[0]:
-            error_msg = 'Error _SetPhyTypeAq: GetPhyAbilities Admin command was not successful, retval {}'.format(result[1])
-            raise RuntimeError(error_msg)
-            
-        abilities = result[1]
-        
-        config['port'] = 0 #not relevant for CVL according to CVL Spec
-
-        for recieved_phy_type in phy_type_list:
-            if recieved_phy_type in self.set_Ability_PhyType_dict:
-                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
-            else:
-                raise RuntimeError("Error _SetPhyTypeAq: PHY_type is not exist in set_Ability_PhyType_dict") 
-        
-        config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
-        config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
-        config['phy_type_2'] = get_bits_slice_value(phy_type,64,95)
-        config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
-        
-        config['tx_pause_req'] = abilities['pause_abil']
-        config['rx_pause_req'] = abilities['asy_dir_abil']
-        config['low_pwr_abil'] = abilities['low_pwr_abil']
-        config['en_link'] = 1
-        config['en_auto_update'] = 1
-        config['lesm_en'] = abilities['lesm_en']
-        config['auto_fec_en'] = abilities['auto_fec_en']
-        config['low_pwr_ctrl'] = abilities['low_pwr_ctrl']
-        config['eee_cap_en'] = abilities['eee_cap']
-        config['eeer'] = abilities['eeer']
-        config['fec_firecode_10g_abil'] = abilities['fec_firecode_10g_abil']
-        config['fec_firecode_10g_req'] = abilities['fec_firecode_10g_req']
-        config['fec_rs528_req'] = abilities['fec_rs528_req']
-        config['fec_firecode_25g_req'] = abilities['fec_firecode_25g_req']
-        config['fec_rs544_req'] = abilities['fec_rs544_req']
-        config['fec_rs528_abil'] = abilities['fec_rs528_abil']
-        config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
-        #print config
-        status = ()
-        status =  self.SetPhyConfig(config)
-        print(status)
-        
-        if status[0]:
-            error_msg = 'Error _SetPhyTypeAq: Admin command was not successful, retval {}'.format(status[1])
-            raise RuntimeError(error_msg)   
-            
-
-    def SetFecSetting(self,set_fec, AmIDut,rep_mode =1 , Location = "AQ"):
-        '''This function configure the FEC option for the link
-            argument:
-                set_fec - 'NO_FEC'/'25G_KR_FEC'/'25G_RS_528_FEC'/'25G_RS_544_FEC' (string) -- Enables or disables FEC Options on the link, bitfield defined in Section 3.4.4.1.3 of CVL HAS
-                AmIDut - True/False
-                rep_mode - int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ" 
-            return: None
-        '''
-        if Location == "REG":
-            self._SetFecSettingReg()
-        elif Location == "AQ":
-            self._SetFecSettingAq(set_fec, AmIDut, rep_mode)
-        else:
-            raise RuntimeError("Err SetFecSetting: Error Location, please insert location REG/AQ")  
-     
-    def _SetFecSettingReg(self):
-        '''This function configures the fec option
-            for debug only because SetFecSetting by REG is not implimented.
-        '''     
-        raise RuntimeError("Set FEC by Reg is not implimented") 
-     
-    def _SetFecSettingAq(self,set_fec, AmIDut, rep_mode):
-        '''This function configure the FEC option for the link
-            input: 
-                set_fec: NO_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC (string) -- Enables or disables FEC Options on the link, bitfield defined in Section 3.4.4.1.3 of CVL HAS
-        '''
-        config = {}
-
-        data = self.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
-        abilities = data[1]
-        
-        config['port'] = 0 #not relevant for CVL according to CVL Spec
-        
-        if AmIDut:
-            link_status = self.aq.GetLinkStatus({'port':0, 'cmd_flag':1})
-            phy_type = link_status[1]
-            
-            config['phy_type_0'] = phy_type['phy_type_0']
-            config['phy_type_1'] = phy_type['phy_type_1']
-            config['phy_type_2'] = phy_type['phy_type_2']
-            config['phy_type_3'] = phy_type['phy_type_3']
-        
-        else:
-            config['phy_type_0'] = abilities['phy_type_0']
-            config['phy_type_1'] = abilities['phy_type_1']
-            config['phy_type_2'] = abilities['phy_type_2']
-            config['phy_type_3'] = abilities['phy_type_3']
-        
-        config['tx_pause_req'] = abilities['pause_abil']
-        config['rx_pause_req'] = abilities['asy_dir_abil']
-        config['low_pwr_abil'] = abilities['low_pwr_abil']
-        config['en_link'] = 1
-        config['en_auto_update'] = 1
-        config['lesm_en'] = abilities['lesm_en']
-        config['auto_fec_en'] = 0 
-        config['low_pwr_ctrl'] = abilities['low_pwr_ctrl']
-        config['eee_cap_en'] = abilities['eee_cap']
-        config['eeer'] = abilities['eeer']
-        
-        if set_fec == 'NO_FEC':
-            config['fec_firecode_10g_abil'] = 0 
-            config['fec_firecode_10g_req'] = 0 
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 0 
-            config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0
-            config['fec_firecode_25g_abil'] = 0 
-            
-        elif set_fec == '10G_KR_FEC':
-            config['fec_firecode_10g_abil'] = 1 
-            config['fec_firecode_10g_req'] = 1 
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 0 
-            config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0
-            config['fec_firecode_25g_abil'] = 0
-        
-        elif set_fec == '25G_KR_FEC':
-            config['fec_firecode_10g_abil'] = 1 
-            config['fec_firecode_10g_req'] = 1 
-            config['fec_rs528_req'] = 0 
-            config['fec_firecode_25g_req'] = 1 
-            config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0
-            config['fec_firecode_25g_abil'] = 1 
-            
-        elif set_fec == '25G_RS_528_FEC' or set_fec == '25G_RS_544_FEC':
-            config['fec_firecode_10g_abil'] = 1 
-            config['fec_firecode_10g_req'] = 1 
-            config['fec_rs528_req'] = 1 
-            config['fec_firecode_25g_req'] = 1 
-            config['fec_rs544_req'] = 1 
-            config['fec_rs528_abil'] = 1
-            config['fec_firecode_25g_abil'] = 1 
-            
-        else:
-            error_msg = 'Error _SetFecSetting: input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
-            raise RuntimeError(error_msg)
-        #print config
-        status = ()
-        status =  self.SetPhyConfig(config)
-        
-        if status[0]:
-            error_msg = 'Error _SetFecSetting: Admin command was not successful, retval {}'.format(status[1])
-            raise RuntimeError(error_msg)
-
-    def GetPhytuningParams(self,debug = False):
-        '''This function returns dict of phy tuning info 
-            return: dictinary of opcode 9 from CVL-DFT-D8.*EX
-        '''
-        Phytuning_per_serdes_dict = {}
-        Phytuning_final_dict = {}
-        Phytuning_dict = {}
-        driver = self.driver
-        port_num = driver.port_number()
-        #number_of_ports = 2#TOTO add reading driver indication
-        current_device_number =  driver.device_number()
-        number_of_ports = number_of_ports_dict[current_device_number]
-        #print "number_of_ports: ",number_of_ports
-        serdes_sel = []
-
-        if number_of_ports == 1:# according pf to mac mapping in cvl spec 3.4.2.3.2
-            quad = 0
-            serdes_sel.append(0)
-
-        if number_of_ports == 2:        
-            phy_type = self.GetPhyType()
-            
-            if phy_type in NRZ_100G_phytype_list:
-                serdes_sel = serdeses_per_portnum_4_dict[port_num] #serdes_sel = [1,2,3,4] for 100G-KR4 
-
-            elif (phy_type in PAM4_100G_phytype_list) or (phy_type in NRZ_50G_phytype_list):
-                serdes_sel = serdeses_per_portnum_2_dict[port_num]
-
-            else: #for 50G-PAM4 and others
-                serdes_sel.append(Serdes_mapping_per_pf_2_ports[port_num])
-
-        elif number_of_ports == 4:   
-            if self.GetMuxStatus():
-                serdes_sel.append(Serdes_mapping_per_pf_4_ports_mux[port_num])
-            else:
-                serdes_sel.append(Serdes_mapping_per_pf_4_ports[port_num])
-
-        elif number_of_ports == 8:        
-            serdes_sel.append(Serdes_mapping_per_pf_8_ports[port_num])
-
-        #print 'serdes_sel: ',serdes_sel
-
-        for current_serdes in serdes_sel:
-            Phytuning_final_dict[current_serdes] = {}
-
-            for key,val in Phy_tuning_params_dict.iteritems():
-                #args opcode,serdes_sel,data_in,debug=False
-                ret_val = self.DnlCvlDftTest(0x9, current_serdes, val, debug=False)
-                #print key,ret_val
-                if ((int(ret_val,16) >> 15) == 1):# negative number
-                    ret_val = '-' + hex(2**16 - int(ret_val,16))
-                Phytuning_final_dict[current_serdes][key] = ret_val
-
-        if debug:
-            for key,val in Phytuning_final_dict.iteritems():
-                print(key)
-                Phytuning_dict = Phytuning_final_dict[key]
-                keylist = Phytuning_dict.keys()
-                keylist.sort()
-                for k in keylist:
-                    #handler.serial_print(str(k) + ': '+ str(Phytuning_dict[k]))
-                    print(str(k) + ': '+ str(Phytuning_dict[k]))
-                print()
-
-        return Phytuning_final_dict
-
-    def GetMuxStatus(self):
-        '''This function return True/False according to signal controlling external mux (bit 2) - cvl spec 13.2.2.1.228
-            input: None
-            return:
-                True - mux in used
-                False - mux not in used
-        '''
-        # driver = self.driver
-        reg_data = self.driver.read_csr(0xb81e0)
-        mux_status = get_bit_value(reg_data,2)
-        return mux_status
-
-    def get_rsfec_corrected_codeword(self, quad= None):
-        '''This function returns the rsfec corrected codeword see Section 22.3 of More than IP spec  ver 3.2
-            argument:
-                quad num according the pf number
-            return:
-                rsfec corrected codeword counter 32 bit
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],2),16)
-        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],3),16)
-        return (counter_high << 16) | counter_low
-
-    def get_rsfec_uncorrected_codeword(self, quad = None):
-        '''This function returns the rsfec uncorrected codeword see Section 22.3 of More than IP spec  ver 3.2
-            argument:
-                quad num according the pf number
-            return:
-                rsfec uncorrected codeword counter 32 bit
-        '''
-        if quad == None :
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],4),16)
-        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],5),16)
-        return (counter_high << 16) | counter_low   
-
-    def get_rsfec_corrected_symbol_lane0(self, quad = None):
-        '''This function returns the rsfec corrected symbol in lane 0 see Section 22.3 of More than IP spec  ver 3.2
-            argument:
-                quad num according the pf number
-            return:
-                rsfec corrected symbol in lane 0 counter 32 bit
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],10),16)
-        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],11),16)
-        return (counter_high << 16) | counter_low
-        
-    def get_rsfec_corrected_symbol_lane1(self, quad = None):
-        '''This function returns the rsfec corrected symbol in lane 1 see Section 22.3 of More than IP spec  ver 3.2
-            argument:
-                quad num according the pf number
-            return:
-                rsfec corrected symbol in lane 1 counter 32 bit
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],12),16)
-        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],13),16)
-        return (counter_high << 16) | counter_low
-
-    def get_rsfec_corrected_symbol_lane2(self, quad = None):
-        '''This function returns the rsfec corrected symbol in lane 2 see Section 22.3 of More than IP spec  ver 3.2
-            argument:
-                quad num according the pf number
-            return:
-                rsfec corrected symbol in lane 2 counter 32 bit
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],14),16)
-        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],15),16)
-        return (counter_high << 16) | counter_low
-
-    def get_rsfec_corrected_symbol_lane3(self, quad = None):
-        '''This function returns the rsfec corrected symbol in lane 3 see Section 22.3 of More than IP spec  ver 3.2
-            argument:
-                quad num according the pf number
-            return:
-                rsfec corrected symbol in lane 3 counter 32 bit
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        counter_low  = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],16),16)
-        counter_high = int(self.ReadMTIPRegister(self.MTIP_FEC_PCS_addr_dict[quad],17),16)
-        return (counter_high << 16) | counter_low   
-        
-    def GetRSFecCounters(self, quad = None):
-        '''This function returns all the rsfec counters
-            argument:
-                quad num according the pf number
-            return: 
-                dictinary of all rsfec counters --
-                    'RS_FEC_corrected_codeword'
-                    'RS_FEC_uncorrected_codeword'
-                    'RS_FEC_corrected_symbol_lane0'
-                    'RS_FEC_corrected_symbol_lane1'
-                    'RS_FEC_corrected_symbol_lane2'
-                    'RS_FEC_corrected_symbol_lane3'
-        '''
-        FEC_Counter_dict = {}
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        FEC_Counter_dict['RS_FEC_corrected_codeword'] = self.get_rsfec_corrected_codeword(quad)
-        FEC_Counter_dict['RS_FEC_uncorrected_codeword'] = self.get_rsfec_uncorrected_codeword(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane0'] = self.get_rsfec_corrected_symbol_lane0(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane1'] = self.get_rsfec_corrected_symbol_lane1(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane2'] = self.get_rsfec_corrected_symbol_lane2(quad)
-        FEC_Counter_dict['RS_FEC_corrected_symbol_lane3'] = self.get_rsfec_corrected_symbol_lane3(quad)  
-        return FEC_Counter_dict
-
-    def get_kr_fec_corrected(self, quad = None):
-        '''This function returns the kr fec corrected counter see Section 13.6.2.1.119 of CVL HAS
-            Warning: the reg that is read here is "clear on read" this reg is also read in the proclib get_kr_fec_uncorrected
-            argument:
-                quad num according the pf number
-            return:
-                kr fec corrected counter
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        reg_addr = calculate_port_offset(0x0300010c, 0x100, quad)
-        value = self.ReadEthwRegister(reg_addr)
-        return get_bits_slice_value(int(value,16), 6, 11)  
-
-    def get_kr_fec_uncorrected(self,quad = None):
-        '''This function returns the kr fec uncorrected counter see Section 13.6.2.1.119 of CVL HAS
-            Warning:  the reg that is read here is "clear on read" this reg is also read in the proclib get_kr_fec_corrected
-            argument:
-                quad num according the pf number
-            return:
-                kr fec uncorrected counter
-        '''
-        if quad == None:
-            quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        reg_addr = calculate_port_offset(0x0300010c, 0x100, quad)
-        value = self.ReadEthwRegister(reg_addr)
-        return get_bits_slice_value(int(value,16), 12, 17)
-
-    def GetKRFecCounters(self, quad = None):
-        '''This function returns the kr fec corrected counter and uncorrected counter see Section 13.6.2.1.119 of CVL HAS
-            argument:
-                quad num according the pf number
-            return:
-                dictinary of kr fec corrected counter and uncorrected counter --
-                    'KR_FEC_Corrected_Counter'
-                    'KR_FEC_Uncorrected_Counter'
-        '''
-        FEC_Counter_dict = {}
-        if quad == None:
-            quad ,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        FEC_Counter_dict['KR_FEC_Corrected_Counter'] = self.get_kr_fec_corrected(quad)
-        FEC_Counter_dict['KR_FEC_Uncorrected_Counter'] = self.get_kr_fec_uncorrected(quad)
-        return FEC_Counter_dict
-
-    def GetFECCounter(self,current_fec_stat = None,debug = False):
-        '''This function returns all of the fec counters
-            argument:
-                quad num according the pf number
-                debug if true prints the return values
-            return:
-                dictinary of all fec counters
-        '''
-        FEC_Counter_dict = {"KR_FEC_Corrected_Counter" : "N/A",
-                            "KR_FEC_Uncorrected_Counter" : "N/A",
-                            "RS_FEC_corrected_codeword":"N/A",
-                            "RS_FEC_uncorrected_codeword":"N/A",
-                            "RS_FEC_corrected_symbol_lane0":"N/A",
-                            "RS_FEC_corrected_symbol_lane1":"N/A",
-                            "RS_FEC_corrected_symbol_lane2":"N/A",
-                            "RS_FEC_corrected_symbol_lane3":"N/A"}
-        quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        #print "quad ",quad
-        if current_fec_stat == None:
-            current_fec_stat = self.GetCurrentFECStatus()
-
-        if current_fec_stat == '25G_RS_528_FEC' or current_fec_stat == '25G_RS_544_FEC':
-            FEC_Counter_dict.update(self.GetRSFecCounters(quad))
-        elif current_fec_stat == '25G_KR_FEC' or current_fec_stat == '10G_KR_FEC':
-            FEC_Counter_dict.update(self.GetKRFecCounters(quad))
-        elif current_fec_stat == 'NO_FEC' or current_fec_stat == 'N/A':
-            pass
-
-        if debug:
-            keylist = FEC_Counter_dict.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,FEC_Counter_dict[key])
-
-        return FEC_Counter_dict
-
+        if status:
+            raise RuntimeError('Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful. status: {} retval: {}'.format(status, data))   
+ 
 ##############################################################################
 #                        LoopBack Section                                    #
 ##############################################################################
@@ -1659,7 +912,7 @@ class cpk(cpkTier1):
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
 
         if status[0]:
             error_msg = 'Error EnablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -1677,7 +930,7 @@ class cpk(cpkTier1):
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
 
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
 
         if status[0]:
             error_msg = 'Error EnablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -1690,7 +943,7 @@ class cpk(cpkTier1):
         '''
         AQ_args = dict()
         AQ_args["loopback mode"] = 1
-        status = self.SetMacLoopback(AQ_args)
+        status = self.aq.SetMacLoopback(AQ_args)
 
         if status[0]:
             error_msg = "Error EnableMACLoopback: Admin command was not successful, retval {}".format(status[1])
@@ -1708,7 +961,7 @@ class cpk(cpkTier1):
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 1 #the loopback is done at the PCS level
 
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
         if status[0]: 
             error_msg = 'Error DisablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
@@ -1724,7 +977,7 @@ class cpk(cpkTier1):
         phy_lpbk_args['enable'] = 0 #loopback disabled
         phy_lpbk_args['type'] = 0 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
-        status = self.SetPhyLoopback(phy_lpbk_args)
+        status = self.aq.SetPhyLoopback(phy_lpbk_args)
 
         if status[0]: 
             error_msg = 'Error DisablePMDLoopback: Admin command was not successful, retval {}'.format(status[1])
@@ -1737,42 +990,15 @@ class cpk(cpkTier1):
         '''
         AQ_args = dict()
         AQ_args["loopback mode"] = 0
-        status = self.SetMacLoopback(AQ_args)
+        status = self.aq.SetMacLoopback(AQ_args)
 
         if status[0]:
             error_msg = "Error DisableMACLoopback: Admin command was not successful, retval{}".format(status[1])
             raise RuntimeError(error_msg)
 
-
-###############################################################################
-#       Work arounds sections                                                 #
-###############################################################################
-
-    def Reset_WA(self,reset = "corer",PF = "00"):
-        '''This function is a work around for performing resets 
-            arguments: string reset = "pfr, corer, globr, empr, flr, pcir, bmer, vfr, vflr" 
-                       string PF (physical function) = "00-08"
-        '''
-        driver = self.driver
-        command = "svdt -r cvl:"+PF+" "+reset
-        self._ExecuteLinuxCommand(command)
-
-
-    # all 3 func below is work around for PCIe indication reading
-    def _ExecuteLinuxCommand(self, command):
-        '''This function execute linux command
-            argument: command (str)
-            return: output (str)
-        '''
-        p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-        (output, err) = p.communicate()
-        return output
-
     def GetCurrentPcieLinkSpeed(self):
         link_status_register = self.driver.read_pci(0xB2)
-
         link_speed = link_status_register & 0xF
-
         vector_bit = self.data.link_speed_encoding[link_speed]
         return self.data.supported_Link_speed_vector[vector_bit]
 
@@ -1781,10 +1007,6 @@ class cpk(cpkTier1):
 
         negotiated_link_width = (link_status_register >> 4) & 0x3f
         return self.data.link_width_encoding[negotiated_link_width]
-
-    ######################################################################################################
-    ###############################          Rotem - debug is needed            ##########################
-    ######################################################################################################  
 
     def SetEEESetting_D(self, set_eee, Location = "AQ"):
         '''This function configure eee for the link.
@@ -1845,8 +1067,7 @@ class cpk(cpkTier1):
             error_msg = 'Error _SetEEESetting: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
         
-
-    def LinkManagementDisable(self):
+    def DisableLinkManagement(self):
         '''This function disable firmware's link managment. 
             argument: none
             return: none
@@ -1859,14 +1080,14 @@ class cpk(cpkTier1):
             error_msg = 'Error LinkManagementDisable: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def LinkManagementEnable(self):
+    def EnableLinkManagement(self):
         '''This function enable firmware's link managment. 
             argument: none
             return: none
         '''
 
         args = {'port':0, 'index':0, 'cmd_flags':0}
-        status = self.SetPhyDebug(args)
+        status = self.aq.SetPhyDebug(args)
 
         if status[0]: 
             error_msg = 'Error LinkManagementEnable: Admin command was not successful, retval {}'.format(status[1])
@@ -1885,7 +1106,7 @@ class cpk(cpkTier1):
             return:
                 print all pstors
         '''
-        pstores = self._DnlReadPstore(self, pstores_number_to_read,debug)
+        pstores = self.aq.DnlReadPstore(self, pstores_number_to_read,debug)
         print("Pstors: ",pstores)
      
     def DebugWriteDnlStore(context, store_type, store_index, value,debug=False):
@@ -1972,7 +1193,7 @@ class cpk(cpkTier1):
         driver = self.driver
         context = driver.port_number()
 
-        ret_val = self._DnlReadPstore(context,psto_index,debug=False)
+        ret_val = self.aq.DnlReadPstore(context,psto_index,debug=False)
         return hex(ret_val)
 
     def DnlGetPhyInfo(self):
@@ -2006,11 +1227,7 @@ class cpk(cpkTier1):
         st['phy_fw_h'] = hex(status[2]).replace('L','')
         st['done'] = hex(status[3] >> 31).replace('L','') 
         return st
-     
-#########################################################################################################
-######################           Support SECTION               ##########################################
-#########################################################################################################
-     
+         
     def GetPortNumber(self):
         '''
             This function return port number
@@ -2046,7 +1263,7 @@ class cpk(cpkTier1):
             return: 
                 value - return value from the neighbor device.
         ''' 
-        return_val = self.NeighborDeviceRead(0x2,0,1, address)
+        return_val = self.aq.NeighborDeviceRead(0x2,0,1, address)
         return return_val
 
     def WriteEthwRegister(self,address,data):
@@ -2058,9 +1275,8 @@ class cpk(cpkTier1):
                 data - data to write in the neighbor device CSRs.
         ''' 
         self.NeighborDeviceWrite(0x2,1,1, address,data)
-        pass
 
-    def ReadMTIPRegister(self, offset,address,debug = False):
+    def ReadMtipRegister(self, offset,address,debug = False):
         '''
             this function read from MTIP in ethw.
             supporting read/write via SBiosf to neighbor device.
@@ -2091,8 +1307,23 @@ class cpk(cpkTier1):
             return: 
                 None
         ''' 
-        struct = cvl_structs()
-        SbIosfMassageDict = struct.SbIosfMassageStruct()
+        SbIosfMassageDict = {}
+        SbIosfMassageDict['dest'] = 0
+        SbIosfMassageDict['source'] = 0
+        SbIosfMassageDict['opcode'] = 0
+        SbIosfMassageDict['Tag'] = 0
+        SbIosfMassageDict['Bar'] = 0
+        SbIosfMassageDict['addrlen'] = 0
+        SbIosfMassageDict['EH'] = 0
+        SbIosfMassageDict['exphdrid'] = 0
+        SbIosfMassageDict['EH_2ndDW'] = 0
+        SbIosfMassageDict['sai'] = 0
+        SbIosfMassageDict['rs'] = 0
+        SbIosfMassageDict['fbe'] = 0
+        SbIosfMassageDict['Sbe'] = 0
+        SbIosfMassageDict['Fid'] = 0
+        SbIosfMassageDict['address'] = 0
+        SbIosfMassageDict['address_4thDW'] = 0
         buffer = []
      
         # First DW
@@ -2140,7 +1371,7 @@ class cpk(cpkTier1):
         buffer.append(Byte3_AdDW)
         Byte4_AdDW = (data >> 24 ) & 0xFF
         buffer.append(Byte4_AdDW)
-        return_buffer = self._NeighborDeviceRequestAq(0,buffer)
+        return_buffer = self.aq.NeighborDeviceRequestAq(0,buffer)
 
 
 
@@ -2175,19 +1406,6 @@ class cpk(cpkTier1):
         print(hex(reg_value))
         self.driver.write_phy_register(Page, Register, self.driver.port_number(), reg_value)
 
-    def CheckDeviceAliveness(self):
-        '''
-            This function returns true if the device is alive or false otherwise
-            it's done for PCIe issue .
-               return: True/false
-        '''
-        reg_addr = calculate_port_offset(0x001E47A0, 0x4, self.driver.port_number())
-        reg_data = self.driver.read_csr(reg_addr)
-        if ( reg_data == 0xffffffff or reg_data == 0xdeadbeef):
-            return False
-        else:
-            return True
-
     def PrintLoopbackStatus(self):
         gls = dict()
         gls["port"] = 0 
@@ -2212,335 +1430,10 @@ class cpk(cpkTier1):
         else:
             print("MAC local loopback disabled")
 
-        #TODO print the PHY index that performs the loopback 0 = outermost
-
-    def GetLinkStatusAfterParsing(self):
-        '''
-            This function return dictionary that contain phy and mac link status and speed, fec mode.
-            arguments: None
-            return: dict--
-                        "PhyType"
-                        "MacLinkStatus"
-                        "MacLinkSpeed"
-                        "EnabeldFEC"
-        '''
-        return_dict = {}
-        gls = {}
-        gls['port'] = 0 #not relevant for CVL according to CVL Spec
-        gls['cmd_flag'] = 1
-     
-        result = self.aq.GetLinkStatus(gls)
-        
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
-            raise RuntimeError("Error GetLinkStatusAfterParsing: Admin command was not successful")  
-
-        #keylist = data.keys()
-        # keylist.sort()
-        # for key in keylist:
-        #    print key,data[key]
-
-        ####### get current phy type  ###############################################
-        phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0']
-     
-        if self.Get_Phy_Type_Status_dict:
-            for i in range(len(self.Get_Phy_Type_Status_dict)):
-                if ((phy_type >> i) & 0x1):
-                        break
-        #print "phy type : ",Get_Phy_Type_Status_dict[i]
-        return_dict["PhyType"] = self.Get_Phy_Type_Status_dict[i]
-
-
-
-        ####### get Mac Link status  ###############################################
-        status = data['link_sts']
-        if status == 1:
-            status = "Up"
-        else:
-            status = "Down"
-        #print "MacLinkStatus: ",status
-        return_dict["MacLinkStatus"] = status
-
-
-
-        ####### get Mac Link status  ##############################################
-        link_speed = 'N/A'
-        current_link_speed = data['current_link_speed']
-
-        if self.Get_Speed_Status_dict:
-            for key, val in self.Get_Speed_Status_dict.items():
-                mask = 1 << key
-                if current_link_speed & mask:
-                    link_speed= val
-
-            # if data['link_speed_10m']:
-            #     link_speed = self.Get_Speed_Status_dict[0]
-                
-            # elif data['link_speed_100m']:
-            #     link_speed = self.Get_Speed_Status_dict[1]
-                
-            # elif data['link_speed_1000m']:
-            #     link_speed = self.Get_Speed_Status_dict[2]
-                
-            # elif data['link_speed_2p5g']:
-            #     link_speed = self.Get_Speed_Status_dict[3]
-                
-            # elif data['link_speed_5g']:
-            #     link_speed = self.Get_Speed_Status_dict[4]
-                
-            # elif data['link_speed_10g']:
-            #     link_speed = self.Get_Speed_Status_dict[5]
-                
-            # elif data['link_speed_20g']:
-            #     link_speed = self.Get_Speed_Status_dict[6]
-                
-            # elif data['link_speed_25g']:
-            #     link_speed = self.Get_Speed_Status_dict[7]
-                
-            # elif data['link_speed_40g']:
-            #     link_speed = self.Get_Speed_Status_dict[8]
-                
-            # elif data['link_speed_50g']:
-            #     link_speed = self.Get_Speed_Status_dict[9]
-                
-            # elif data['link_speed_100g']:
-            #     link_speed = self.Get_Speed_Status_dict[10]
-                
-            # elif data['link_speed_200g']:
-            #     link_speed = self.Get_Speed_Status_dict[11]
-
-        else:
-            raise RuntimeError("Error GetLinkStatusAfterParsing: Get_Speed_Status_dict is not defined")
-
-        return_dict["MacLinkSpeed"] = link_speed
-
-        ####### get negotiation FEC on link  #############
-        FEC_status_list = []
-        {0:'25G_KR_FEC_Enabled',1:'25G_RS_528_FEC_Enabled',2:'RS_544_FEC_Enabled'}
-        if data['10g_kr_fec']:
-            FEC_status_list.append("10G_KR_FEC_Enabled")
-        if data['25g_kr_fec']:
-            FEC_status_list.append("25G_KR_FEC_Enabled")
-        elif data['25g_rs_528']:
-            FEC_status_list.append("25G_RS_528_FEC_Enabled")
-        elif data['rs_544']:
-            FEC_status_list.append("RS_544_FEC_Enabled")
-        else:
-            FEC_status_list.append("No FEC")
-
-        return_dict["EnabeldFEC"] = FEC_status_list
-
-        #print return_dict
-        return return_dict
-
-    def _ReturnAbilitiesListForDebugPrint(tmplist,RegToParse,RegToParseDict):
-        '''This function return list with the abilities from register after parsing.
-            this function is for debug and used only at DBG_print_cvl_info().
-            arguments:
-                tmplist - list that contains the abilities after parsing
-                RegToParse - register address
-                RegToParseDict - dictionary that contain tha parsing according to specific bit
-            return:
-                tmplist
-        '''
-        if RegToParse == 0:
-            #print 'None'
-            tmplist.append('None')
-        else:
-            for i in range(32):
-                if (RegToParse & 1) == 1:
-                    #print PRT_AN_LP_NP_dict[i]
-                    tmplist.append(RegToParseDict[i])
-                RegToParse = RegToParse >> 1
-        return tmplist
-
-    def _GetQuadAndPmdNumAccordingToPf(self):
-        '''this function return the quad num and pmd num according the pf number
-            return: tuple -- (quad number, pmd number)
-        '''
-        # get the real PCS address according to pf number
-        driver = self.driver
-        port_num = driver.port_number()
-        current_device_number =  driver.device_number()
-        number_of_ports = 8 
-        if number_of_ports == 1:# according pf to mac mapping in cvl spec 3.4.2.3.2
-            quad = 0
-            pmd_num = 0
-        if number_of_ports == 2:        
-            quad = self.data.quad_for_2_ports_dict[port_num]        
-            pmd_num = self.data.pmd_num_for_2_ports_dict[port_num]
-        elif number_of_ports == 4:     
-            if self.GetMuxStatus():
-                quad = self.data.quad_for_4_ports_mux_dict[port_num]
-                pmd_num = self.pmd_num_for_4_ports_mux_dict[port_num]
-            else:
-                quad = self.data.quad_for_4_ports_dict[port_num]        
-                pmd_num = self.pmd_num_for_4_ports_dict[port_num]
-        elif number_of_ports == 8:        
-            quad = self.data.quad_for_8_ports_dict[port_num]
-            pmd_num = self.pmd_num_for_8_ports_dict[port_num]
-
-        #print "quad: ", quad
-        #print "port_num: ", port_num
-        #print "pmd_num: ", pmd_num
-
-        return quad,pmd_num
-
-    def _GetPcsOffset(self):
-        '''this func return the pcs num according the pf number.
-            input: None
-            Return: pcs offset
-        '''
-        quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-            
-        #print "quad:",quad
-        #print "pmd_num:",pmd_num
-
-        link_speed = self.GetMacLinkSpeed()
-        #print "link_speed: ",link_speed
-
-        if link_speed == "100G":
-            pcs_offset = self.data.MTIP_100_PCS_Addr_Dict[quad]
-
-        elif (link_speed == "10G" or link_speed == "25G" or link_speed == "40G" or link_speed == "50G"):
-            if quad == 0:
-                pcs_offset = self.MTIP_10_25_40_50_PCS_Quad_0_Addr_Dict[pmd_num]
-            elif quad == 1:
-                pcs_offset = self.MTIP_10_25_40_50_PCS_Quad_1_Addr_Dict[pmd_num]
-            
-        elif link_speed == "1G":
-            pcs_offset = None
-        #print "PCS offset ", hex(pcs_offset)
-        return pcs_offset
-
-    def GetPcsAdvencedInfo(self,debug = 0):
-        '''This function print PCS Advenced info 
-            input: debug -- if true, print the return list
-            return: list -- 
-                        for pcs link status 2: Receive fault, Transmit fault
-                        for PCS BaseR status 1: Receive link status, High BER, Block lock
-                        for PCS BaseR status 2: Latched block lock. (LL), Latched high BER. (LH)
-        '''
-        return_list = []
-        # get the real PCS address according to pf number
-        pcs_offset = self._GetPcsOffset()
-
-        #pcs_link_status_1 = ReadMTIPRegister(pcs_offset,1)#PCS link status 1
-        return_list.append("")
-        pcs_link_status_2 = int(self.ReadMTIPRegister(pcs_offset,8),16)#PCS link status 2
-        return_list.append("#####  pcs link status 2  #####")
-        for i in range(6):
-            pcs_link_status_2_run_bit = (pcs_link_status_2 >> i) & 1
-            if  pcs_link_status_2_run_bit == 1:
-                return_list.append(self.pcs_link_status_2_dict[i])
-        return_list.append("Receive fault: " + str(get_bit_value(pcs_link_status_2,10)))
-        return_list.append("Transmit fault: " + str(get_bit_value(pcs_link_status_2,11)))
-
-        return_list.append("")
-        pcs_baser_status_1 = int(self.ReadMTIPRegister(pcs_offset,32),16)#PCS BaseR status 1
-        return_list.append("#####  PCS BaseR status 1  #####")
-        return_list.append("Receive link status: " + str(get_bit_value(pcs_baser_status_1,12)))
-        return_list.append("High BER: " + str(get_bit_value(pcs_baser_status_1,1)))
-        return_list.append("Block lock: " + str(get_bit_value(pcs_baser_status_1,0)))
-
-        return_list.append("")
-        pcs_baser_status_2 = int(self.ReadMTIPRegister(pcs_offset,33),16)#PCS BaseR status 2
-        return_list.append("#####  PCS BaseR status 2  #####")
-        return_list.append("Latched block lock. (LL): " + str(get_bit_value(pcs_baser_status_1,15)))
-        return_list.append("Latched high BER. (LH): " + str(get_bit_value(pcs_baser_status_1,14)))
-
-        #print "pcs_link_status_2 ",hex(pcs_link_status_2)
-        #print "pcs_baser_status_1 ",hex(pcs_baser_status_1)
-        #print "pcs_baser_status_2 ",hex(pcs_baser_status_2)
-        current_fec_stat = self.GetCurrentFECStatus()
-        if current_fec_stat == '25G_RS_528_FEC_Enabled' or current_fec_stat == 'RS_544_FEC_Enabled': 
-            return_list.append("")
-            return_list.append("#####  PCS FEC conters  #####")
-            return_list.append("FEC: " + current_fec_stat)
-            FEC_counter_dict = self.GetFECCounter(current_fec_stat)
-            for key,val in FEC_counter_dict.iteritems():
-                #print key, ":", val
-                return_list.append(key + ": " + str(val))   
-
-        return_list.append("")
-
-        if debug:
-            for i in return_list:
-                print(i)
-
-        return return_list
-
-    #########################################################################################################
-    ######################           Statistics               #############################################
-    #########################################################################################################
-
-
-
-    def GetBERMacStatistics(self):
-        '''This function return dictinary with mac link statistics for BER test.
-            argument: None
-            return: 
-                dictionary -- contain the statistics indications    
-                    'TotalPacketRecieve'
-                    'TotalPacketTransmite'
-                    'Mac_link_status'
-                    'Mac_link_speed'
-        '''
-
-        MacStatistics = {}
-        
-        MacStatistics['TotalPacketRecieve'] = self.GetPRC()['TotalPRC']
-        MacStatistics['TotalPacketTransmite'] = self.GetPTC()['TotalPTC']
-        
-        #return Mac link status
-        MacStatistics['Mac_link_status'] = self.GetMacLinkStatus()
-        
-        #return link speed
-        MacStatistics['Mac_link_speed'] = self.GetMacLinkSpeed()
-
-        return MacStatistics
-
-    def GetMacStatistics(self, Location = "AQ",GlobReset = 0):
-        '''This function return dictinary with mac link statistics
-            argument:
-            return: 
-                dictionary -- contain the statistics indications    
-                    'Mac_link_status'
-                    'Mac_link_speed'
-                    'Phy_Type'
-        '''
-        Mac_link_statistic_dict = {}
-        #return Mac link status
-        Mac_link_statistic_dict['Mac_link_status'] = self.GetMacLinkStatus(Location)
-        #return  Mac link speed
-        Mac_link_statistic_dict['Mac_link_speed'] = self.GetMacLinkSpeed(Location)
-        if GlobReset == 0:
-            Mac_link_statistic_dict['Phy_Type'] = self.GetPhyType()
-            Mac_link_statistic_dict['Current_FEC'] = self.GetCurrentFECStatus()
-        return Mac_link_statistic_dict
-
-    def GetPhyStatistics(self):
-        '''This function return dictinary with phy link statistics
-            argument:
-                Advance_phy_statistics - Flag for more statistic
-            return:
-                dictionary -- contain the statistics indications
-                    'Phy_link_status'
-                    'Phy_link_speed'
-        '''
-        Phy_link_statistic_dict = {}
-        Phy_link_statistic_dict['Phy_link_status'] = self.GetPhyLinkStatus()
-        Phy_link_statistic_dict['Phy_link_speed'] = self.GetPhyLinkSpeed()
-        return Phy_link_statistic_dict
-
-
     #########################################################################################################
     ######################        logger feature ability        #############################################
     #########################################################################################################
     ###  this scope was taken from logger to let us ability to logging the fw in the performance env   ####
-
-
 
     def clear_rx_events_queue(self):
         '''This function will clear the buffer from previous messages  
@@ -2549,44 +1442,16 @@ class cpk(cpkTier1):
         '''
         #print 'clearing rx events queue ...'   
         #print 'wait until you see message: rx events queue empty'   
-        driver = self.driver
         receive_aq_desc = AqDescriptor()
-        receive_buffer = [0] * 100
+        buffer = [0]*100
             
         while True:
             receive_aq_desc.opcode = 0
-            driver.receive_aq_command(receive_aq_desc, receive_buffer)
-            #print 'received op code:', hex(receive_aq_desc.opcode)
+            self.driver.receive_aq_command(receive_aq_desc, buffer)
             if receive_aq_desc.opcode == 0:
-                break      
-        #print 'rx events queue empty'
-        #print 'finished cearing rx events queue'
+                break
 
-    def Write_logger_file(self,logger_list,file_name):
-        '''This function Write dnllogger log to file 
-            argument:
-                logger_list- a list containing the lines to write in the file
-                file_name- string contains the file name
-            return:
-                None                    
-        '''
-        print("Write logger file to: " + file_name)
-        try:
-            f = open(file_name,'w',0)
-            for line in logger_list:
-                msg = ''
-                if (line is None) or (line == ''):
-                    continue
-                for iter in line:
-                    msg = msg + hex(iter) + ' '
-                f.write(msg + '\r\n')
-          
-            f.flush()
-            f.close()
-        except Exception as e:
-            print("Exception in Write_logger_file " + str(e))
-
-    def GetFWEvent(self,driver,debug=False):
+    def GetFwEvent(self,driver,debug=False):
         '''This function should get FW events
             argument:
                 driver - driver instance
@@ -2627,116 +1492,6 @@ class cpk(cpkTier1):
                 break
             else:
                 return_list.append(st[1])
-
-    def StartDnlLogging(self):
-        '''This function Start the Dnl Logging
-            argument:
-                None
-            return:
-                None                        
-        '''
-        stop_polling_event.clear()
-        handler = get_handler()
-        driver = self.driver
-        self.configure_logging_dnl(True)
-        print("start dnl logging")
-        self.clear_rx_events_queue()
-        time.sleep(0.1)
-        manager = mp.Manager()
-        return_list = manager.list()    
-        p = threading.Thread(target=self.logger_grabber_loop, args=(return_list, driver))
-        p.daemon = True
-        p.start()
-        handler.custom_data["DnlLoggingRawDataList"] = return_list
-        handler.custom_data["DnlLoggingProccessHandle"] = p
-
-
-    def StopDnlLogging(self,LoggerFileName,SaveRawDataFlag,manual = 0):
-        '''This function StopDnlLogging
-            argument:
-                LoggerFileName
-                SaveRawDataFlag
-                manual
-            return:
-                True always                     
-        '''
-        driver = self.driver
-        print("stop dnl logging")
-        self.configure_logging_dnl(False)
-        stop_polling_event.set()
-        handler = get_handler()
-        p = handler.custom_data["DnlLoggingProccessHandle"]
-        return_list = handler.custom_data["DnlLoggingRawDataList"]
-        p.join()
-        if SaveRawDataFlag:
-            if not manual:
-                LoggerFileName = handler.create_file_name(LoggerFileName, 'txt', handler.get_device_key())
-            self.Write_logger_file(return_list, LoggerFileName)
-            if not manual:      
-                handler.send_file(LoggerFileName)
-        return True
-
-    def logger_test(self):
-        '''This function is logging  dnl logger during ttl test for debug and development only
-            argument: None
-            return: None    
-        '''
-        ttl_timeout = 10
-        self.configure_logging_dnl(True)
-        self.clear_rx_events_queue()
-        time.sleep(0.1)
-        log_file = 'raw_data_file.txt'
-        q = mp.Queue()
-        p = mp.Process(target=self.logger_grabber_loop, args= (q, log_file))
-        p.start()
-        
-        self.RestartAn()
-        #start counter
-        start_time = curr_time = time.time()
-        while (self.GetMacLinkStatus() == True):
-            #print 'waiting for link down'
-            if ((curr_time - start_time) > ttl_timeout):
-                print("link is down for 15s")
-                link_down_flag = False
-                break
-            curr_time = time.time()
-        #wait for link up
-        while ((curr_time - start_time) < ttl_timeout):
-            curr_time = time.time()
-            if self.GetMacLinkStatus('REG'):
-                curr_time = time.time()
-                print('link up')
-                break
-        
-        #calc TTL time
-        ttl_time = curr_time - start_time
-        print(ttl_time)
-
-        time.sleep(1)
-        self.configure_logging_dnl(False)
-        msg = q.get()
-        while not msg == "queue empty":
-            msg = q.get()
-        p.join()
-
-        print("end")
-
-    def ttl_test(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter):
-        '''This function perform ttl test and print the result
-            argument:
-                ttl_timeout [Sec]
-                ttl_pass_criteria
-                link_stable_test_Flag - verify that the link is stable after TTL test
-                link_stability_time - time for test if link is stable
-                RestartAnSrc - restart AN using AQ or by REG
-                iter_num - current iteration
-                AmIDut  -flag - True when running in DUT, False in LP
-                last_iter - flag for last iteration         
-            return:
-                None
-        '''
-        print(MainTtl(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter))
-
 
 ###############################################################################
 ######################         Debug Print Section          ###################
@@ -2813,10 +1568,8 @@ class cpk(cpkTier1):
             for i in get_pcs_advenced_info:
                 print(i)
 
-
-
     ######################################################################################################
-    ##########################                  PCIe sections                   ##########################
+    ##########################                    LCB                           ##########################
     ######################################################################################################
 
     def GetLcbPortLockStatus(self):
@@ -2873,6 +1626,9 @@ class cpk(cpkTier1):
         driver.write_csr(0x0009E944, self._GetValAddrLCB(offset)) # write the LCB reg address to the PCIe LCB Address Port
         driver.write_csr(0x0009E940, data) #write the reg data to the PCIe LCB Data Port
 
+    #########################################################################################################
+    #################################         Power        ##################################################
+    #########################################################################################################
 
     def GetDevicePowerState(self):
         '''
@@ -2888,10 +1644,6 @@ class cpk(cpkTier1):
                       3: "D3hot"}
 
         print("Device Power State: ", power_sate.get(val,"Wrong"))
-
-    #########################################################################################################
-    #################################         Power        ##################################################
-    #########################################################################################################
 
     def SetD3PowerState(self):
         driver = self.driver
@@ -2931,327 +1683,7 @@ class cpk(cpkTier1):
 
         driver.write_pci(0x44, 0x2008)
 
-
-    #########################################################################################################
-    ######################         Stand alone debug tests      #############################################
-    #########################################################################################################
-
-    def DBG_globr_test(self, num_of_iteration,ttl_timeout):
-        '''This function performs globr_test for debug
-            argument:
-                num_of_iteration
-                ttl_timeout (sec)
-            return:
-                None
-        '''
-        print("Link speed: ",self.GetMacLinkSpeed())
-        for i in range(num_of_iteration):       
-            print("globr num: ",i)
-            self.Reset(1)
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()       
-                if self.GetMacLinkStatus("REG"):
-                    curr_time = time.time()
-                    link_flag = False
-                    print('link up')
-                    
-                    break
-            print("TTL: ",curr_time - start_time)
-            time.sleep(5)
-            if (link_flag):
-                input("Press enter to continue")
-                return(0)
-
-
-    def DBG_restartAN_test_BU(self, num_of_iteration,ttl_timeout):#TODO add link stability check and link drop source
-        '''This function performs  restartAN_test for debug
-            argument:
-                num_of_iteration
-                ttl_timeout
-            return:
-                None
-        '''
-
-        ttl_list = []
-        avg_ttl = 0
-        print("Link speed: ", self.GetMacLinkSpeed())
-        for i in range(num_of_iteration):       
-            print("Restart AN num: ",i)
-            self.RestartAn()
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()
-                if self.GetMacLinkStatus("REG"):
-                    curr_time = time.time()
-                    link_flag = False
-                    print('link up')
-                    time.sleep(1)
-                    break
-            TTL = curr_time - start_time
-            ttl_list.append(TTL)
-            print("TTL: ",TTL)
-            time.sleep(2)
-            if (link_flag):
-                input("Press enter to continue")
-                return(0)
-        for i in ttl_list:
-             avg_ttl = avg_ttl + i
-
-        print("AVG TTL: ",avg_ttl/len(ttl_list))
-
-    def GetTimeStamp(self):
-        '''This function return date and time 
-            argument:
-                None
-            return:
-                Stamp(YYMMDD_HHMINSEC)
-        '''
-        ts = time.localtime()
-        stamp = str(ts.tm_year)+str(ts.tm_mon)+str(ts.tm_mday)+'_'+str(ts.tm_hour)+str(ts.tm_min)+str(ts.tm_sec)
-        return stamp
-
-    def create_log_name(self,path,iter,ttl):
-        '''This function create log name according to path, port number, ttl, number of iteration, date and time.
-            argument:
-                Path - log location
-                Iter - num of iteration
-                ttl
-            return:
-                Fullname of file
-        '''
-        driver = self.driver
-        port = driver.port_number()
-        p = path
-        fullname = p + str(port) + "_" + str(round(ttl)) + "_" + str(iter) + "_" + self.GetTimeStamp() + ".txt"
-        return fullname
-
-    def DBG_restartAN_test(self, num_of_iteration,ttl_timeout,enable_logger = 0,logger_low_limit_ttl = 2):#TODO add link stability check and link drop source
-        '''This function print AVG, MAX and MIN ttl (summary of iterations). for debug only
-            argument:
-                num_of_iteration (int)
-                ttl_timeout (int) - max time for TTL
-                enable_logger (True/False) - if true enable logger
-                logger_low_limit_ttl (int) - if ttl longer then this, save log from logger.
-            return:
-                None
-        '''
-        ttl_list = []
-        avg_ttl = 0
-
-        print("Link speed: ",self.GetMacLinkSpeed())
-        for i in range(num_of_iteration):
-            SaveRawDataFlag = False     
-            
-            if enable_logger:
-                print('logger is enabled')
-                self.StartDnlLogging()
-        
-            print("Restart AN num: ",i)
-            self.RestartAn()
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):       
-                curr_time = time.time()
-                if self.GetMacLinkStatus("REG"):
-                    curr_time = time.time()
-                    link_flag = False
-                    print('link up')
-                    time.sleep(1)
-                    break
-            ttl = curr_time - start_time
-            ttl_list.append(ttl)        
-            print("TTL: ",ttl)
-
-            if enable_logger:
-                LoggerFileName = self.create_log_name("/home/laduser/LoggerRawData/RawData_IterationNum_", i, ttl)
-                if ttl > logger_low_limit_ttl:
-                    SaveRawDataFlag = True
-                    #print "rad data file saved to: ",LoggerFileName
-                print('logger is disable')
-                self.StopDnlLogging(LoggerFileName, SaveRawDataFlag, 1)
-
-            time.sleep(3)
-            if (link_flag):
-                # raw_input("Press enter to continue")
-                input("Press enter to continue")   # Python 3
-                return(0)
-
-        print()
-        print("MIN TTL: ", min(ttl_list))
-        print("MAX TTL: ", max(ttl_list))
-        print("AVG TTL: ", sum(ttl_list)/len(ttl_list))
-
-
-    def DBG_traffic_test(self, num_of_iteration,ber_timeout,packet_size):
-        '''This function performs traffic test for debug and prints trafic stats.
-            The function checks stability during trafic in MAC and PHY
-            argument:
-                num_of_iteration
-                ber_timeout- time for trafic[Sec]
-                packet_size - packet_size for trtafic
-            return:
-                None
-        '''
-        curr_time = 0
-        iter_num = 0
-        ErrorStatistics = {}
-
-        for iter_num in range(num_of_iteration):
-
-            self.ClearMACstat()
-            CurrentMacLinkStatus_old_value = self.GetMacLinkStatus()
-            CurrentPhyLinkStatus_old_value = self.GetPhyLinkStatus()
-            #phy_tuning_paraps_dict = GetPhytuningParams()
-            new_PTC_Dict = self.GetPTC()
-            new_PRC_Dict = self.GetPRC()
-            print("Iteration: ",iter_num)
-            print("PTC: " ,new_PTC_Dict['TotalPTC'])
-            print("PRC: ", new_PRC_Dict['TotalPRC'])
-
-            print("Start TXRX")
-            self.EthStartTraffic(packet_size)
-            start_time = sampling_time_counter = time.time()
-            while (curr_time < ber_timeout):
-                curr_time = time.time() - start_time
-
-                CurrentMacLinkStatus = self.GetMacLinkStatus()
-                CurrentPhyLinkStatus = self.GetPhyLinkStatus()
-                #print "curr time ",curr_time
-                if (CurrentMacLinkStatus == False or CurrentPhyLinkStatus == False):
-                    print("link drop event")
-                #time.sleep(0.005)
-            
-            print("Stop TXRX")
-            self.EthStopTraffic()
-            #phy_tuning_paraps_dict = GetPhytuningParams()
-            new_PTC_Dict = self.GetPTC()
-            new_PRC_Dict = self.GetPRC()
-            print("Iteration: ",iter_num)
-            print("PTC: " ,new_PTC_Dict['TotalPTC'])
-            print("PRC: ", new_PRC_Dict['TotalPRC'])
-
-            ErrorStatistics = self.GetMacErrorsCounters(ErrorStatistics)
-            print()
-            print("######  Mac Error Statistics  #######")
-            print()
-            keylist = ErrorStatistics.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,ErrorStatistics[key])
-            print()
-            print("######  Mac PTC Statistics  #######")
-            print()
-            keylist = new_PTC_Dict.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,new_PTC_Dict[key])
-            print()
-            print("######  Mac PRC Statistics  #######")
-            print()
-            keylist = new_PRC_Dict.keys()
-            keylist.sort()
-            for key in keylist:
-                print(key,new_PRC_Dict[key])
-
-    def DBG_globr_test_4_ports(self,num_of_iteration,ttl_timeout):
-        '''This function performs  TTL test after performing global reset for 4 ports.
-            The function prints the TTL time for each port in case linke is up, otherwise prints error 
-            argument:
-                num_of_iteration- Number of times to perform the test
-                ttl_timeout -max time for TTL [Sec]
-            return:
-                None
-        '''
-        driver = self.driver    
-        print("Link speed: ", self.GetMacLinkSpeed())
-        
-        for i in range(num_of_iteration):       
-            print("globr iteration: ", i+1)
-            self.Reset(1)
-            link_flag_port0 = True
-            link_flag_port1 = True
-            link_flag_port2 = True
-            link_flag_port3 = True
-
-
-            while (self.GetMacLinkStatus("REG")):
-                pass
-            start_time = curr_time = time.time()
-            link_flag = True
-            while ((curr_time - start_time) < ttl_timeout):
-                curr_time = time.time()
-
-                if link_flag_port0:
-                    reg_addr0 = calculate_port_offset(0x001E47A0, 0x4, 0)
-                    reg_data0 = driver.read_csr(reg_addr0)
-                    LinkStatus0 = get_bit_value(reg_data0,30)       
-                    if LinkStatus0:
-                        curr_time_port0 = time.time()
-                        print('link up on port 0')
-                        print("TTL port 0: ",curr_time_port0 - start_time)
-                        link_flag_port0 = False
-
-                if link_flag_port1:
-                    reg_addr1 = calculate_port_offset(0x001E47A0, 0x4, 1)
-                    reg_data1 = driver.read_csr(reg_addr1)
-                    LinkStatus1 = get_bit_value(reg_data1,30)
-                    if LinkStatus1:
-                        curr_time_port1 = time.time()
-                        print('link up on port 1')
-                        print("TTL port 1: ",curr_time_port1 - start_time)
-                        link_flag_port1 = False
-
-                if link_flag_port2:
-                    reg_addr2 = calculate_port_offset(0x001E47A0, 0x4, 2)
-                    reg_data2 = driver.read_csr(reg_addr2)
-                    LinkStatus2 = get_bit_value(reg_data2,30)       
-                    if LinkStatus2:
-                        curr_time_port2 = time.time()
-                        print('link up on port 2')
-                        print("TTL port 2: ",curr_time_port2 - start_time)
-                        link_flag_port2 = False
-
-                if link_flag_port3:
-                    reg_addr3 = calculate_port_offset(0x001E47A0, 0x4, 3)
-                    reg_data3 = driver.read_csr(reg_addr3)
-                    LinkStatus3 = get_bit_value(reg_data3,30)       
-                    if LinkStatus3:
-                        curr_time_port3 = time.time()
-                        print('link up on port 3')
-                        print("TTL port 3: ",curr_time_port3 - start_time)
-                        link_flag_port3 = False 
-
-                #if link_flag_port3 == False and link_flag_port2 == False and link_flag_port1 == False and link_flag_port0 == False:
-                #   link_flag = False
-                #   break   
-                    
-            time.sleep(2)
-            if link_flag_port0:
-                input("link is down in port 0, Press enter to exit")
-            if link_flag_port1:
-                input("link is down in port 1, Press enter to exit")
-            if link_flag_port2:
-                input("link is down in port 2, Press enter to exit")
-            if link_flag_port3:
-                input("link is down in port 3, Press enter to exit")
-                #return(0)
-
-        #reg_addr = calculate_port_offset(0x001E47A0, 0x4, driver.port_number())
-        #reg_data = driver.read_csr(reg_addr)
-        #LinkStatus = get_bit_value(reg_data,30)
-
-           ############################### Link Topology Admin commands WIP ##########################################
-
-    def ReadEEPROM(self):
+    def ReadSffEeprom(self):
         '''this function reads the eeprom of the cable via I2C
             arguments:None
         '''
@@ -3284,12 +1716,6 @@ class cpk(cpkTier1):
                 data = I2C[2]
                 eeprom_dict[port] = eeprom_dict[port]+data
         return eeprom_dict
-
-
-
-###############################################################################
-######################         debug prints auto complete     #############
-###########################################################################
 
     def ReadDnlPersistentStores(self):
         data = dict()
@@ -3386,6 +1812,37 @@ class cpk(cpkTier1):
         for capability_name,capability_list in all_discovered_dev_Caps.items():
             cap_structs_list.append(self._GetCapabilityStructure(capability_name,capability_list))
         return cap_structs_list
+
+    def GetSkuInfo(self):
+        sku_cap = self.GetDiscoveredDeviceCapability('SKU')[0]
+        sku_info = dict()
+        ports = sku_cap.number & 0x3
+        if ports == 0x0: 
+            sku_info['enabled_ports'] = '8'
+        elif ports == 0x1:
+            sku_info['enabled_ports'] = '4'
+        elif ports == 0x2:
+            sku_info['enabled_ports'] = '2'
+        elif ports == 0x3:
+            sku_info['enabled_ports'] = '1'
+
+        bandwidth = (sku_cap.number >> 2) & 0x3
+
+        if bandwidth == 0x0:
+            sku_info['bandwidth'] = '200G'
+        elif bandwidth == 0x1: 
+            sku_info['bandwidth'] = '100G'
+        elif bandwidth == 0x2:
+            sku_info['bandwidth'] = '50G'
+        elif bandwidth == 0x3:
+            sku_info['bandwidth'] = '25G'
+        sku_info['PE Engine'] = 'disabled' if sku_cap.number & 0x10 else 'enabled'
+        sku_info['Switch Mode'] = 'enabled' if sku_cap.number & 0x20 else 'disabled'
+        sku_info['CSR Protcetion'] = 'enabled' if sku_cap.number & 0x40 else 'disabled'
+        sku_info['Block BME to FW'] = 'not_writable_by_fw' if sku_cap.number & 0x200 else 'writable_by_fw'
+        sku_info['SOC Type'] = 'SNR' if sku_cap.number & 0x400 else 'ICX-D'
+        sku_info['BTS Mode'] = 'non_bts' if sku_cap.number & 0x800 else 'bts'
+        return sku_info
 
     def GetPhyAbiliesFields(self):
         config = dict()
@@ -3553,4 +2010,3 @@ class cpk(cpkTier1):
             stuts1, data1 = self.aq.ReleaseResourceOwnership(request_resource_config)
             if stuts1:
                 raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
-

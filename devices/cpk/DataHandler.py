@@ -327,7 +327,7 @@ class DataHandler(DeviceCommon):
 
     ## AQ 0x607 Get link status response ####
 
-    Get_Speed_Status_dict = {0:"10M",
+    get_speed_status_dict = {0:"10M",
                              1:"100M",
                              2:"1G",
                              3:"2.5G",
@@ -340,9 +340,101 @@ class DataHandler(DeviceCommon):
                              10:"100G",
                              11:"200G"}
 
-    Get_Phy_Type_Status_dict = {84:"N/A",83:"400G-AUI8",82:"400G-AUI8-AOC-ACC",81:"400GBase-DR4",80:"400GBase-LR8",79:"400GBase-FR8",78:"200G-AUI8",77:"200G-AUI8-AOC-ACC",76:"200G-AUI4",75:"200G-AUI4-AOC-ACC",74:"200GBase-KR4-PAM4",73:"200GBase-DR4",72:"200GBase-LR4",71:"200GBase-FR4",70:"200GBase-SR4",69:"200GBase-CR4-PAM4",68:"100G-AUI2",67:"100G-AUI2-AOC-ACC",66:"100G-CAUI2",65:"100G-CAUI2-AOC-ACC",64:"100GBase-KR2-PAM4",63:"100GBase-DR",62:"100GBase-SR2",61:"100GBase-CP2",60:"100GBase-KR-PAM4",59:"100GBase-CR-PAM4",58:"100G-AUI4",57:"100G-AUI4-AOC-ACC",56:"100G-CAUI4",55:"100G-CAUI4-AOC-ACC",54:"100GBase-KR4",53:"100GBase-LR4",52:"100GBase-SR4",51:"100GBase-CR4",50:"50G-AUI1",49:"50G-AUI1-AOC-ACC" ,48:"50GBase-KR-PAM4",47:"50GBase-LR",46:"50GBase-FR",45:"50GBase-SR",44:"50GBase-CP",43:"50G-AUI2",42:"50G-AUI2-AOC-ACC",41:"50G-LAUI2",40:"50G-LAUI2-AOC-ACC",39:"50GBase-KR2",38:"50GBase-LR2",37:"50GBase-SR2",36:"50GBase-CR2",35:"40G-XLAUI",34:"40G-XLAUI-AOC-ACC",33:"40GBase-KR4",32:"40GBase-LR4",31:"40GBase-SR4",30:"40GBase-CR4",29:"25G-AUI-C2C",28:"25G-AUI-AOC-ACC",27:"25GBase-KR1",26:"25GBase-KR-S",25:"25GBase-KR",24:"25GBase-LR",23:"25GBase-SR",22:"25GBase-CR1",21:"25GBase-CR-S",20:"25GBase-CR",19:"25GBase-T",18:"10G-SFI-C2C",17:"10G-SFI-AOC-ACC",16:"10GBase-KR-CR1",15:"10GBase-LR",14:"10GBase-SR",13:"10G-SFI-DA",12:"10GBase-T",11:"5GBase-KR",10:"5GBase-T",9:"2.5GBase-KX",8:"2.5GBase-X",7:"2.5GBase-T",6:"1G-SGMII",5:"1000Base-KX",4:"1000Base-LX",3:"1000Base-SX",2:"1000Base-T",1:"100M-SGMII",0:"100Base-TX"}
+    Get_Phy_Type_Status_dict = {84:"N/A",
+                                83:"400G-AUI8",
+                                82:"400G-AUI8-AOC-ACC",
+                                81:"400GBase-DR4",
+                                80:"400GBase-LR8",
+                                79:"400GBase-FR8",
+                                78:"200G-AUI8",
+                                77:"200G-AUI8-AOC-ACC",
+                                76:"200G-AUI4",
+                                75:"200G-AUI4-AOC-ACC",
+                                74:"200GBase-KR4-PAM4",
+                                73:"200GBase-DR4",
+                                72:"200GBase-LR4",
+                                71:"200GBase-FR4",
+                                70:"200GBase-SR4",
+                                69:"200GBase-CR4-PAM4",
+                                68:"100G-AUI2",
+                                67:"100G-AUI2-AOC-ACC",
+                                66:"100G-CAUI2",
+                                65:"100G-CAUI2-AOC-ACC",
+                                64:"100GBase-KR2-PAM4",
+                                63:"100GBase-DR",
+                                62:"100GBase-SR2",
+                                61:"100GBase-CP2",
+                                60:"100GBase-KR-PAM4",
+                                59:"100GBase-CR-PAM4",
+                                58:"100G-AUI4",
+                                57:"100G-AUI4-AOC-ACC",
+                                56:"100G-CAUI4",
+                                55:"100G-CAUI4-AOC-ACC",
+                                54:"100GBase-KR4",
+                                53:"100GBase-LR4",
+                                52:"100GBase-SR4",
+                                51:"100GBase-CR4",
+                                50:"50G-AUI1",
+                                49:"50G-AUI1-AOC-ACC",
+                                48:"50GBase-KR-PAM4",
+                                47:"50GBase-LR",
+                                46:"50GBase-FR",
+                                45:"50GBase-SR",
+                                44:"50GBase-CP",
+                                43:"50G-AUI2",
+                                42:"50G-AUI2-AOC-ACC",
+                                41:"50G-LAUI2",
+                                40:"50G-LAUI2-AOC-ACC",
+                                39:"50GBase-KR2",
+                                38:"50GBase-LR2",
+                                37:"50GBase-SR2",
+                                36:"50GBase-CR2",
+                                35:"40G-XLAUI",
+                                34:"40G-XLAUI-AOC-ACC",
+                                33:"40GBase-KR4",
+                                32:"40GBase-LR4",
+                                31:"40GBase-SR4",
+                                30:"40GBase-CR4",
+                                29:"25G-AUI-C2C",
+                                28:"25G-AUI-AOC-ACC",
+                                27:"25GBase-KR1",
+                                26:"25GBase-KR-S",
+                                25:"25GBase-KR",
+                                24:"25GBase-LR",
+                                23:"25GBase-SR",
+                                22:"25GBase-CR1",
+                                21:"25GBase-CR-S",
+                                20:"25GBase-CR",
+                                19:"25GBase-T",
+                                18:"10G-SFI-C2C",
+                                17:"10G-SFI-AOC-ACC",
+                                16:"10GBase-KR-CR1",
+                                15:"10GBase-LR",
+                                14:"10GBase-SR",
+                                13:"10G-SFI-DA",
+                                12:"10GBase-T",
+                                11:"5GBase-KR",
+                                10:"5GBase-T",
+                                9:"2.5GBase-KX",
+                                8:"2.5GBase-X",
+                                7:"2.5GBase-T",
+                                6:"1G-SGMII",
+                                5:"1000Base-KX",
+                                4:"1000Base-LX",
+                                3:"1000Base-SX",
+                                2:"1000Base-T",
+                                1:"100M-SGMII",
+                                0:"100Base-TX"}
 
-    get_Link_Status1_dict = {7:'Signal Detect',6:'Media Available',5:'External port link Up',4:'Remote fault',3:'Receiver link fault',2:'Transmitter link fault',1:'Phy has Detect a link Fault',0:'Link Up'}
+    get_Link_Status1_dict = {7:'Signal Detect',
+                             6:'Media Available',
+                             5:'External port link Up',
+                             4:'Remote fault',
+                             3:'Receiver link fault',
+                             2:'Transmitter link fault',
+                             1:'Phy has Detect a link Fault',
+                             0:'Link Up'}
+
     get_Link_Status2_dict = {7:'QualifiedModule',6:'Link_Pause_Status_TX',5:'Link_Pause_Status_TX',4:'Low_Power_state',3:'FEC_Enabled',2:'Parallel_detection_ Fault',1:'LP_AN_Ability',0:'AN_Completed'}
     get_FEC_Status_dict = {0:'10G_KR_FEC',1:'25G_KR_FEC',2:'25G_RS_528_FEC',3:'25G_RS_544_FEC'}
 
@@ -357,16 +449,37 @@ class DataHandler(DeviceCommon):
     pmd_num_for_8_ports_dict = {0:0,1:0,2:1,3:1,4:2,5:2,6:3,7:3}# key=pf,value=pmd_num according the netlist
 
     # GetPhyTuningParams proclib
-    Phy_tuning_params_dict = {"RxFFE_pre2" : 0x1000, "RxFFE_pre1" : 0x1100, "RxFFE_post1" : 0x1200, "RxFFE_Bflf" : 0x1300, "RxFFE_Bfhf" : 0x1400, "CTLE_HF" : 0x2000, "CTLE_LF" : 0x2100, "CTLE_DC" : 0x2200, "CTLE_BW" : 0x2300, "CTLE_gs1" : 0x2400, "CTLE_gs2" : 0x2500, "DFE_GAIN" : 0x3000, "DFE_GAIN2" : 0x3100, "DFE_2" : 0x3200, "DFE_3" : 0x3300, "DFE_4" : 0x3400, "DFE_5" : 0x3500, "DFE_6" : 0x3600, "DFE_7" : 0x3700, "DFE_8" : 0x3800, "DFE_9" : 0x3900, "DFE_A" : 0x3A00, "DFE_B" : 0x3B00, "DFE_C" : 0x3C00, "Eye height_thle" : 0x4000, "Eye height_thme" : 0x4100, "Eye height_thue" : 0x4200, "Eye height_thlo" : 0x4300, "Eye height_thmo" : 0x4400, "Eye height_thuo" : 0x4500}
+    Phy_tuning_params_dict = {"RxFFE_pre2":0x1000,
+                              "RxFFE_pre1":0x1100,
+                              "RxFFE_post1":0x1200,
+                              "RxFFE_Bflf" : 0x1300, "RxFFE_Bfhf" : 0x1400, "CTLE_HF" : 0x2000, "CTLE_LF" : 0x2100, "CTLE_DC" : 0x2200, "CTLE_BW" : 0x2300, "CTLE_gs1" : 0x2400, "CTLE_gs2" : 0x2500, "DFE_GAIN" : 0x3000, "DFE_GAIN2" : 0x3100, "DFE_2" : 0x3200, "DFE_3" : 0x3300, "DFE_4" : 0x3400, "DFE_5" : 0x3500, "DFE_6" : 0x3600, "DFE_7" : 0x3700, "DFE_8" : 0x3800, "DFE_9" : 0x3900, "DFE_A" : 0x3A00, "DFE_B" : 0x3B00, "DFE_C" : 0x3C00, "Eye height_thle" : 0x4000, "Eye height_thme" : 0x4100, "Eye height_thue" : 0x4200, "Eye height_thlo" : 0x4300, "Eye height_thmo" : 0x4400, "Eye height_thuo" : 0x4500}
 
     Serdes_mapping_per_pf_2_ports = {0:0,1:4}# key=pf : value=serdes number according CVL port mapping 3.4.2.3.2
     Serdes_mapping_per_pf_4_ports = {0:0,1:1,2:4,3:5}# key=pf : value=serdes number according CVL port mapping 3.4.2.3.2
     Serdes_mapping_per_pf_4_ports_mux = {0:0,1:1,2:2,3:3} # key=pf : value=serdes number according CVL port mapping 3.4.2.3.2
     Serdes_mapping_per_pf_8_ports = {0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7}# key=pf : value=serdes number according CVL port mapping 3.4.2.3.2
 
-    NRZ_100G_phytype_list = ['100G-AUI4','100G-AUI4-AOC/ACC','100G-CAUI4','100G-CAUI4-AOC/ACC','100GBase-KR4','100GBase-LR4','100GBase-SR4','100GBase-CR4']
-    PAM4_100G_phytype_list = ['100GBase-KR2-PAM4','100GBase-DR','100GBase-SR2','100GBase-CP2','100GBase-KP-PAM4']
-    NRZ_50G_phytype_list = ['50G-AUI2','50G-AUI2-AOC/ACC','50G-LAUI2','50G-LAUI2-AOC/ACC','50GBase-KR2','50GBase-CR2']
+    NRZ_100G_phytype_list = ['100G-AUI4',
+                             '100G-AUI4-AOC/ACC',
+                             '100G-CAUI4',
+                             '100G-CAUI4-AOC/ACC',
+                             '100GBase-KR4',
+                             '100GBase-LR4',
+                             '100GBase-SR4',
+                             '100GBase-CR4']
+
+    PAM4_100G_phytype_list = ['100GBase-KR2-PAM4',
+                              '100GBase-DR',
+                              '100GBase-SR2',
+                              '100GBase-CP2',
+                              '100GBase-KP-PAM4']
+
+    NRZ_50G_phytype_list = ['50G-AUI2',
+                            '50G-AUI2-AOC/ACC',
+                            '50G-LAUI2',
+                            '50G-LAUI2-AOC/ACC',
+                            '50GBase-KR2',
+                            '50GBase-CR2']
 
     serdeses_per_portnum_2_dict = {0:[0,1],1:[4,5]}
     serdeses_per_portnum_4_dict = {0:[0,1,2,3],1:[4,5,6,7]}
