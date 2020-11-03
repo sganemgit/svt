@@ -3,6 +3,7 @@
 
 class DriverFactory():
     '''This class is responsible for creation of drivers'''
+
     @classmethod
     def create_driver_by_project_name(cls, driver_type, project_name, device_number, port_number, hostname):
         if driver_type == "sv":
