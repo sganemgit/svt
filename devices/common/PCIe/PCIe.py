@@ -13,17 +13,17 @@ class PCIe:
                                        6:'reserved'}
 
     link_speed_encoding = {0x1:0,
-                            0x2:1,
-                            0x3:2,
-                            0x4:3,
-                            0x5:4,
-                            0x6:5,
-                            0x7:6}
+                           0x2:1,
+                           0x3:2,
+                           0x4:3,
+                           0x5:4,
+                           0x6:5,
+                           0x7:6}
 
-    link_width_encoding = {0x1:'x1',
-                               0x2:'x2',
-                               0x4:'x4',
-                               0x8:'x8',
-                               0x12:'x12',
-                               0x16:'x16',
-                               0x32:'x32'}
+    link_width_encoding = {1:'x1',
+                           2:'x2',
+                           4:'x4',
+                           8:'x8',
+                           12:'x12',
+                           16:'x16',
+                           32:'x32'}

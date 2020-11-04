@@ -9,7 +9,7 @@ from core.utilities.SvtDecorator import *
 
 import time
 
-from devices.cpk.cpkBase import cpkBase
+from devices.cvl.cvlBase import cvlBase
 
 class cvl(cvlBase):
     '''
@@ -31,8 +31,6 @@ class cvl(cvlBase):
             return:
                 None
         '''
-    
-        link_status_dict = self.GetLinkStatusAfterParsing()
         fw_info = self.driver.get_fw_info()
         ret_string = "#"*80 +"\n"
         ret_string += "Device info: \n"
@@ -40,9 +38,9 @@ class cvl(cvlBase):
         ret_string += "Device Name : CVL\n"
         ret_string += "Device Number : {}\n".format(self.driver.device_number())
         ret_string += "Port Number : {}\n".format(self.driver.port_number())
-        ret_string += "Current MAC link status : {}\n".format(link_status_dict['MacLinkStatus'])
-        ret_string += "Current MAC link Speed : {}\n".format(link_status_dict['MacLinkSpeed'])
-        ret_string += "Current Phy Type : {}\n".format(link_status_dict['PhyType'])
+        ret_string += "Current MAC link status : {}\n".format(self.GetCurrentLinkStatus())
+        ret_string += "Current MAC link Speed : {}\n".format(self.GetCurrentLinkSpeed())
+        ret_string += "Current Phy Type : {}\n".format(self.GetCurrentPhyType())
         ret_string += "Current FEC Type : {}\n".format(self.GetCurrentFECStatus())
         ret_string += "Current PCIe link speed : {}\n".format(self.GetCurrentPcieLinkSpeed())
         ret_string += "Current PCIe link Width : {}\n".format(self.GetCurrentPcieLinkWidth())
@@ -367,6 +365,29 @@ class cvl(cvlBase):
         for key, val in data.items():
             print("{} : {}".format(key, val))
 
+    def GetCurrentPhyType(self):
+        status, data = self.aq.GetLinkStatus({'port':0, 'cmd_flag':1})
+
+        if status: 
+            raise RuntimeError("Get link status failed. status: {} retval: {}".format(status, data))
+        
+        phy_type = data['phy_type']
+
+        for key, val in self.data.get_Ability_Phy_Type_dict.items():
+            mask = 1 << key
+            if phy_type & mask:
+                return val
+
+    def GetCurrentLinkStatus(self):
+        status, data = self.aq.GetLinkStatus({'port':0, 'cmd_flag':1})
+
+        if status: 
+            raise RuntimeError("Get link status failed. status: {} retval: {}".format(status, data))
+
+        if data['link_sts']:
+            return 'UP'
+        else:
+            return 'DOWN'
         
     def GetCurrentLinkSpeed(self, Location = "AQ"):
         '''
@@ -410,7 +431,7 @@ class cvl(cvlBase):
             raise RuntimeError("Error _GetCurrentLinkSpeedAq: Admin command was not successful")
 
         current_link_speed = data['current_link_speed']
-        for key, val in self.Get_Speed_Status_dict.items():
+        for key, val in self.data.get_speed_status_dict.items():
             mask = 1 << key
             if current_link_speed & mask:
                 return val
@@ -534,10 +555,10 @@ class cvl(cvlBase):
             raise RuntimeError("Error _GetPhyTypeAq: Admin command was not successful")  
 
         phy_type = data['phy_type'] 
-        if self.Get_Phy_Type_Status_dict:
-            for i in range(len(self.Get_Phy_Type_Status_dict)):
+        if self.data.Get_Phy_Type_Status_dict:
+            for i in range(len(self.data.Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
-                    return self.Get_Phy_Type_Status_dict[i]
+                    return self.data.Get_Phy_Type_Status_dict[i]
         else:
             raise RuntimeError("Error _GetPhyTypeAq: Get_Phy_Type_Status_dict is not defined")
 
@@ -799,7 +820,7 @@ class cvl(cvlBase):
         driver = self.driver
         reg_addr = calculate_port_offset(0x03001030, 0x100, driver.port_number())
         value = self.ReadEthwRegister(reg_addr)
-        return self.Phy_link_speed_dict[int(value,16)]
+        return self.data.Phy_link_speed_dict[int(value,16)]
         
     def _GetPhyLinkSpeedAq(self):
         '''
@@ -2360,45 +2381,45 @@ class cvl(cvlBase):
 
         ####### get Mac Link status  ##############################################
         link_speed = 'N/A'
-        if self.Get_Speed_Status_dict:
+        if self.data.get_speed_status_dict:
             if data['link_speed_10m']:
-                link_speed = self.Get_Speed_Status_dict[0]
+                link_speed = self.data.get_speed_status_dict[0]
                 
             elif data['link_speed_100m']:
-                link_speed = self.Get_Speed_Status_dict[1]
+                link_speed = self.data.get_speed_status_dict[1]
                 
             elif data['link_speed_1000m']:
-                link_speed = self.Get_Speed_Status_dict[2]
+                link_speed = self.data.get_speed_status_dict[2]
                 
             elif data['link_speed_2p5g']:
-                link_speed = self.Get_Speed_Status_dict[3]
+                link_speed = self.data.get_speed_status_dict[3]
                 
             elif data['link_speed_5g']:
-                link_speed = self.Get_Speed_Status_dict[4]
+                link_speed = self.data.get_speed_status_dict[4]
                 
             elif data['link_speed_10g']:
-                link_speed = self.Get_Speed_Status_dict[5]
+                link_speed = self.data.get_speed_status_dict[5]
                 
             elif data['link_speed_20g']:
-                link_speed = self.Get_Speed_Status_dict[6]
+                link_speed = self.data.get_speed_status_dict[6]
                 
             elif data['link_speed_25g']:
-                link_speed = self.Get_Speed_Status_dict[7]
+                link_speed = self.data.get_speed_status_dict[7]
                 
             elif data['link_speed_40g']:
-                link_speed = self.Get_Speed_Status_dict[8]
+                link_speed = self.data.get_speed_status_dict[8]
                 
             elif data['link_speed_50g']:
-                link_speed = self.Get_Speed_Status_dict[9]
+                link_speed = self.data.get_speed_status_dict[9]
                 
             elif data['link_speed_100g']:
-                link_speed = self.Get_Speed_Status_dict[10]
+                link_speed = self.data.get_speed_status_dict[10]
                 
             elif data['link_speed_200g']:
-                link_speed = self.Get_Speed_Status_dict[11]
+                link_speed = self.data.get_speed_status_dict[11]
 
         else:
-            raise RuntimeError("Error GetLinkStatusAfterParsing: Get_Speed_Status_dict is not defined")
+            raise RuntimeError("Error GetLinkStatusAfterParsing: get_speed_status_dict is not defined")
 
         return_dict["MacLinkSpeed"] = link_speed
 
@@ -2972,6 +2993,8 @@ class cvl(cvlBase):
         link_status_register = self.driver.read_pci(0xB2)
 
         negotiated_link_width = (link_status_register >> 4) & 0x3f
+        print negotiated_link_width
+
         return self.data.link_width_encoding[negotiated_link_width]
 
     def GetDevicePowerState(self):

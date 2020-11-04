@@ -325,7 +325,7 @@ class DataHandler(DeviceCommon):
 
     ## AQ 0x607 Get link status response ####
 
-    Get_Speed_Status_dict = {0:"10M",
+    get_speed_status_dict = {0:"10M",
                              1:"100M",
                              2:"1G",
                              3:"2.5G",
