@@ -1,7 +1,7 @@
 
+# @author Shady Ganem <shady.ganem@intel.com>
 
-
-class IeeeCommon:
+class IEEE_802_3:
 	
     fec_dict = {"400G-AUI8": ['25G_RS_544_FEC'],
                 "400G-AUI8-AOC-ACC":['25G_RS_544_FEC'],
@@ -88,4 +88,32 @@ class IeeeCommon:
                 "100Base-TX":['NO_FEC'],
                 "100M-SGMII":['NO_FEC']}
 
-    reset_type_dict = {"globr": "GLOBAL", "pfr": "PF", "corer": "CORE", "empr": "EMP", "flr": "FL", "pcir": "PCI","bmer": "BME", "vfr": "VF_SW", "vflr": "VFLR"}
+    ieee_802_3_force_phy_type_list = ['10GBase-SR',
+                                      '10GBase-LR',
+                                      '10G-SFI-AOC-ACC',
+                                      '10G-SFI-C2C',
+                                      '10G-SFI-DA',
+                                      '25G-AUI-AOC-ACC',
+                                      '25G-AUI-C2C',
+                                      '25GBase-SR',
+                                      '25GBase-LR',
+                                      '50G-AUI2',
+                                      '50G-AUI2-AOC-ACC',
+                                      '50G-LAUI2',
+                                      '50G-LAUI2-AOC-ACC',
+                                      '50GBase-SR',
+                                      '50GBase-LR',
+                                      '50GBase-FR',
+                                      '50G-AUI1',
+                                      '50G-AUI1-AOC-ACC',
+                                      '50GBase-CP',
+                                      '100GBase-CP2',
+                                      '100GBase-LR4',
+                                      '100GBase-SR4',
+                                      '100G-AUI4',
+                                      '100G-AUI4-AOC-ACC',
+                                      '100G-CAUI4',
+                                      '100G-CAUI4-AOC-ACC',
+                                      '100GBase-SR2',
+                                      '100G-AUI2',
+                                      '100G-AUI2-AOC-ACC']

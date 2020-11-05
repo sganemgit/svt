@@ -1052,13 +1052,12 @@ class AdminCommandHandler:
                     list[1] - retval : if the FW return value 0 = succefull admin command
                     list[2] - data : 16 bytes of I2C data of a cage in a port context
         '''
-
         driver  = self.driver
         aq_desc = AqDescriptor()
         aq_desc.opcode  = 0x6E2
         aq_desc.flags = 0
         aq_desc.datalen = 0
-        aq_desc.param0 = (0x2 << 20 | 0x6 << 16 | 1 << 8 | port)
+        aq_desc.param0 = (0x2 << 20) | (0x6 << 16) | (1 << 8) | port
         aq_desc.param1 = 0
         aq_desc.param1 = (memory_offset << 16 | node_handle)
         aq_desc.addr_high= 0
@@ -1066,18 +1065,6 @@ class AdminCommandHandler:
         aq_desc.addr_low = 0
         buffer = []
         status  = driver.send_aq_command(aq_desc)
-        if debug == True:
-            print("falg = " ,hex(aq_desc.flags))
-            print("opcode = " ,hex(aq_desc.opcode))
-            print("datalen = " ,hex( aq_desc.datalen))
-            print("retval = " ,aq_desc.retval)
-            print("cookie_high = " ,hex(aq_desc.cookie_high))
-            print("cookie_low = " ,hex(aq_desc.cookie_low))
-            print("param0 = " ,hex(aq_desc.param0))
-            print("param1 = " ,hex(aq_desc.param1))
-            print("addr_high = " ,hex(aq_desc.addr_high))
-            print("addr_low = " ,hex( aq_desc.addr_low))
-            return aq_desc
         data =  intgerTo4ByteList(aq_desc.param0)
         data += intgerTo4ByteList(aq_desc.param1)
         data += intgerTo4ByteList(aq_desc.addr_high)
@@ -1085,7 +1072,8 @@ class AdminCommandHandler:
         return [status,aq_desc.retval,data]
 
     def WriteI2C(self, config, debug=False):
-        '''this function write 1 bytes of I2C data. see HAS Table 3-135. write  I2C admin command (Opcode: 0x06E3)
+        '''
+            This function write 1 bytes of I2C data. see HAS Table 3-135. write  I2C admin command (Opcode: 0x06E3)
             arguments:
             config -- type(dict):
             
@@ -1103,8 +1091,8 @@ class AdminCommandHandler:
                     list[0] - status : this the drivers return vlaue 0 = succefull admin command
                     list[1] - retval : this the FW return value 0 = succefull admin command
         '''
-        byte_16 = config["logical_port_number"] & 0xff
-        byte_17 = config.get("port_nubmer_valid", 1) & 0x1
+        byte_16 = config.get("logical_port_number", 0) & 0xff
+        byte_17 = config.get("port_nubmer_valid", 0) & 0x1
         byte_18 = ((config.get("node_type_context", 0x2) & 0xff) << 4) | (config.get('node_type', 0x6) & 0xf)
         byte_19 = config.get("index",0) & 0xff
         byte_20 = config["node_handle"] & 0xff
@@ -1120,17 +1108,18 @@ class AdminCommandHandler:
         byte_31 = (config["i2c_data"] >> 24) & 0xff
 
         aq_desc = AqDescriptor()
-        aq_desc.opcode = 0x06E3
+        aq_desc.opcode = 0x6e3
         aq_desc.flags = 0
-        aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
-        aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8 | byte_20)
-        aq_desc.addr_high = (byte_27 << 24 | byte_26 << 16 | byte_24)  
-        aq_desc.addr_low = (byte_31 << 24 | byte_30 << 16 | byte_29 << 8 | byte_28)
-        buffer = []
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        aq_desc.param0 = (byte_19 << 24) | (byte_18 << 16) | (byte_17 << 8) | byte_16
+        aq_desc.param1 = (byte_23 << 24) | (byte_22 << 16) | (byte_21 << 8) | byte_20
+        aq_desc.addr_high = (byte_27 << 24) | (byte_26 << 16) | byte_24  
+        aq_desc.addr_low = (byte_31 << 24) | (byte_30 << 16) | (byte_29 << 8) | byte_28
+        buffer = list() 
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, True)
         if status != 0 or aq_desc.retval != 0:
             print("Failed to send Write I2C Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
-        return [status, aq_desc.retval]
+            return (status, aq_desc.retval)
+        return (status, None)
 
 
 
@@ -1163,7 +1152,7 @@ class AdminCommandHandler:
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             raise RuntimeError("Failed to send GetPortOptions Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
         else:

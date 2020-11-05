@@ -1,14 +1,10 @@
 
 import sys
-import threading
-
+import time
 from core.structs.AqDescriptor import AqDescriptor
 from core.structs.CapabilityStructure import CapabilityStructure
 from core.utilities.BitManipulation import *
 from core.utilities.SvtDecorator import *
-
-import time
-
 from devices.cvl.cvlBase import cvlBase
 
 class cvl(cvlBase):
@@ -32,7 +28,8 @@ class cvl(cvlBase):
                 None
         '''
         fw_info = self.driver.get_fw_info()
-        ret_string = "#"*80 +"\n"
+        ret_string = "\n"
+        ret_string += "#"*80 +"\n"
         ret_string += "Device info: \n"
         ret_string += "-"*13 +"\n"
         ret_string += "Device Name : CVL\n"
@@ -48,11 +45,6 @@ class cvl(cvlBase):
         ret_string += "FW build  : {}\n".format(fw_info['FW version'])
         ret_string += "#"*80 +"\n"
         return ret_string
-
-
-###############################################################################
-#                        Register reading section                             #
-###############################################################################
 
     def read_register(self, register_name, mul = 0x8, size = 0xffffffff):
        '''
@@ -334,22 +326,18 @@ class cvl(cvlBase):
         return LinkStatus
 
     def _GetMacLinkStatusAq(self):
-        '''This function returns the link status using Get link status AQ.
+        '''
+            This function returns the link status using Get link status AQ.
                 argument: None
                 return: True/false
         '''
         gls = {}
         gls['port'] = 0 #not relevant for CVL according to CVL Spec
         gls['cmd_flag'] = 1
-        result = self.aq.GetLinkStatus(gls)
-
-        if not result[0]:  # if Admin command was successful - False
-            data = result[1]
-        else:
-            raise RuntimeError("Error _GetMacLinkStatusAQ: Admin command was not successful")
-
-        status = data['link_sts']
-        return status
+        status, data= self.aq.GetLinkStatus(gls)
+        if status:
+            raise RuntimeError("Error Get Link status failed: status: {} retval: {}".format(status, data))
+        return data['link_sts']
 
     def GetLinkStatusFields(self):
         gls = dict()
@@ -373,7 +361,7 @@ class cvl(cvlBase):
         
         phy_type = data['phy_type']
 
-        for key, val in self.data.get_Ability_Phy_Type_dict.items():
+        for key, val in self.data.cvl_phy_type_abilities_dict.items():
             mask = 1 << key
             if phy_type & mask:
                 return val
@@ -478,8 +466,8 @@ class cvl(cvlBase):
             argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
             return: None
         '''
-        if reset_type in self.reset_type_dict:
-            self.driver.device_reset(self.reset_type_dict[reset_type])
+        if reset_type in self.data.cvl_reset_type_dict:
+            self.driver.device_reset(self.data.cvl_reset_type_dict[reset_type])
         else:
             print("could not identify reset type")
 
@@ -497,21 +485,20 @@ class cvl(cvlBase):
         get_abils['rep_qual_mod'] = 0
         get_abils['rep_mode'] = 1
         
-        result = self.aq.GetPhyAbilities(get_abils)
+        status, data = self.aq.GetPhyAbilities(get_abils)
         
-        if not result[0]: 
-            data = result[1]
-        else:
-            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
+        if status:
+            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")
         
         module_type_info_dict = dict()    
         current_module_type = data['current_module_type']
 
         module_type_info_dict['Module_ID'] = current_module_type & 0xFF
+        module_type_info_dict['module_compliance_code'] = data['mod_ext_comp_code']
 
         byte1 = (current_module_type >> 8) & 0xFF
         supported_tecknologies_list = list()
-        for key, val in self.suppoted_module_technologies_dict.items():
+        for key, val in self.data.cvl_suppoted_module_technologies_dict.items():
             mask = 1 << key
             if byte1 & mask: 
                 supported_tecknologies_list.append(val)
@@ -668,9 +655,9 @@ class cvl(cvlBase):
         
         phy_type_list = list()
         
-        for i in range(len(self.get_Ability_Phy_Type_dict)):
+        for i in range(len(self.data.cvl_phy_type_abilities_dict)):
             if ((phy_type >> i) & 0x1):
-                phy_type_list.append(self.get_Ability_Phy_Type_dict[i])
+                phy_type_list.append(self.data.cvl_phy_type_abilities_dict[i])
                
         return phy_type_list
 
@@ -1415,7 +1402,7 @@ class cvl(cvlBase):
         for current_serdes in serdes_sel:
             Phytuning_final_dict[current_serdes] = {}
 
-            for key,val in Phy_tuning_params_dict.iteritems():
+            for key,val in data.Phy_tuning_params_dict.iteritems():
                 #args opcode,serdes_sel,data_in,debug=False
                 ret_val = self.DnlCvlDftTest(0x9, current_serdes, val, debug=False)
                 #print key,ret_val
@@ -2271,7 +2258,6 @@ class cvl(cvlBase):
         buffer.append(Byte4_AdDW)
         return_buffer = self._NeighborDeviceRequestAq(0,buffer)
 
-
     def _to_unsigned(self, value):
         '''
             This function convert sign value to unsigned.
@@ -2579,77 +2565,6 @@ class cvl(cvlBase):
 
         return return_list
 
-    #########################################################################################################
-    ######################           Statistics               #############################################
-    #########################################################################################################
-
-
-
-    def GetBERMacStatistics(self):
-        '''This function return dictinary with mac link statistics for BER test.
-            argument: None
-            return: 
-                dictionary -- contain the statistics indications    
-                    'TotalPacketRecieve'
-                    'TotalPacketTransmite'
-                    'Mac_link_status'
-                    'Mac_link_speed'
-        '''
-
-        MacStatistics = {}
-        
-        MacStatistics['TotalPacketRecieve'] = self.GetPRC()['TotalPRC']
-        MacStatistics['TotalPacketTransmite'] = self.GetPTC()['TotalPTC']
-        
-        #return Mac link status
-        MacStatistics['Mac_link_status'] = self.GetMacLinkStatus()
-        
-        #return link speed
-        MacStatistics['Mac_link_speed'] = self.GetMacLinkSpeed()
-
-        return MacStatistics
-
-    def GetMacStatistics(self, Location = "AQ",GlobReset = 0):
-        '''This function return dictinary with mac link statistics
-            argument:
-            return: 
-                dictionary -- contain the statistics indications    
-                    'Mac_link_status'
-                    'Mac_link_speed'
-                    'Phy_Type'
-        '''
-        Mac_link_statistic_dict = {}
-        #return Mac link status
-        Mac_link_statistic_dict['Mac_link_status'] = self.GetMacLinkStatus(Location)
-        #return  Mac link speed
-        Mac_link_statistic_dict['Mac_link_speed'] = self.GetMacLinkSpeed(Location)
-        if GlobReset == 0:
-            Mac_link_statistic_dict['Phy_Type'] = self.GetPhyType()
-            Mac_link_statistic_dict['Current_FEC'] = self.GetCurrentFECStatus()
-        return Mac_link_statistic_dict
-
-    def GetPhyStatistics(self):
-        '''This function return dictinary with phy link statistics
-            argument:
-                Advance_phy_statistics - Flag for more statistic
-            return:
-                dictionary -- contain the statistics indications
-                    'Phy_link_status'
-                    'Phy_link_speed'
-        '''
-        Phy_link_statistic_dict = {}
-        Phy_link_statistic_dict['Phy_link_status'] = self.GetPhyLinkStatus()
-        Phy_link_statistic_dict['Phy_link_speed'] = self.GetPhyLinkSpeed()
-        return Phy_link_statistic_dict
-
-
-    #########################################################################################################
-    ######################        logger feature ability        #############################################
-    #########################################################################################################
-    ###  this scope was taken from logger to let us ability to logging the fw in the performance env   ####
-
-
-
     def clear_rx_events_queue(self):
         '''This function will clear the buffer from previous messages  
             input: None
@@ -2829,28 +2744,7 @@ class cvl(cvlBase):
 
         print("end")
 
-    def ttl_test(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter):
-        '''This function perform ttl test and print the result
-            argument:
-                ttl_timeout [Sec]
-                ttl_pass_criteria
-                link_stable_test_Flag - verify that the link is stable after TTL test
-                link_stability_time - time for test if link is stable
-                RestartAnSrc - restart AN using AQ or by REG
-                iter_num - current iteration
-                AmIDut  -flag - True when running in DUT, False in LP
-                last_iter - flag for last iteration         
-            return:
-                None
-        '''
-        print(MainTtl(ttl_timeout,ttl_pass_criteria,link_stable_test_Flag,link_stability_time,RestartAnSrc,iter_num,AmIDut,last_iter))
-
-
-###############################################################################
-######################         Debug Print Section          ###################
-###############################################################################
-
-    def DBG_print_Phy_Tuning(self, serdes_sel,debug = False):
+    def PrintPhyTuningInfo(self, serdes_sel,debug = False):
         '''This function print phy tuning info. opcode 9 from CVL-DFT-D8.*EX
             arguments:
                 serdes_sel - num of serdes
@@ -2858,12 +2752,10 @@ class cvl(cvlBase):
             return: None
         '''
         Phytuning_dict = {}
-        # for key,val in Phy_tuning_params_dict.iteritems():
-        for key, val in self.Phy_tuning_params_dict.items():  # Python 3
-            # args opcode,serdes_sel,data_in,debug=False
+        for key, val in self.data.Phy_tuning_params_dict.items():
             ret_val = self.DnlCvlDftTest(0x9, serdes_sel, val, debug=False)
-            #print key,ret_val
             Phytuning_dict[key] = ret_val
+        persistent_stores = self.ReadDnlPersistentStores()
         if debug:
             keylist = Phytuning_dict.keys()  # The keys() method returns a view object
             list(keylist).sort()
@@ -2891,24 +2783,24 @@ class cvl(cvlBase):
             print()
 
 
-        elif PRT_AN_ENABLED and not link_up_flag:
+        elif persistent_stores['PRT_AN_ENABLED'] and not link_up_flag:
             print()
             print("###########################################  ")
             print("---------------  DUT  --------------------   ")
             print("###########################################  ")
             print()
-            print("PRT State Machine PSTO: ", hex(self.PRT_STATE_MACHINE))
-            print("PRT State Machine: ", PRT_STATE_MACHINE_AN[get_bits_slice_value(self.PRT_STATE_MACHINE, 0, 7)])
+            print("PRT State Machine PSTO: ", hex(persistent_stores['PRT_STATE_MACHINE']))
+            print("PRT State Machine: ", PRT_STATE_MACHINE_AN[get_bits_slice_value(persistent_stores['PRT_STATE_MACHINE'], 0, 7)])
 
 
-        elif not PRT_AN_ENABLED and not link_up_flag:# force mode and link down
+        elif not persistent_stores['PRT_AN_ENABLED'] and not link_up_flag:# force mode and link down
             print()
             print("###########################################  ")
             print("---------------  DUT  --------------------   ")
             print("###########################################  ")
             print()
-            print("PRT State Machine PSTO: ", hex(self.PRT_STATE_MACHINE))
-            print("PRT State Machine: ", PRT_STATE_MACHINE_FM[get_bits_slice_value(self.PRT_STATE_MACHINE, 0, 7)])
+            print("PRT State Machine PSTO: ", hex(persistent_stores['PRT_STATE_MACHINE']))
+            print("PRT State Machine: ", PRT_STATE_MACHINE_FM[get_bits_slice_value(persistent_stores['PRT_STATE_MACHINE'], 0, 7)])
 
             # print pcs advanced info
             get_pcs_advenced_info = self.GetPcsAdvencedInfo()
@@ -2920,12 +2812,6 @@ class cvl(cvlBase):
 
             for i in get_pcs_advenced_info:
                 print(i)
-
-
-
-    ######################################################################################################
-    ##########################                  PCIe sections                   ##########################
-    ######################################################################################################
 
     def GetLcbPortLockStatus(self):
         '''This function returns the status of the LOCK bit in the REG GLPCI_LCBADD(offset 0x0009E944 ) PCIe LCB Address Port
@@ -2983,38 +2869,28 @@ class cvl(cvlBase):
 
     def GetCurrentPcieLinkSpeed(self):
         link_status_register = self.driver.read_pci(0xB2)
-
         link_speed = link_status_register & 0xF
-
-        vector_bit = self.data.link_speed_encoding[link_speed]
-        return self.data.supported_Link_speed_vector[vector_bit]
+        vector_bit = self.data.pcie_link_speed_encoding[link_speed]
+        return self.data.pcie_supported_Link_speed_vector[vector_bit]
 
     def GetCurrentPcieLinkWidth(self):
         link_status_register = self.driver.read_pci(0xB2)
-
         negotiated_link_width = (link_status_register >> 4) & 0x3f
         print negotiated_link_width
-
-        return self.data.link_width_encoding[negotiated_link_width]
+        return self.data.pcie_link_width_encoding[negotiated_link_width]
 
     def GetDevicePowerState(self):
         '''
             This function returns Device power state: 
-            argument: None
+            input: None
             return: "D0" / "Reserved" / "D3hot"
         '''
         reg = self.driver.read_pci(0x44)
-        val = get_bits_slice_value(reg[1],0,1)
-
+        val = get_bits_slice_value(reg,0,1)
         power_sate = {0: "D0",
                       2: "Reserved",
                       3: "D3hot"}
-
-        print("Device Power State: ", power_sate.get(val,"Wrong"))
-
-################################################################################
-##############                          Power                       ############
-################################################################################
+        return self.data.pcie_power_state_encoding.get(val,"Wrong")
 
     def SetD3PowerState(self):
         driver = self.driver
@@ -3065,7 +2941,7 @@ class cvl(cvlBase):
         while(True):
             if P > 8:#just in case something goes wrong
                 break
-            topology_list = self.GetLinkTopologyHandle(P)
+            topology_list = self.aq.GetLinkTopologyHandle(P)
             status = topology_list[0]
             retval = topology_list[1]
             if retval == 18:
@@ -3073,6 +2949,8 @@ class cvl(cvlBase):
             data = topology_list[2]
             node_handler_dict[P] = data['node_handle']
             P += 1
+
+        print node_handler_dict
         #cable_type_to_topology_hanlder_dict = {'sfp' : {0:7,2:8,4:9,6:10,1:11,3:12,5:13,7:14}, 'qsfp' : {0:2,1:3}}
         #handlers_dict = cable_type_to_topology_hanlder_dict.get(cable_type,'cable type unknown')
         eeprom_dict = dict()
@@ -3092,7 +2970,7 @@ class cvl(cvlBase):
     def WriteEeprom(self, offset, value, debug=False):
         config = dict()
         config["logical_port_number"] = self.driver.port_number()
-        config["node_handle"] = self.GetLinkTopologyHandle(int(self.driver.port_number()))[2]['node_handle']
+        config["node_handle"] = self.aq.GetLinkTopologyHandle(int(self.driver.port_number()))[2]['node_handle']
         config["i2c_memory_offset"] = offset
         config["i2c_data"] = value
         status, data = self.aq.WriteI2C(config, debug) 
@@ -3267,6 +3145,16 @@ class cvl(cvlBase):
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
 
+    def GetCurrentModuleExtendedComplianceCode(self):
+        get_abils = {}
+        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
+        get_abils['rep_qual_mod'] = 0
+        get_abils['rep_mode'] = 1 
+        status, data = self.aq.GetPhyAbilities(get_abils)
+        if status:
+            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
+        return self.data.sff_extended_specification_compliance_codes.get(data['mod_ext_comp_code'], 'N/A')
+
     def GetCurrentModuleComplianceEnforcement(self):
         '''
             CPK DCR 102
@@ -3389,17 +3277,9 @@ class cvl(cvlBase):
         if status1: 
             raise RuntimeError('RequestResourceOwnership AQ faild status: {} retval: {}'.format(status1, data1))
 
-        #we have successfully aquired ownership over the nvm. Default timeout for this operation is 180000ms. need to be quick
+        #successfully aquired ownership over the nvm. Default timeout for this operation is 180000ms. need to be quick
         try: 
-            # nvm_erase_config = dict()
-            # nvm_erase_config['module_typeID'] = data['module_typeID']
-            # nvm_erase_config['last_command_bit'] = 1
-            # status, data = self.aq.NvmErase(nvm_erase_config)
-            # if status:
-            #     raise RuntimeError("NVM erase has failed. status {} retval: {}".format(status, data))
-            #writing to NVM
             nvm_write_config = dict()
-            #nvm_write_config['module_typeID'] = self.data.nvm_module_type_id_dict[module_type_id]
             nvm_write_config['module_typeID'] = data['module_typeID']
             nvm_write_config['length'] = data['length']
             nvm_write_config['last_command_bit'] = 0

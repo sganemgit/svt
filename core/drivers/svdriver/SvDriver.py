@@ -670,38 +670,22 @@ class SvDriver(object):
                 'PCI', 'PCE_RESTORE', 'BME', 'ACPI'
 
         '''
-        if reset_type == 'PF':
-            reset_type_value = libPyApi.DRT_PF_RESET
-        elif reset_type == 'CORE':
-            reset_type_value = libPyApi.DRT_CORE_RESET
-        elif reset_type == 'GLOBAL':
-            reset_type_value = libPyApi.DRT_GLOBAL_RESET
-        elif reset_type == 'EMP':
-            reset_type_value = libPyApi.DRT_EMP_RESET
-        elif reset_type == 'VF_SW':
-            reset_type_value = libPyApi.DRT_VF_SW_RESET
-        elif reset_type == 'VFLR':
-            reset_type_value = libPyApi.DRT_VFLR_RESET
-        elif reset_type == 'FL':
-            reset_type_value = libPyApi.DRT_FL_RESET
-        elif reset_type == 'PCI':
-            reset_type_value = libPyApi.DRT_PCI_RESET
-        elif reset_type == 'PCI_RESTORE':
-            reset_type_value = libPyApi.DRT_PCI_RESET_RESTORE
-        elif reset_type == 'BME':
-            reset_type_value = libPyApi.DRT_BME_RESET
-        elif reset_type == 'ACPI':
-            reset_type_value = libPyApi.DRT_ACPI_RESET
-        elif reset_type == 'None':
-            reset_type_value = libPyApi.DRT_NONE
-        elif reset_type == 'MEV_IMC':
-            reset_type_value = libPyApi.DRT_MEV_IMC_RESET
-        elif reset_type == 'MEV_LINK':
-            reset_type_value = libPyApi.DRT_MEV_IMC_RESET
-        else:
-            raise RuntimeError("Unsupported reset type " + reset_type)
+        reset_values = {'PF': libPyApi.DRT_PF_RESET,
+                        'CORE': libPyApi.DRT_CORE_RESET,
+                        'GLOBAL': libPyApi.DRT_GLOBAL_RESET,
+                        'EMP': libPyApi.DRT_EMP_RESET,
+                        'VF_LR': libPyApi.DRT_VFLR_RESET,
+                        'VF_SW': libPyApi.DRT_VF_SW_RESET,
+                        'FL': libPyApi.DRT_FL_RESET,
+                        'PCI': libPyApi.DRT_PF_RESET,
+                        'PCI_RESTORE': libPyApi.DRT_PCI_RESET_RESTORE,
+                        'BME': libPyApi.DRT_BME_RESET,
+                        'ACPI': libPyApi.DRT_ACPI_RESET,
+                        'MEV_IMC': libPyApi.DRT_MEV_IMC_RESET,
+                        'MEV_LINK': libPyApi.DRT_MEV_IMC_RESET,
+                         None: libPyApi.DRT_NONE}
         driver_cfg = self._driver_proxy.cfg()
-        result = driver_cfg.reset_device(reset_type_value)
+        result = driver_cfg.reset_device(reset_values[reset_type])
         self._driver_proxy.dispose_driver_config(driver_cfg)
         if result != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(result))

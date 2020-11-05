@@ -1,10 +1,21 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-
 from devices.common.DeviceCommon import DeviceCommon
 
 class DataHandler(DeviceCommon):
+
+    cvl_reset_type_dict = {"globr": "GLOBAL", 
+                           "pfr": "PF", 
+                           "corer": "CORE", 
+                           "empr": "EMP", 
+                           "flr": "FL", 
+                           "pcir": "PCI",
+                           "bmer": "BME", 
+                           "vfr": "VF_SW",
+                           "vflr": "VFLR"}
+
+    cvl_mac_phy_interface_statistics_register_dict = dict() #TODO implement a dict of all register as defined in tabel 9-68 in CVL HAS
 
     # list should hold the high values before the low
     reg_dict = {"PTC64": [0x00380B84, 0x00380B80],
@@ -36,7 +47,6 @@ class DataHandler(DeviceCommon):
                 "GLPRT_PXOFFRXC": [0x00380500],
                 "PRTMAC_LINK_DOWN_COUNTER[PRT]": [0x001E47C0]}
 
-
     force_phy_types_list = ['10GBase-SR',
                             '10GBase-LR',
                             '10G-SFI-AOC-ACC',
@@ -67,12 +77,10 @@ class DataHandler(DeviceCommon):
                             '100G-AUI2',
                             '100G-AUI2-AOC-ACC']
 
-
     link_stable = True
     Return_list = [0]
     debug_mode = False
     start_logger_flag = False
-
 
     # from PRTMAC_LINKSTA 0x001E47A0
     Mac_link_speed_dict = {0:"10M",
@@ -100,105 +108,98 @@ class DataHandler(DeviceCommon):
                            9:"50G",
                            10:"100G"}
 
-
-    #TODO check if this dicts are relevant
-    Mac_link_statistic_dict = {}
-    Phy_link_statistic_dict = {}
-
-    suppoted_module_technologies_dict = {0: "sfp + Cu Passive",
-                                         1: "sfp + Cu Active",
-                                         4: "10G BASE-SR",
-                                         5: "10G BASE-LR",
-                                         6: "10G BASE-LRM",
-                                         7: "10G BASE-ER"}
+    cvl_suppoted_module_technologies_dict = {0: "sfp + Cu Passive",
+                                             1: "sfp + Cu Active",
+                                             4: "10G BASE-SR",
+                                             5: "10G BASE-LR",
+                                             6: "10G BASE-LRM",
+                                             7: "10G BASE-ER"}
     ########### AQ Dic ######
-
     ## AQ 0x600 get PHY Ability ####
-
-    get_Ability_Phy_Type_dict = {83:"400G-AUI8",
-                                 82:"400G-AUI8-AOC-ACC",
-                                 81:"400GBase-DR4",
-                                 80:"400GBase-LR8",
-                                 79:"400GBase-FR8",
-                                 78:"200G-AUI8",
-                                 77:"200G-AUI8-AOC-ACC",
-                                 76:"200G-AUI4",
-                                 75:"200G-AUI4-AOC-ACC",
-                                 74:"200GBase-KR4-PAM4",
-                                 73:"200GBase-DR4",
-                                 72:"200GBase-LR4",
-                                 71:"200GBase-FR4",
-                                 70:"200GBase-SR4",
-                                 69:"200GBase-CR4-PAM4",
-                                 68:"100G-AUI2",
-                                 67:"100G-AUI2-AOC-ACC",
-                                 66:"100G-CAUI2",
-                                 65:"100G-CAUI2-AOC-ACC",
-                                 64:"100GBase-KR2-PAM4",
-                                 63:"100GBase-DR",
-                                 62:"100GBase-SR2",
-                                 61:"100GBase-CP2",
-                                 60:"100GBase-KR-PAM4",
-                                 59:"100GBase-CR-PAM4",
-                                 58:"100G-AUI4",
-                                 57:"100G-AUI4-AOC-ACC",
-                                 56:"100G-CAUI4",
-                                 55:"100G-CAUI4-AOC-ACC",
-                                 54:"100GBase-KR4",
-                                 53:"100GBase-LR4",
-                                 52:"100GBase-SR4",
-                                 51:"100GBase-CR4",
-                                 50:"50G-AUI1",
-                                 49:"50G-AUI1-AOC-ACC",
-                                 48:"50GBase-KR-PAM4",
-                                 47:"50GBase-LR",
-                                 46:"50GBase-FR",
-                                 45:"50GBase-SR",
-                                 44:"50GBase-CP",
-                                 43:"50G-AUI2",
-                                 42:"50G-AUI2-AOC-ACC",
-                                 41:"50G-LAUI2",
-                                 40:"50G-LAUI2-AOC-ACC",
-                                 39:"50GBase-KR2",
-                                 38:"50GBase-LR2",
-                                 37:"50GBase-SR2",
-                                 36:"50GBase-CR2",
-                                 35:"40G-XLAUI",
-                                 34:"40G-XLAUI-AOC-ACC",
-                                 33:"40GBase-KR4",
-                                 32:"40GBase-LR4",
-                                 31:"40GBase-SR4",
-                                 30:"40GBase-CR4",
-                                 29:"25G-AUI-C2C",
-                                 28:"25G-AUI-AOC-ACC",
-                                 27:"25GBase-KR1",
-                                 26:"25GBase-KR-S",
-                                 25:"25GBase-KR",
-                                 24:"25GBase-LR",
-                                 23:"25GBase-SR",
-                                 22:"25GBase-CR1",
-                                 21:"25GBase-CR-S",
-                                 20:"25GBase-CR",
-                                 19:"25GBase-T",
-                                 18:"10G-SFI-C2C",
-                                 17:"10G-SFI-AOC-ACC",
-                                 16:"10GBase-KR-CR1",
-                                 15:"10GBase-LR",
-                                 14:"10GBase-SR",
-                                 13:"10G-SFI-DA",
-                                 12:"10GBase-T",
-                                 11:"5GBase-KR",
-                                 10:"5GBase-T",
-                                 9:"2.5GBase-KX",
-                                 8:"2.5GBase-X",
-                                 7:"2.5GBase-T",
-                                 6:"1G-SGMII",
-                                 5:"1000Base-KX",
-                                 4:"1000Base-LX",
-                                 3:"1000Base-SX",
-                                 2:"1000Base-T",
-                                 1:"100M-SGMII",
-                                 0:"100Base-TX"}
+    cvl_phy_type_abilities_dict = {83:"400G-AUI8",
+                                   82:"400G-AUI8-AOC-ACC",
+                                   81:"400GBase-DR4",
+                                   80:"400GBase-LR8",
+                                   79:"400GBase-FR8",
+                                   78:"200G-AUI8",
+                                   77:"200G-AUI8-AOC-ACC",
+                                   76:"200G-AUI4",
+                                   75:"200G-AUI4-AOC-ACC",
+                                   74:"200GBase-KR4-PAM4",
+                                   73:"200GBase-DR4",
+                                   72:"200GBase-LR4",
+                                   71:"200GBase-FR4",
+                                   70:"200GBase-SR4",
+                                   69:"200GBase-CR4-PAM4",
+                                   68:"100G-AUI2",
+                                   67:"100G-AUI2-AOC-ACC",
+                                   66:"100G-CAUI2",
+                                   65:"100G-CAUI2-AOC-ACC",
+                                   64:"100GBase-KR2-PAM4",
+                                   63:"100GBase-DR",
+                                   62:"100GBase-SR2",
+                                   61:"100GBase-CP2",
+                                   60:"100GBase-KR-PAM4",
+                                   59:"100GBase-CR-PAM4",
+                                   58:"100G-AUI4",
+                                   57:"100G-AUI4-AOC-ACC",
+                                   56:"100G-CAUI4",
+                                   55:"100G-CAUI4-AOC-ACC",
+                                   54:"100GBase-KR4",
+                                   53:"100GBase-LR4",
+                                   52:"100GBase-SR4",
+                                   51:"100GBase-CR4",
+                                   50:"50G-AUI1",
+                                   49:"50G-AUI1-AOC-ACC",
+                                   48:"50GBase-KR-PAM4",
+                                   47:"50GBase-LR",
+                                   46:"50GBase-FR",
+                                   45:"50GBase-SR",
+                                   44:"50GBase-CP",
+                                   43:"50G-AUI2",
+                                   42:"50G-AUI2-AOC-ACC",
+                                   41:"50G-LAUI2",
+                                   40:"50G-LAUI2-AOC-ACC",
+                                   39:"50GBase-KR2",
+                                   38:"50GBase-LR2",
+                                   37:"50GBase-SR2",
+                                   36:"50GBase-CR2",
+                                   35:"40G-XLAUI",
+                                   34:"40G-XLAUI-AOC-ACC",
+                                   33:"40GBase-KR4",
+                                   32:"40GBase-LR4",
+                                   31:"40GBase-SR4",
+                                   30:"40GBase-CR4",
+                                   29:"25G-AUI-C2C",
+                                   28:"25G-AUI-AOC-ACC",
+                                   27:"25GBase-KR1",
+                                   26:"25GBase-KR-S",
+                                   25:"25GBase-KR",
+                                   24:"25GBase-LR",
+                                   23:"25GBase-SR",
+                                   22:"25GBase-CR1",
+                                   21:"25GBase-CR-S",
+                                   20:"25GBase-CR",
+                                   19:"25GBase-T",
+                                   18:"10G-SFI-C2C",
+                                   17:"10G-SFI-AOC-ACC",
+                                   16:"10GBase-KR-CR1",
+                                   15:"10GBase-LR",
+                                   14:"10GBase-SR",
+                                   13:"10G-SFI-DA",
+                                   12:"10GBase-T",
+                                   11:"5GBase-KR",
+                                   10:"5GBase-T",
+                                   9:"2.5GBase-KX",
+                                   8:"2.5GBase-X",
+                                   7:"2.5GBase-T",
+                                   6:"1G-SGMII",
+                                   5:"1000Base-KX",
+                                   4:"1000Base-LX",
+                                   3:"1000Base-SX",
+                                   2:"1000Base-T",
+                                   1:"100M-SGMII",
+                                   0:"100Base-TX"}
 
     get_Ability_EEE_dict = {10:"EEEen100GBase-KR2-PAM4",
                             9:"EEEen100GBase-KR4",
@@ -430,7 +431,34 @@ class DataHandler(DeviceCommon):
                        1:'CONS 25/50 #1',
                        0:'EEE'}
 
-    PRT_AN_HCD_OUTPUT_dict = {24:'PHY Type Index bit 1', 31:'PHY Type Index bit 8', 30:'PHY Type Index bit 7', 29:'PHY Type Index bit 6', 28:'PHY Type Index bit 5', 27:'PHY Type Index bit 4', 26:'PHY Type Index bit 3', 25:'PHY Type Index bit 2', 24:'PHY Type Index bit 1', 23:'KR-S/CR-S', 22:'Consortium', 20:'EEE', 17:'FEC Select bit 2', 16:'FEC Select bit 2', 15:'FEC Select bit 1', 12:'Backplane Link', 11:'Reserved', 10:'Reserved', 9:'100GBase-CR2/KR2', 8:'50GBase-CR/KR', 7:'50GBase-CR2 / KR2', 6:'25GBase-CR / KR', 5:'100GBase-CR4', 4:'100GBase-KR4', 3:'Reserved', 2:'Reserved', 1:'10GBase-KR', 0:'1000Base-KX'}# 32 temp until we can to translte more that 1 bit
+    cvl_prt_an_hcd_output_dict = {24:'PHY Type Index bit 1', 
+                              31:'PHY Type Index bit 8',
+                              30:'PHY Type Index bit 7',
+                              29:'PHY Type Index bit 6', 
+                              28:'PHY Type Index bit 5',
+                              27:'PHY Type Index bit 4',
+                              26:'PHY Type Index bit 3',
+                              25:'PHY Type Index bit 2', 24:'PHY Type Index bit 1',
+                              23:'KR-S/CR-S',
+                              22:'Consortium',
+                              20:'EEE',
+                              17:'FEC Select bit 2',
+                              16:'FEC Select bit 2',
+                              15:'FEC Select bit 1',
+                              12:'Backplane Link',
+                              11:'Reserved',
+                              10:'Reserved',
+                              9:'100GBase-CR2/KR2',
+                              8:'50GBase-CR/KR',
+                              7:'50GBase-CR2 / KR2',
+                              6:'25GBase-CR / KR',
+                              5:'100GBase-CR4',
+                              4:'100GBase-KR4',
+                              3:'Reserved',
+                              2:'Reserved',
+                              1:'10GBase-KR',
+                              0:'1000Base-KX'}# 32 temp until we can to translte more that 1 bit
+
     FEC_select_dict = {7:'reserved',6:'reserved',5:'reserved',4:'reserved',3:'RS-FEC 528',2:'RS-FEC 544',1:'BaseR-FEC',0:'No FEC'}
     PRT_AN_LP_NP_dict = {16:'EEEen100GBase-KR2-PAM4', 15:'EEEen100GBase-KR4', 14:'EEEen50GBase-KR-PAM4', 13:'EEEen50GBase-KR2', 12:'Reserved', 11:'EEEen25GBase-KR', 10:'EEEen10GBase-KR', 9:'EEEen1000Base-KX', 7:'requests Clause 74 FEC', 6:'requests Clause 91 FEC', 5:'advertises Clause 74 FEC ability', 4:'advertises Clause 91 FEC ability', 3:'50GBase-CR2', 2:'50GBase-KR2', 1:'25GBase-CR1', 0:'25GBase-KR1'}
     PRT_AN_LP_BP_dict = {21:'Pause - C1', 20:'Pause - C0', 19:'NP', 18:'10 Gb/s per lane FEC requested', 17:'10 Gb/s per lane FEC ability', 16:'25G BASE-R FEC requested', 15:'25G RS-FEC requested', 14:'100GBASE-KR2/CR2', 13:'50GBASE-KR/CR', 12:'5GBASE-KR', 11:'2.5GBASE-KX', 10:'25GBASE-KR/CR', 9:'25GBASE-KR-S/CR-S', 8:'100GBASE-CR4', 7:'100GBASE-KR4', 6:'100GBASE-KP4', 5:'100GBASE-CR10', 4:'40GBASE-CR4', 3:'40GBASE-KR4', 2:'10GBASE-KR', 1:'10GBASE-KX4', 0:'1000Base-KX'}
@@ -480,23 +508,23 @@ class DataHandler(DeviceCommon):
                                 0x80: '0x80_unknown'}
 
     #This dict maps the shared resouce to it's ID. CVL HAS table 9-50 
-    shared_resources_dict = {'nvm': 0x1,
-                             'sdp': 0x2,
-                             'change_lock': 0x3,
-                             'global_config_lock':0x4}
+    cvl_shared_resources_dict = {'nvm': 0x1,
+                                 'sdp': 0x2,
+                                 'change_lock': 0x3,
+                                 'global_config_lock':0x4}
 
     #This Dictionary maps the moudles typeID based on table 6-6 in section 6.1.5.3 Moudle TypeIDs
-    nvm_module_type_id_dict = {'reserved': 0x0, 
-                               'RO PCIR REgister Auto-load': 0x06,
-                               'auto genrated pointer module': 0x07, 
-                               'PCIR Registers Auto-load Moudle': 0x08,
-                               'EMP Golbal Modle': 0x09,
-                               'Guarded Zone Module': 0x0A,
-                               'PE Image Module': 0x0C,
-                               'Manageablitiy Module':0x0E,
-                               'Link Topology Scratch Pas Area Module': 0x4A,
-                               'Immediate Values Module': 0x4E,
-                               'Link Topology Netlist Module': 0x11b,
-                               'Link Topology Module': 0x120,
-                               'LLDP Preserved': 0x129,
-                               'Link Default Override Mask': 0x134}
+    cvl_nvm_module_type_id_dict = {'reserved': 0x0, 
+                                   'RO PCIR REgister Auto-load': 0x06,
+                                   'auto genrated pointer module': 0x07, 
+                                   'PCIR Registers Auto-load Moudle': 0x08,
+                                   'EMP Golbal Modle': 0x09,
+                                   'Guarded Zone Module': 0x0A,
+                                   'PE Image Module': 0x0C,
+                                   'Manageablitiy Module':0x0E,
+                                   'Link Topology Scratch Pas Area Module': 0x4A,
+                                   'Immediate Values Module': 0x4E,
+                                   'Link Topology Netlist Module': 0x11b,
+                                   'Link Topology Module': 0x120,
+                                   'LLDP Preserved': 0x129,
+                                   'Link Default Override Mask': 0x134}
