@@ -354,9 +354,17 @@ class cvl(cvlBase):
         for key, val in data.items():
             print("{} : {}".format(key, val))
 
+    def PrintAvailablePortOptions(self):
+        status, data = self.aq.GetPortOptions(dict())
+        if status:
+            raise RuntimeError("get port options admin command failed")
+        for index in range(data['port_options_count']):
+            port_option_list = data['port_options'][6*index:6*index+6]
+            port_option = PortOptionsStructure.GetPortOptionsStructureByList(port_option_list)
+            print("index: {:2} | PMD count: {} | PMD Max speed: {}".format(index, port_option.pmd_count, port_option.max_pmd_speed))
+
     def GetCurrentPortOption(self):
-        config = dict()
-        status, data = self.aq.GetPortOptions(config)
+        status, data = self.aq.GetPortOptions(dict())
         if status:
             raise RuntimeError("get port options admin command failed")
         current_port_option = data['active_port_option']
