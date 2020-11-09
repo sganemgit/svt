@@ -67,7 +67,7 @@ class LmPersistencyTest(testBase):
 
                 pfa_data = current_pfa_value['nvm_module']
 
-                data = dut.GetPhyAbiliesFields()
+                data = dut.GetPhyAbilitiesFields()
                 #create new config dict for DUT port
                 new_config= dict()
                 new_config['port'] = dut.port_number
@@ -115,7 +115,8 @@ class LmPersistencyTest(testBase):
                     self.append_fail_reason("lenient mode did not stay persistent after an empr")
 
                 self.log.info("current lenient mode is {}".format(new_lenient_mode))
-
+                self.log.info("Reset DefaultOverrideMask to default values")
+                dut.ResetDefaultOverrideMask(dut.port_number)
             except Exception as e:
                 print(str(e))
                 self.append_fail_reason("Exception was raised during the test setting test to fail")

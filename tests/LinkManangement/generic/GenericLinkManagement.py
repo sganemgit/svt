@@ -153,7 +153,7 @@ class GenericLinkManagement(testBase):
     def configure_link(self, dut, lp, PhyType, FecType):
         log = self.log
         try:
-            if PhyType in dut.ieee_802_3_force_phy_type_list:
+            if PhyType in dut.data.ieee_802_3_force_phy_type_list:
                 log.info("{} does not support AN".format(PhyType), 'o')
                 log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
                 dut.SetPhyConfiguration(PhyType,FecType)

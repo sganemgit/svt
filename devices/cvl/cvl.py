@@ -3112,41 +3112,38 @@ class cvl(cvlBase):
         self.SetLenientMode(False)
 
     def SetLenientMode(self, Enable):
-        mode = 1
-        if Enable:
-            mode = 0
-        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':2}) 
         if status:
             raise RuntimeError(error_msg)
 
         status, data2 = self.aq.GetLinkStatus(dict())
         if status: 
-            raise RuntimeError("Get LInk Status has faild")
-        print data2
+            raise RuntimeError("Get Link Status has faild")
+
         config = dict()
         config['port'] = 0 
+        config['phy_type_0'] = data2['phy_type_0'] 
+        config['phy_type_1'] = data2['phy_type_1']
+        config['phy_type_2'] = data2['phy_type_2'] 
+        config['phy_type_3'] = data2['phy_type_3'] 
         config['tx_pause_req'] = data['pause_abil']
         config['rx_pause_req'] = data['asy_dir_abil']
         config['low_pwr_abil'] = data['low_pwr_abil']
         config['en_link'] = 1
         config['en_auto_update'] = 1
         config['lesm_en'] = data['lesm_en']
+        config['auto_fec_en'] = data['auto_fec_en']
         config['low_pwr_ctrl'] = data['low_pwr_ctrl']
         config['eee_cap_en'] = data['eee_cap']
         config['eeer'] = data['eeer']
-        config['auto_fec_en'] = data['auto_fec_en']
-        config['phy_type_0'] = data2['phy_type_0'] 
-        config['phy_type_1'] = data2['phy_type_1']
-        config['phy_type_2'] = data2['phy_type_2'] 
-        config['phy_type_3'] = data2['phy_type_3'] 
         config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] #data['fec_firecode_10g_abil'] 
         config['fec_firecode_10g_req'] = data['fec_firecode_10g_req'] 
-        config['fec_rs528_req'] = data2['fec_rs528_req'] 
+        config['fec_rs528_req'] = data['fec_rs528_req'] 
         config['fec_firecode_25g_req'] = data['fec_firecode_25g_req'] 
         config['fec_rs544_req'] = data['fec_rs544_req'] 
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
-        config['module_compliance_mode'] = mode 
+        config['module_compliance_enforcement'] = 0 if Enable else 1
         status, data = self.aq.SetPhyConfig(config)
         if status:
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
@@ -3162,17 +3159,15 @@ class cvl(cvlBase):
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
         return self.data.sff_extended_specification_compliance_codes.get(data['mod_ext_comp_code'], 'N/A')
 
-    def GetCurrentModuleComplianceEnforcement(self):
+    def GetCurrentModuleComplianceEnforcement(self, rep_mode=2):
         '''
             CPK DCR 102
         '''
         get_abils = {}
         get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
         get_abils['rep_qual_mod'] = 0
-        get_abils['rep_mode'] = 0 
-        
+        get_abils['rep_mode'] = rep_mode
         status, data = self.aq.GetPhyAbilities(get_abils)
-        
         if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
         
@@ -3190,7 +3185,7 @@ class cvl(cvlBase):
             raise RuntimeError('Message')
         return data
 
-    def GetPhyAbiliesFields(self):
+    def GetPhyAbilitiesFields(self):
         config = dict()
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['rep_qual_mod'] = 0
@@ -3232,6 +3227,78 @@ class cvl(cvlBase):
             if stuts1: 
                 raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
         return data
+
+    def ResetDefaultOverrideMask(self, port):
+        '''
+            This method will restore the DefaultOverrideMask to it's default values
+        '''
+        phy_types = 0xffffffffffffffffffffffffffffffff
+        lenient = 0x0
+        epct_ability_enable = 0x0
+        port_disable = 0x0     
+        override_enable = 0x0
+        disable_automatic_link = 0x0
+        eee_enable = 0x0
+        pause_ability = 0x0
+        lesm_enable = 0x1
+        auto_fec_enable = 0x1
+        fec_options = 0xcc
+        override_phy_types = 0x1
+        override_disable_automatic_link = 0x1
+        override_eee = 0x1
+        override_pause = 0x1
+        override_lesm_enable = 0x1
+        override_fec = 0x1
+
+        byte_1 = 0x3 << 6 |((eee_enable & 0x1) << 5) | ((disable_automatic_link & 0x1) << 4) | ((override_enable & 0x1) << 3) | ((port_disable & 0x1) <<2) | ((epct_ability_enable & 0x1) <<1) | (lenient & 0x1)
+        byte_2 = ((auto_fec_enable & 0x1) <<7) | ((lesm_enable & 0x1) << 6) | 0xf << 2 |(pause_ability & 0x3)
+        byte_3 = fec_options & 0xff
+        byte_4 = 0x3 << 6 | ((override_fec & 0x1) << 5) | ((override_lesm_enable & 0x1) << 4) | ((override_pause & 0x1) << 3) | ((override_eee & 0x1) <<2) | ((override_disable_automatic_link & 0x1) <<1) | (override_phy_types & 0x1)
+
+        data = self.ReadNvmModuleByTypeId(0x134)
+        
+        word_list = convert_byte_list_to_16bitword_list(data['nvm_module'])
+        # a word is 16 bit long
+
+        word_list[1+10*port] = (byte_2 & 0xff) <<8 | (byte_1 & 0xff)
+        word_list[2+10*port] = (byte_4 & 0xff) <<8 | (byte_3 & 0xff)
+        word_list[3+10*port] = int(phy_types & 0xffff)
+        word_list[4+10*port] = int((phy_types >> 16) & 0xffff)
+        word_list[5+10*port] = int((phy_types >> 32) &  0xffff)
+        word_list[6+10*port] = int((phy_types >> 48) & 0xffff)
+        word_list[7+10*port] = int((phy_types >> 64) &  0xffff)
+        word_list[8+10*port] = int((phy_types >> 80) & 0xffff)
+        word_list[9+10*port] = int((phy_types >> 96) &  0xffff)
+        word_list[10+10*port] = int((phy_types >> 112) & 0xffff)
+
+        new_pfa_data = conver_16bitword_list_to_byte_list(word_list)
+
+        request_resource_config = dict()
+        request_resource_config['resource_id'] = 0x1 #NVM
+        request_resource_config['access_type'] = 2 #write 
+        status1, data1 = self.aq.RequestResourceOwnership(request_resource_config)
+        if status1: 
+            raise RuntimeError('RequestResourceOwnership AQ faild status: {} retval: {}'.format(status1, data1))
+
+        #successfully aquired ownership over the nvm. Default timeout for this operation is 180000ms. need to be quick
+        try: 
+            nvm_write_config = dict()
+            nvm_write_config['module_typeID'] = data['module_typeID']
+            nvm_write_config['length'] = data['length']
+            nvm_write_config['last_command_bit'] = 0
+            nvm_write_config['data'] = new_pfa_data
+            status, data = self.aq.NvmWrite(nvm_write_config)
+            if status:
+                raise RuntimeError("NVM Write Admin command failed. status: {} retval: {}".format(status, data))
+            status, data = self.aq.NvmWriteActivate(dict())
+            if status:
+                raise RuntimeError("NVM Write Activate Admin Command failed. status: {} retval: {}".foramt(status, data))
+            time.sleep(1)
+        finally:
+            stuts1, data1 = self.aq.ReleaseResourceOwnership(request_resource_config)
+            if stuts1:
+                raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
+
 
     def SetDefaultOverrideMask(self, config):
 

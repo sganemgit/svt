@@ -38,6 +38,25 @@ class LmLenientModeTest(testBase):
         self.phy_type = self.args['phy_type']
         self.module_type_id = 0x134
     
+    def configure_link(self, dut, lp, PhyType, FecType):
+        log = self.log
+        try:
+            if PhyType in dut.data.ieee_802_3_force_phy_type_list:
+                log.info("{} does not support AN".format(PhyType), 'o')
+                log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
+                dut.SetPhyConfiguration(PhyType,FecType)
+                log.info("setting lp to {} with fec {}".format(PhyType, FecType), 'o')
+                lp.SetPhyConfiguration(PhyType,FecType)
+            else:
+                lp.DisableFECRequests(0)
+                log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
+                dut.SetPhyConfiguration(PhyType,FecType)
+        except Exception as e:
+            #TODO print error message and set fail reason
+            log.info("Exception {} raised in {}".format(str(e), self.configure_link.__name__))
+            self.append_fail_reason("Fail to configure link of {} ".format(self.phy_type))
+            raise e
+
     def run(self):
         self.init_params()
 
@@ -58,6 +77,11 @@ class LmLenientModeTest(testBase):
                 if lenient_mode != 'strict':
                     self.append_fail_reason("lenient mode is not changing. current mode is {}".format(lenient_mode))
                     raise RuntimeError("can not alter lenient mode")
+
+
+
+
+
 
 
 
