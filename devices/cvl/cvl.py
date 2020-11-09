@@ -356,8 +356,6 @@ class cvl(cvlBase):
 
     def GetCurrentPortOption(self):
         config = dict()
-        config["logical_port_number"] = int(self.port_number)
-        config["port_nubmer_valid"] = 1
         status, data = self.aq.GetPortOptions(config)
         if status:
             raise RuntimeError("get port options admin command failed")

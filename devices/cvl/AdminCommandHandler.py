@@ -1129,12 +1129,9 @@ class AdminCommandHandler:
                 'port_nubmer_valid':  int[1 bit] -- Logical Port number is valid
 
         '''
-        #TODO failded to send this aq. driver reports unknow opcode 
-
         byte_16 = config.get("logical_port_number", 0) & 0xff
         byte_17 = config.get("port_nubmer_valid", 0) & 0x1
         buffer = [0]*0x1000
-
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x06EA
         aq_desc.flags = 0x1000
