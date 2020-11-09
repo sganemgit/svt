@@ -3,7 +3,7 @@
 
 class IEEE_802_3:
 	
-    fec_dict = {"400G-AUI8": ['25G_RS_544_FEC'],
+    ieee_802_3_fec_dict = {"400G-AUI8": ['25G_RS_544_FEC'],
                 "400G-AUI8-AOC-ACC":['25G_RS_544_FEC'],
                 "400GBase-DR4":['25G_RS_544_FEC'],
                 "400GBase-LR8":['25G_RS_544_FEC'],

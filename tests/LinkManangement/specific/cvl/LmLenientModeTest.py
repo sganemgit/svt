@@ -52,10 +52,8 @@ class LmLenientModeTest(testBase):
                 log.info("setting dut to {} with fec {}".format(PhyType, FecType), 'o')
                 dut.SetPhyConfiguration(PhyType,FecType)
         except Exception as e:
-            #TODO print error message and set fail reason
             log.info("Exception {} raised in {}".format(str(e), self.configure_link.__name__))
-            self.append_fail_reason("Fail to configure link of {} ".format(self.phy_type))
-            raise e
+            self.append_fail_reason("Fail to configure link of {} ".format(PhyType))
 
     def run(self):
         self.init_params()
@@ -67,16 +65,24 @@ class LmLenientModeTest(testBase):
 
         for dut, lp in self.dut_lp_pairs:
             #check lenient mode and log it
-            lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-            self.log.info("Current lenient mode : {}".format(lenient_mode))
-            if lenient_mode != 'strict':
-                self.log.info("Disabling lenient mode")
-                dut.DisableLenientMode()
-                lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-                self.log.info("Current lenient mode after diabling attempt : {}".format(lenient_mode))
-                if lenient_mode != 'strict':
-                    self.append_fail_reason("lenient mode is not changing. current mode is {}".format(lenient_mode))
-                    raise RuntimeError("can not alter lenient mode")
+            for fec in dut.data.ieee_802_3_fec_dict[self.phy_type]:
+                try:
+                    lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
+                    self.log.info("Current lenient mode : {}".format(lenient_mode))
+                    if lenient_mode != 'strict':
+                        self.log.info("Disabling lenient mode")
+                        dut.DisableLenientMode()
+                        lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
+                        self.log.info("Current lenient mode after diabling attempt : {}".format(lenient_mode))
+                        if lenient_mode != 'strict':
+                            self.append_fail_reason("lenient mode is not changing. current mode is {}".format(lenient_mode))
+                            raise RuntimeError("can not alter lenient mode")
+
+
+                    self.configure_link(self.phy_type, fec)
+                except Exception as e: 
+                    self.log.info("exception was raised while iterating through different fec types")
+                
 
 
 

@@ -3,6 +3,7 @@ import sys
 import time
 from core.structs.AqDescriptor import AqDescriptor
 from core.structs.CapabilityStructure import CapabilityStructure
+from core.structs.PortOptionsStructure import PortOptionsStructure
 from core.utilities.BitManipulation import *
 from core.utilities.SvtDecorator import *
 from devices.cvl.cvlBase import cvlBase
@@ -352,6 +353,18 @@ class cvl(cvlBase):
 
         for key, val in data.items():
             print("{} : {}".format(key, val))
+
+    def GetCurrentPortOption(self):
+        config = dict()
+        config["logical_port_number"] = int(self.port_number)
+        config["port_nubmer_valid"] = 1
+        status, data = self.aq.GetPortOptions(config)
+        if status:
+            raise RuntimeError("get port options admin command failed")
+        current_port_option = data['active_port_option']
+        port_option_list = data['port_options'][6*current_port_option:6*current_port_option+6]
+        port_option = PortOptionsStructure.GetPortOptionsStructureByList(port_option_list)
+        return "PMD count: {} | PMD Max speed: {}".format(port_option.pmd_count, port_option.max_pmd_speed)
 
     def GetCurrentPhyType(self):
         status, data = self.aq.GetLinkStatus({'port':0, 'cmd_flag':1})

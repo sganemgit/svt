@@ -1119,11 +1119,6 @@ class AdminCommandHandler:
             return (status, aq_desc.retval)
         return (status, None)
 
-    def testGetPortOptions(self):
-        config = dict()
-        #config['logical_port_number'] = self.driver.port_number()
-        self.GetPortOptions(config, True)
-
     def GetPortOptions(self, config, debug=False):
         '''
         Retrieve the available port options that are defined for the innermost PHY that is associated with the logical port number
@@ -1142,7 +1137,7 @@ class AdminCommandHandler:
 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x06EA
-        aq_desc.flags = 0x1200
+        aq_desc.flags = 0x1000
         aq_desc.datalen = len(buffer)
         aq_desc.param0 = ((byte_17 & 1) << 8)| byte_16
         aq_desc.param1 = 0
@@ -1150,14 +1145,17 @@ class AdminCommandHandler:
         aq_desc.addr_low = 0
         status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
-            raise RuntimeError("Failed to send GetPortOptions Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+            print("Failed to send GetPortOptions Command. status: {}, FW ret value: {}".format(status,aq_desc.retval))
+            return (True, aq_desc.retval)
         else:
             data = dict()
-            data['port_options_count'] = aq_desc.param0 & 0xf0000
-            data['innermost_phy_index'] = aq_desc.param0 & 0xff000000
+            data['port_options_count'] = (aq_desc.param0  >> 16) & 0xf
+            data['innermost_phy_index'] = (aq_desc.param0 >> 24) & 0xff
             data['active_port_option'] = aq_desc.param1 & 0xf
-            data['active_port_option_valid'] = aq_desc.param1 & 0x80
-            data['active_port_option_is_forced'] = aq_desc.param1 & 0x40
+            data['active_port_option_valid'] = (aq_desc.param1 >> 6) & 0x1
+            data['active_port_option_is_forced'] = (aq_desc.param1 >> 7) & 0x1
+            data['port_options'] = buffer[0:6*data['port_options_count']]
+            return (False, data)
 
     def SetPortOptioins(self, config, debug=False):
         '''
