@@ -1693,7 +1693,7 @@ class cpk(cpkBase):
         while(True):
             if P > 8:#just in case something goes wrong
                 break
-            topology_list = self.GetLinkTopologyHandle(P)
+            topology_list = self.aq.GetLinkTopologyHandle(P)
             status = topology_list[0]
             retval = topology_list[1]
             if retval == 18:
@@ -1712,7 +1712,7 @@ class cpk(cpkBase):
             eeprom_dict[port] = list()
             for i in range(16):
                 offset = 16*i
-                I2C = self.ReadI2C(port,handle,offset)
+                I2C = self.aq.ReadI2C(port,handle,offset)
                 data = I2C[2]
                 eeprom_dict[port] = eeprom_dict[port]+data
         return eeprom_dict
@@ -1848,10 +1848,8 @@ class cpk(cpkBase):
         config = dict()
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['rep_qual_mod'] = 0
-        config['rep_mode'] = 0 
-        
+        config['rep_mode'] = 1 
         status, data = self.aq.GetPhyAbilities(config)
-        
         if status:
             raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command failed")
         return data  
