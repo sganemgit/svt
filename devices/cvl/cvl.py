@@ -1083,10 +1083,10 @@ class cvl(cvlBase):
             config['auto_fec_en'] = 1
 
         for recieved_phy_type in phy_type_list:
-            if recieved_phy_type in self.set_Ability_PhyType_dict:
-                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
+            if recieved_phy_type in self.data.cvl_phy_abilities_dict:
+                phy_type = phy_type | (1 << self.data.cvl_phy_abilities_dict[recieved_phy_type])
             else:
-                raise RuntimeError("Error _SetPhyConfigurationAQ: PHY_type is not exist in set_Ability_PhyType_dict") #implement a warning
+                raise RuntimeError("Error _SetPhyConfigurationAQ: PHY_type is not exist in cvl_phy_abilities_dict") #implement a warning
 
         config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
         config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
@@ -1213,10 +1213,10 @@ class cvl(cvlBase):
         config['port'] = 0 #not relevant for CVL according to CVL Spec
 
         for recieved_phy_type in phy_type_list:
-            if recieved_phy_type in self.set_Ability_PhyType_dict:
-                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
+            if recieved_phy_type in self.data.cvl_phy_abilities_dict:
+                phy_type = phy_type | (1 << self.data.cvl_phy_abilities_dict[recieved_phy_type])
             else:
-                raise RuntimeError("Error _SetPhyTypeAq: PHY_type is not exist in set_Ability_PhyType_dict") 
+                raise RuntimeError("Error _SetPhyTypeAq: PHY_type is not exist in cvl_phy_abilities_dict") 
         
         config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
         config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
@@ -2967,13 +2967,13 @@ class cvl(cvlBase):
                 eeprom_dict[port] = eeprom_dict[port]+data
         return eeprom_dict
 
-    def WriteEeprom(self, offset, value, debug=False):
+    def WriteEeprom(self,page, offset, value, debug=False):
         config = dict()
-        config["logical_port_number"] = self.driver.port_number()
-        config["node_handle"] = self.aq.GetLinkTopologyHandle(int(self.driver.port_number()))[2]['node_handle']
+        config["set_eeprom_page"] = page 
+        config["command"] = 1
         config["i2c_memory_offset"] = offset
-        config["i2c_data"] = value
-        status, data = self.aq.WriteI2C(config, debug) 
+        config["value"] = value
+        status, data = self.aq.ReadWriteSffEeprom(config, debug) 
         if status:
             raise RuntimeError("WriteI2C Admin command failed with retval {} adn ststus {}".foramt(data, ststus))
 
@@ -3039,10 +3039,10 @@ class cvl(cvlBase):
                 all_bytes.extend(data['resource_recognized'][i:i+32])
                 if all_bytes[0] in occured_capability_dict.keys():
                     occured_capability_dict[all_bytes[0]] +=1
-                    key_name = self.data.device_capabilities_dict[all_bytes[0]] + "_"+ str(occured_capability_dict[all_bytes[0]])
+                    key_name = self.data.cvl_device_capabilities_dict.get(all_bytes[0], 'N/A') + "_"+ str(occured_capability_dict[all_bytes[0]])
                 else: 
                     occured_capability_dict[all_bytes[0]] = 1
-                    key_name = self.data.device_capabilities_dict[all_bytes[0]] 
+                    key_name = self.data.cvl_device_capabilities_dict.get(all_bytes[0], 'N/A') 
                 DeviceCapabilities[key_name] = all_bytes
             return DeviceCapabilities
         else:
@@ -3075,6 +3075,7 @@ class cvl(cvlBase):
 
     def GetSkuInfo(self):
         sku_cap = self.GetDiscoveredDeviceCapability('SKU')[0]
+        print sku_cap
         sku_info = dict()
         ports = sku_cap.number & 0x3
         if ports == 0x0: 
@@ -3099,9 +3100,10 @@ class cvl(cvlBase):
         sku_info['PE Engine'] = 'disabled' if sku_cap.number & 0x10 else 'enabled'
         sku_info['Switch Mode'] = 'enabled' if sku_cap.number & 0x20 else 'disabled'
         sku_info['CSR Protcetion'] = 'enabled' if sku_cap.number & 0x40 else 'disabled'
+        sku_info['50G Serial'] = 'diabled' if sku_cap.number & 0x80 else 'enabled'
+        sku_info['Anti Counterfeit'] = 'NIC' if sku_cap.number & 0x100 else 'LOM'
         sku_info['Block BME to FW'] = 'not_writable_by_fw' if sku_cap.number & 0x200 else 'writable_by_fw'
-        sku_info['SOC Type'] = 'SNR' if sku_cap.number & 0x400 else 'ICX-D'
-        sku_info['BTS Mode'] = 'non_bts' if sku_cap.number & 0x800 else 'bts'
+        return sku_info
 
     def EnableLenientMode(self):
         self.SetLenientMode(True)
@@ -3116,6 +3118,11 @@ class cvl(cvlBase):
         status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
         if status:
             raise RuntimeError(error_msg)
+
+        status, data2 = self.aq.GetLinkStatus(dict())
+        if status: 
+            raise RuntimeError("Get LInk Status has faild")
+        print data2
         config = dict()
         config['port'] = 0 
         config['tx_pause_req'] = data['pause_abil']
@@ -3128,13 +3135,13 @@ class cvl(cvlBase):
         config['eee_cap_en'] = data['eee_cap']
         config['eeer'] = data['eeer']
         config['auto_fec_en'] = data['auto_fec_en']
-        config['phy_type_0'] = data['phy_type_0'] 
-        config['phy_type_1'] = data['phy_type_1']
-        config['phy_type_2'] = data['phy_type_2'] 
-        config['phy_type_3'] = data['phy_type_3'] 
+        config['phy_type_0'] = data2['phy_type_0'] 
+        config['phy_type_1'] = data2['phy_type_1']
+        config['phy_type_2'] = data2['phy_type_2'] 
+        config['phy_type_3'] = data2['phy_type_3'] 
         config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] #data['fec_firecode_10g_abil'] 
         config['fec_firecode_10g_req'] = data['fec_firecode_10g_req'] 
-        config['fec_rs528_req'] = data['fec_rs528_req'] 
+        config['fec_rs528_req'] = data2['fec_rs528_req'] 
         config['fec_firecode_25g_req'] = data['fec_firecode_25g_req'] 
         config['fec_rs544_req'] = data['fec_rs544_req'] 
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 

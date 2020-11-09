@@ -68,15 +68,15 @@ class AdminCommandHandler:
         buffer.append(byte_21)
         buffer.append(byte_22)
         buffer.append(byte_23)
-        buffer.extend([0] * (0x100 - len(buffer)))
+        buffer.extend([0] * (0x1000 - len(buffer)))
         aq_desc.opcode = 0x0601
-        aq_desc.flags = 0x1400  # Include buffer and read flags for this command
+        aq_desc.flags = 0x1600  # Include buffer and read flags for this command
         aq_desc.param0 = config['port']
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.datalen = len(buffer)
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
         err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
@@ -84,7 +84,6 @@ class AdminCommandHandler:
             status = (True, aq_desc.retval)
         else:
             status = (False, None)
-
         return status
 
     def SetMacConfig(self, config, debug=False):
@@ -239,7 +238,6 @@ class AdminCommandHandler:
                         {'vendor_oui' : int[3 bytes], 'vendor_pn' : int[16 bytes], 'vendor_rev' : int[4 bytes]}
                     if bool is True, dict becomes in with Admin command retval
         '''
-
         # Generic AQ descriptor --> Get PHY Abilities Admin command translation
         # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
         # param0(bytes 16-19) = (rep_mode + rep_qual_mod + reserved + logical_port_number)
@@ -257,7 +255,7 @@ class AdminCommandHandler:
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
         aq_desc.flags = 0x1200  # Set the buffer flag & long buffer flag
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Get PHY Abilities Admin Command, status: ', status, ', FW ret value: ',
                   aq_desc.retval)
@@ -394,7 +392,7 @@ class AdminCommandHandler:
         aq_desc.opcode = 0x0607
         aq_desc.datalen = data_len
         buffer = [0] * data_len
-        aq_desc.param0 = (gls['cmd_flag'] << 16) | gls['port']
+        aq_desc.param0 = (gls.get('cmd_flag', 0) << 16) | gls.get('port', 0)
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
@@ -1115,13 +1113,11 @@ class AdminCommandHandler:
         aq_desc.addr_high = (byte_27 << 24) | (byte_26 << 16) | byte_24  
         aq_desc.addr_low = (byte_31 << 24) | (byte_30 << 16) | (byte_29 << 8) | byte_28
         buffer = list() 
-        status = self.driver.send_aq_command(aq_desc, buffer, debug, True)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print("Failed to send Write I2C Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
             return (status, aq_desc.retval)
         return (status, None)
-
-
 
     def testGetPortOptions(self):
         config = dict()
@@ -1208,8 +1204,8 @@ class AdminCommandHandler:
                 'i2c_memory_offset': int[2 byte] -- Offset within the RRPROM to start reading from, up to 16 bits 
                 'eeprom_page' :int [2 byte]-- sirst byte : Set offset 126 to this value,  second byte : Set offset 127 to this value
         '''
-        byte_16 = config["logical_port_number"] & 0xff
-        byte_17 = config.get("port_nubmer_valid", 1) & 0x1
+        byte_16 = config.get("logical_port_number", 0) & 0xff
+        byte_17 = config.get("port_nubmer_valid", 0) & 0x1
         byte_18 = config.get("i2c_bus_address",0) & 0xff
         byte_19 = ((config.get("command", 0) & 0x1) << 7)|((config.get("set_eeprom_page", 0) & 0x3) << 3)|((config.get("10_bit_assress_select", 0) & 0x1) << 2)|(config.get("i2c_bus_address", 0) >> 8) & 0x3
         byte_20 = config["i2c_memory_offset"] & 0xff
@@ -1220,13 +1216,14 @@ class AdminCommandHandler:
 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x06EE
-        aq_desc.flags = 0
+        aq_desc.flags = 0x1000 
         aq_desc.param0 = (byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16)
         aq_desc.param1 = (byte_23 << 24 | byte_22 << 16 | byte_21 << 8 | byte_20)
         aq_desc.addr_high = 0 
         aq_desc.addr_low = 0
-        buffer = []
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        buffer = [0]*16
+        aq_desc.datalen = len(buffer)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print("Failed to send Read Write SffEeprom Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
         return [status, aq_desc.retval]
