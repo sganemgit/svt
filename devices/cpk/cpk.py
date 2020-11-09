@@ -1844,7 +1844,7 @@ class cpk(cpkBase):
         sku_info['BTS Mode'] = 'non_bts' if sku_cap.number & 0x800 else 'bts'
         return sku_info
 
-    def GetPhyAbiliesFields(self):
+    def GetPhyAbilitiesFields(self):
         config = dict()
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['rep_qual_mod'] = 0
