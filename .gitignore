@@ -1,6 +1,8 @@
 *.pyc
 *.swp
 *.swn
+*.swm
+*.swl
 tags
 *.swo
 *.hex
