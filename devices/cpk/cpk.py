@@ -775,17 +775,12 @@ class cpk(cpkBase):
             tmp_str = phy_type_list
             phy_type_list = []
             phy_type_list.append(tmp_str)
-        else:
-            pass
-
-        config = {}
-        phy_type = 0
-        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) 
-        print(data)
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
         if status:
             error_msg = 'Error _SetPhyConfigurationAQ: GetPhyAbilities Admin command was not successful, retval {}'.format(data[1])
             raise RuntimeError(error_msg)
 
+        config = {}
         config['port'] = 0 #not relevant for CVL according to CVL Spec
         config['pause_abil'] = data['pause_abil']
         config['low_pwr_abil'] = data['low_pwr_abil']
@@ -795,16 +790,18 @@ class cpk(cpkBase):
         config['low_pwr_ctrl'] = data['low_pwr_ctrl']
         config['eee_cap_en'] = data['eee_cap']
         config['eeer'] = data['eeer']
+        config['module_compliance_enforcement'] = data['module_compliance_enforcement']
         if '50GBase-CR2' in phy_type_list:
             config['auto_fec_en'] = 0
         else:
             config['auto_fec_en'] = 1
         
+        phy_type = 0
         for recieved_phy_type in phy_type_list:
-            if recieved_phy_type in self.set_Ability_PhyType_dict:
-                phy_type = phy_type | (1 << self.set_Ability_PhyType_dict[recieved_phy_type])
+            if recieved_phy_type in self.data.cpk_set_ability_phy_type_dict:
+                phy_type = phy_type | (1 << self.data.cpk_set_ability_phy_type_dict[recieved_phy_type])
             else:
-                raise RuntimeError("Error _SetPhyConfigurationAQ: PHY_type is not exist in set_Ability_PhyType_dict") #implement a warning
+                raise RuntimeError("Error SetPhyConfiguration: Phy_type does not exist in cpk_set_ability_phy_type_dict")
 
         config['phy_type_0'] = get_bits_slice_value(phy_type,0,31)
         config['phy_type_1'] = get_bits_slice_value(phy_type,32,63)
@@ -812,13 +809,13 @@ class cpk(cpkBase):
         config['phy_type_3'] = get_bits_slice_value(phy_type,96,127)
 
         if set_fec == 'NO_FEC':
-            config['fec_firecode_10g_abil'] = 0 #data['fec_firecode_10g_abil'] 
+            config['fec_firecode_10g_abil'] = 0 
             config['fec_firecode_10g_req'] = 0 
             config['fec_rs528_req'] = 0 
             config['fec_firecode_25g_req'] = 0 
             config['fec_rs544_req'] = 0 
-            config['fec_rs528_abil'] = 0 #data['fec_rs528_abil']
-            config['fec_firecode_25g_abil'] = 0 #data['fec_firecode_25g_abil']
+            config['fec_rs528_abil'] = 0 
+            config['fec_firecode_25g_abil'] = 0 
             
         elif set_fec == '10G_KR_FEC':
             config['fec_firecode_10g_abil'] = data['fec_firecode_10g_abil'] 
@@ -1860,7 +1857,7 @@ class cpk(cpkBase):
         config['fec_rs544_req'] = data['fec_rs544_req'] 
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
-        config['module_complinance_enforcement'] = 0 if Enable else 1 
+        config['module_compliance_enforcement'] = 0 if Enable else 1 
 
         status, data = self.aq.SetPhyConfig(config)
         if status:

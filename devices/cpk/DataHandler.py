@@ -225,7 +225,7 @@ class DataHandler(DeviceCommon):
 
     ## AQ 0x601 Set PHY config ####
 
-    set_Ability_PhyType_dict = {"400G-AUI8":83,
+    cpk_set_ability_phy_type_dict = {"400G-AUI8":83,
                                 "400G-AUI8-AOC-ACC":82,
                                 "400GBase-DR4":81,
                                 "400GBase-LR8":80,
