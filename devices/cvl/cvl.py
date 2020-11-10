@@ -3094,7 +3094,6 @@ class cvl(cvlBase):
 
     def GetSkuInfo(self):
         sku_cap = self.GetDiscoveredDeviceCapability('SKU')[0]
-        print sku_cap
         sku_info = dict()
         ports = sku_cap.number & 0x3
         if ports == 0x0: 
@@ -3298,8 +3297,7 @@ class cvl(cvlBase):
         status1, data1 = self.aq.RequestResourceOwnership(request_resource_config)
         if status1: 
             raise RuntimeError('RequestResourceOwnership AQ faild status: {} retval: {}'.format(status1, data1))
-
-        #successfully aquired ownership over the nvm. Default timeout for this operation is 180000ms. need to be quick
+        #successfully aquired ownership over the nvm. Default timeout for this operation is 180000ms. need to be efficient 
         try: 
             nvm_write_config = dict()
             nvm_write_config['module_typeID'] = data['module_typeID']
@@ -3318,9 +3316,7 @@ class cvl(cvlBase):
             if stuts1:
                 raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
 
-
     def SetDefaultOverrideMask(self, config):
-
         port = config['port']
         phy_types = config['phy_types'] # int[16 bytes] 
         lenient = config.get('lenient', 0x0)
@@ -3339,17 +3335,13 @@ class cvl(cvlBase):
         override_pause = config.get('override_pause', 0x0)
         override_lesm_enable = config.get('override_lesm_enable', 0x0)
         override_fec = config.get('override_fec', 0x0)
-
         byte_1 = ((eee_enable & 0x1) << 5) | ((disable_automatic_link & 0x1) << 4) | ((override_enable & 0x1) << 3) | ((port_disable & 0x1) <<2) | ((epct_ability_enable & 0x1) <<1) | (lenient & 0x1)
         byte_2 = ((auto_fec_enable & 0x1) <<7) | ((lesm_enable & 0x1) << 6) | (pause_ability & 0x3)
         byte_3 = fec_options & 0xff
         byte_4 = ((override_fec & 0x1) << 5) | ((override_lesm_enable & 0x1) << 4) | ((override_pause & 0x1) << 3) | ((override_eee & 0x1) <<2) | ((override_disable_automatic_link & 0x1) <<1) | (override_phy_types & 0x1)
-
         data = self.ReadNvmModuleByTypeId(0x134)
-        
         word_list = convert_byte_list_to_16bitword_list(data['nvm_module'])
         # a word is 16 bit long
-
         word_list[1+10*port] = (byte_2 & 0xff) <<8 | (byte_1 & 0xff)
         word_list[2+10*port] = (byte_4 & 0xff) <<8 | (byte_3 & 0xff)
         word_list[3+10*port] = int(phy_types & 0xffff)
@@ -3360,16 +3352,13 @@ class cvl(cvlBase):
         word_list[8+10*port] = int((phy_types >> 80) & 0xffff)
         word_list[9+10*port] = int((phy_types >> 96) &  0xffff)
         word_list[10+10*port] = int((phy_types >> 112) & 0xffff)
-
         new_pfa_data = conver_16bitword_list_to_byte_list(word_list)
-
         request_resource_config = dict()
         request_resource_config['resource_id'] = 0x1 #NVM
         request_resource_config['access_type'] = 2 #write 
         status1, data1 = self.aq.RequestResourceOwnership(request_resource_config)
         if status1: 
             raise RuntimeError('RequestResourceOwnership AQ faild status: {} retval: {}'.format(status1, data1))
-
         #successfully aquired ownership over the nvm. Default timeout for this operation is 180000ms. need to be quick
         try: 
             nvm_write_config = dict()
