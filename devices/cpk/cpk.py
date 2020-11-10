@@ -770,7 +770,7 @@ class cpk(cpkBase):
             error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
 
-    def SetPhyConfiguration(self, PhyType, set_fec, debug=False):
+    def SetPhyConfiguration(self, phy_type_list, set_fec, debug=False):
         if (type(phy_type_list) == str ):
             tmp_str = phy_type_list
             phy_type_list = []
