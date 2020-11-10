@@ -32,7 +32,7 @@ class DataHandler(DeviceCommon):
                 "GLPRT_PXOFFRXC": [0x00380500],
                 "PRTMAC_LINK_DOWN_COUNTER[PRT]": [0x001E47C0]}
 
-    reset_type_dict = {"globr": "GLOBAL", 
+    cpk_reset_type_dict = {"globr": "GLOBAL", 
                        "pfr": "PF", 
                        "corer": "CORE", 
                        "empr": "EMP", 

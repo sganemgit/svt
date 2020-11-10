@@ -11,37 +11,6 @@ class AdminCommandHandler:
     ###############################################################################
 
     def SetPhyConfig(self, config, debug=False):
-        # Updated for HAS 1.3
-        '''
-            Description:  Set various PHY configuration parameters on port.
-            input:
-                config -- type(dict)
-                    'port' : int[1 byte] -- Logical Port Number
-                    'phy_type_0' : int[4 bytes] -- Bytes 3:0 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY capabilities, bit definitions in Section 3.5.3.2.1 of CPK HAS
-                    'pause_abil' : int[1 bit] -- bit to request that PAUSE be enabled on the link
-                    'low_pwr_abil' : int[1 bit] -- bit to indicate if modules may engage Power Classes higher than 1, if set only Power Class 1 is allowed
-                    'en_link' : int[1 bit] -- 1 to enable link, 0 to disable link
-                    'en_auto_update' : int[1 bit] -- 1 to allow FW to issue Setup Link command immediately after SetPHYConfig completes, 0 to only execute SetPHYConfig
-                    'lesm_en' : int[1 bit] -- 1 to enable LESM, 0 to disable
-                    'auto_fec_en' : int[1 bit] -- 1 to enable AutoFEC, 0 to disable
-                    'low_pwr_ctrl' : int[1 bit]  - 1 to enable D3cold LPLU, 0 to disable D3cold LPLU
-                    'eee_cap_en' : int[2 bytes] - bitfield defined in Section 3.5.7.6.8 of CPK has to enable or disable advertisement of EEE capabilities
-                    'eeer' : int[2 bytes] -- Value to program to EEER register of the MAC
-                    'fec_firecode_10g_abil' : int[1 bit] -- Enable advertisement of 10G Fire Code FEC ability, only applicable in 10GBASE-KR
-                    'fec_firecode_10g_req' : int[1 bit] -- Enable request for 10G Fire Code FEC, only applicable in 10GBASE-KR
-                    'fec_rs528_req' : int[1 bit] -- Enable request for RS-528 FEC
-                    'fec_firecode_25g_req' : int[1 bit] -- Enable request for 25G Fire Code FEC
-                    'fec_rs544_req' : int[1 bit] -- Enable requuest for RS-544 FEC
-                    'fec_rs528_abil' : int[1 bit] -- Enable advertisement of RS-528 FEC, only applicable for Consortium modes?
-                    'fec_firecode_25g_req' : int[1 bit] -- Enable advertisement of 25G Fire Code FEC, only applicable for Consortium modes?
-            return:
-                status -- type(tuple) (bool, int)
-                    bool -- Indication if Admin command was successful, False if so, True if not
-                    int -- if bool True, value of Admin command retval, if false is None
-        '''
         aq_desc = AqDescriptor()
         buffer = list()
         buffer.extend(turn_arg_to_bytes(config['phy_type_0']))
@@ -64,10 +33,9 @@ class AdminCommandHandler:
         buffer.append(byte_21)
         buffer.append(byte_22)
         buffer.append(byte_23)
-        buffer.extend([0] * (0x1000 - len(buffer)))
-        
+        buffer.extend([0] * (0x100 - len(buffer)))
         aq_desc.opcode = 0x0601
-        aq_desc.flags = 0x1600  # Include buffer and read flags for this command
+        aq_desc.flags = 0x1400
         aq_desc.param0 = config['port']
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
@@ -76,12 +44,9 @@ class AdminCommandHandler:
         status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set PHY Config Admin Command, status: {} , FW ret value: {}'.format(status, aq_desc.retval))
-        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
-        if status or err_flag:
             status = (True, aq_desc.retval)
         else:
             status = (False, None)
-
         return status
 
     def SetMacConfig(self, config, debug=False):

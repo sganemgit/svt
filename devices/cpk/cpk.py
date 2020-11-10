@@ -471,8 +471,8 @@ class cpk(cpkBase):
             argument: reset_type (string) - "globr" , "pfr" , "corer", "empr", "flr", "pcir", "bmer", "vfr", "vflr"
             return: None
         '''
-        if reset_type in self.reset_type_dict:
-            self.driver.device_reset(self.reset_type_dict[reset_type])
+        if reset_type in self.data.cpk_reset_type_dict:
+            self.driver.device_reset(self.data.cpk_reset_type_dict[reset_type])
         else:
             print("could not identify reset type")
 
@@ -770,37 +770,7 @@ class cpk(cpkBase):
             error_msg = 'Error DisableLESM: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)   
 
-    def SetPhyConfiguration(self, PhyType,set_fec,rep_mode = 1,debug = False,Location = 'AQ'):
-        '''This function configures the phy and the fec
-            arguments: PhyType by string 
-                set_fec by string
-                rep_mode = takes the values 0,1,2 (defult value is 1)
-                Location = "AQ"/"REG"
-            return:None 
-            level: L3
-        '''
-        if Location == "REG":
-            self._SetPhyConfigurationfigReg(PhyType, set_fec, debug)
-        elif Location == "AQ":
-            self._SetPhyConfigurationAQ(PhyType, set_fec, rep_mode, debug)
-        else:
-            raise RuntimeError("Error SetPhyConfiguration: Error Location, please insert location REG/AQ")
-
-    def _SetPhyConfigurationReg(self, PhyType,set_fec,debug):
-        '''This function configures the phy and the fec
-            for debug only because SetPhyConfiguration by REG is not implimented.
-        '''
-        raise RuntimeError("SetPhyConfiguration by Reg is not implimented")
-
-    def _SetPhyConfigurationAQ(self, phy_type_list, set_fec,rep_mode,debug):
-        '''This function configures the phy and the fec
-            arguments:PhyType by string
-                      set_fec by string
-                      rep_mode
-                      Location = "AQ"/"REG"
-            retrun: None 
-            Level: L1
-        '''
+    def SetPhyConfiguration(self, PhyType, set_fec, debug=False):
         if (type(phy_type_list) == str ):
             tmp_str = phy_type_list
             phy_type_list = []
@@ -817,8 +787,7 @@ class cpk(cpkBase):
             raise RuntimeError(error_msg)
 
         config['port'] = 0 #not relevant for CVL according to CVL Spec
-        config['tx_pause_req'] = data['pause_abil']
-        config['rx_pause_req'] = data['asy_dir_abil']
+        config['pause_abil'] = data['pause_abil']
         config['low_pwr_abil'] = data['low_pwr_abil']
         config['en_link'] = 1
         config['en_auto_update'] = 1
@@ -1863,13 +1832,11 @@ class cpk(cpkBase):
     def SetLenientMode(self, Enable):
 
         status, data1 = self.aq.GetLinkStatus({'port':0, 'cmd_flag':0})
-        print data
-        mode = 1
-        if Enable:
-            mode = 0
+        if status:
+            raise RuntimeError("Get Link Sattus failed")
         status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
         if status:
-            raise RuntimeError(error_msg)
+            raise RuntimeError("GetPhyAbilities failed")
 
         config = dict()
         config['port'] = 0 
@@ -1893,7 +1860,7 @@ class cpk(cpkBase):
         config['fec_rs544_req'] = data['fec_rs544_req'] 
         config['fec_rs528_abil'] = data['fec_rs528_abil'] 
         config['fec_firecode_25g_abil'] = data['fec_firecode_25g_abil'] 
-        config['module_complinance_enforcement'] = mode 
+        config['module_complinance_enforcement'] = 0 if Enable else 1 
 
         status, data = self.aq.SetPhyConfig(config)
         if status:
