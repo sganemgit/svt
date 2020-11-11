@@ -5,6 +5,7 @@ from core.utilities.BitManipulation import *
 from core.utilities.SvtDecorator import *
 from core.structs.AqDescriptor import AqDescriptor
 from core.structs.CapabilityStructure import CapabilityStructure
+from core.structs.PortOptionsStructure import PortOptionsStructure
 from devices.cpk.cpkBase import cpkBase
 
 class cpk(cpkBase):
@@ -368,7 +369,26 @@ class cpk(cpkBase):
         for offset, phy_type_str in self.data.get_Ability_Phy_Type_dict.items():
             if phy_type & (1<<offset):
                 return phy_type_str
-    
+            
+    def PrintAvailablePortOptions(self):
+        status, data = self.aq.GetPortOptions(dict())
+        if status:
+            raise RuntimeError("get port options admin command failed")
+        for index in range(data['port_options_count']):
+            port_option_list = data['port_options'][6*index:6*index+6]
+            port_option = PortOptionsStructure.GetPortOptionsStructureByList(port_option_list)
+            print("index: {:2} | PMD count: {} | PMD Max speed: {}".format(index, port_option.pmd_count, port_option.max_pmd_speed))
+
+    def GetCurrentPortOption(self):
+        status, data = self.aq.GetPortOptions(dict())
+        if status:
+            raise RuntimeError("get port options admin command failed")
+        current_port_option = data['active_port_option']
+        port_option_list = data['port_options'][6*current_port_option:6*current_port_option+6]
+        port_option = PortOptionsStructure.GetPortOptionsStructureByList(port_option_list)
+        return "PMD count: {} | PMD Max speed: {}".format(port_option.pmd_count, port_option.max_pmd_speed)
+
+ 
     def GetCurrentLinkStatus(self):
         gls = dict()
         gls['port'] = 0 

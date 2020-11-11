@@ -275,6 +275,63 @@ class AdminCommandHandler:
             status = (False, data)
         return status
 
+    def GetPortOptions(self, config, debug=False):
+        '''
+        Retrieve the available port options that are defined for the innermost PHY that is associated with the logical port number
+        input:
+             config -- type(dict):
+            
+                'logical_port_number' : int[2 byte] -- Logical Port Number
+                'port_nubmer_valid':  int[1 bit] -- Logical Port number is valid
+
+        '''
+        byte_16 = config.get("logical_port_number", 0) & 0xff
+        byte_17 = config.get("port_nubmer_valid", 0) & 0x1
+        buffer = [0]*0x1000
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06EA
+        aq_desc.flags = 0x1000
+        aq_desc.datalen = len(buffer)
+        aq_desc.param0 = ((byte_17 & 1) << 8)| byte_16
+        aq_desc.param1 = 0
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send GetPortOptions Command. status: {}, FW ret value: {}".format(status,aq_desc.retval))
+            return (True, aq_desc.retval)
+        else:
+            data = dict()
+            data['port_options_count'] = (aq_desc.param0  >> 16) & 0xf
+            data['innermost_phy_index'] = (aq_desc.param0 >> 24) & 0xff
+            data['active_port_option'] = aq_desc.param1 & 0xf
+            data['active_port_option_valid'] = (aq_desc.param1 >> 6) & 0x1
+            data['active_port_option_is_forced'] = (aq_desc.param1 >> 7) & 0x1
+            data['port_options'] = buffer[0:6*data['port_options_count']]
+            return (False, data)
+
+    def SetPortOptioins(self, config, debug=False):
+        '''
+             input : config -- type(dict):
+            
+                'logical_port_number' : int[2 byte] -- Logical Port Number
+                'port_nubmer_valid':  int[1 bit] -- Logical Port number is valid
+                'selected_port_option':  int[4 bit] -- Selected Port option index
+        '''
+        byte_16 = config.get("logical_port_number", 0) & 0xff
+        byte_17 = config.get("port_nubmer_valid", 0) & 0x1
+        byte_18 = config["selected_port_option"] & 0xf
+
+        aq_desc = AqDescriptor()
+        aq_desc.opcode = 0x06EB
+        aq_desc.flags = 0
+        aq_desc.param0 = (byte_18 << 16 | byte_17 << 8 | byte_16)
+        buffer = []
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print("Failed to send Read Write SffEeprom Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+        return [status, aq_desc.retval]
+
     def GetLinkStatus(self, gls, debug=False):
         # Updated for HAS 1.3
         '''
