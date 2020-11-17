@@ -985,14 +985,13 @@ class cpk(cpkBase):
     def GetCurrentPcieLinkSpeed(self):
         link_status_register = self.driver.read_pci(0xB2)
         link_speed = link_status_register & 0xF
-        vector_bit = self.data.link_speed_encoding[link_speed]
-        return self.data.supported_Link_speed_vector[vector_bit]
+        vector_bit = self.data.pcie_link_speed_encoding[link_speed]
+        return self.data.pcie_supported_Link_speed_vector[vector_bit]
 
     def GetCurrentPcieLinkWidth(self):
         link_status_register = self.driver.read_pci(0xB2)
-
         negotiated_link_width = (link_status_register >> 4) & 0x3f
-        return self.data.link_width_encoding[negotiated_link_width]
+        return self.data.pcie_link_width_encoding[negotiated_link_width]
 
     def SetEEESetting_D(self, set_eee, Location = "AQ"):
         '''This function configure eee for the link.
