@@ -201,7 +201,7 @@ class DataHandler(DeviceCommon):
                                    1:"100M-SGMII",
                                    0:"100Base-TX"}
 
-    get_Ability_EEE_dict = {10:"EEEen100GBase-KR2-PAM4",
+    cvl_eee_ability_dict = {10:"EEEen100GBase-KR2-PAM4",
                             9:"EEEen100GBase-KR4",
                             8:"EEEen50GBase-KR-PAM4",
                             7:"EEEen50GBase-KR2",

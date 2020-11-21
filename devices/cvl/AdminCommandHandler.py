@@ -1,7 +1,6 @@
 
 from core.utilities.BitManipulation import *
 from core.structs.AqDescriptor import AqDescriptor
-from devices.cvl.temp import *
 
 class AdminCommandHandler:
     '''
@@ -273,13 +272,13 @@ class AdminCommandHandler:
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 12, 4)
             data['phy_type'] = compose_num_from_array_slice(buffer, 0, 16)
 
-            phy_type_list = []
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
-            # TODO: change code base to not rely on this field. This Field will be deleted
-            data['phy_type_list'] = phy_type_list
+            #phy_type_list = []
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))
+            ## TODO: change code base to not rely on this field. This Field will be deleted
+            #data['phy_type_list'] = phy_type_list
 
             data['pause_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x1)
             data['asy_dir_abil'] = (compose_num_from_array_slice(buffer, 16, 1) & 0x2) >> 1
@@ -321,72 +320,6 @@ class AdminCommandHandler:
         return status
 
     def GetLinkStatus(self, gls, debug=False):
-        # Updated for HAS 1.3
-        '''
-            Description:  Get link status of the port.
-            input:
-                gls -- dict
-                    'port' : int[1 byte]
-                    'cmd_flag': int[2 bits] -- See description in Table 3-105 of CPK HAS
-            return:
-                status -- type(tuple) (bool, dict)
-                bool -- Indication if Admin command was successful, False if so, True if not
-                dict --
-                    'lse_enabled' : int[1 bit] -- 1 if LSE is enabled, 0 if disabled
-                    'topo_conflict' : int[1 bit] -- 1 if topology conflict detect, 0 if not
-                    'media_conflict' : int[1 bit] -- 1 if media conflict detected, 0 if not
-                    'lom_topo_corrupt' : int[1 bit] -- 1 if LOM topology netlist is corrupted, 0 if not
-                    'link_sts': int[1 bit] -- 1 if link is up, 0 if down
-                    'link_fault': int[1 bit] -- 1 if PHY has detected a link fault condition
-                    'tx_link_fault': int[1 bit] -- 1 if a transmit link fault condition is detected 'rx_link_fault': int[1 bit] -- 1 if a receive link fault condition is detected 'remote_fault': int[1 bit] -- 1 if a remote fault condition is detected
-                    'ext_prt_sts' : int[1 bit] -- 1 if link up, 0 if down
-                    'media_avail' : int[1 bit] -- 1 if media is availble, 0 if not
-                    'sig_det' int[1 bit] -- 1 if signal detected, 0 if not
-                    'an_comp' : int[1 bit] -- 1 if AN completed successfully, 0 if not(only valid if PHY type supports AN)
-                    'lp_an_abil' : int[1 bit] -- 1 if LP supports AN, 0 if not(only valid if PHY type supports AN)
-                    'pd_fault' : int[1 bit] -- 1 if parallel detect fault occured, 0 if not(only valid if AN w/ pd support enabled)
-                    '10g_kr_fec' : int[1 bit] -- 1 if KR, KR4 or CR4 FEC is enabled, 0 if not(only valid if PHY supports FEC)
-                    'low_pwr_state' : int[1 bit] -- 1 if low power mode, 0 if high power mode
-                    'tx_pause' : int[1 bit] -- 1 if TX Pause is enabled
-                    'rx_pause' : int[1 bit] -- 1 if RX Pause is enabled
-                    'qual_mod' : int[1 bit] -- 1 if the module is qualified, 0 if not
-                    'temp_alarm' : int[1 bit] -- 1 if temp alarm is asserted by PHY, 0 if not
-                    'hi_err' : int[1 bit] -- 1 if high_ber reported by the PHY
-                    'tx_susp' : int[2 bits] -- Refer to Table 3-107 in HAS for bitfield definition
-                    'lcl_lpbk' : int[1 bit] -- Indicates that PHY local loopback is enabled
-                    'rem_lpbk' : int[1 bit] -- Indicates that PHY remote loopback is enabled
-                    'mac_lpbk' : int[1 bit] -- Indicates that MAC local loopback is enabled
-                    'max_frame' : int[2 bytes] -- Max frame size set on the port
-                    '25g_kr_fec' : int[1 bit] -- 1 if 25G KR FEC was negotiated on the link
-                    '25g_rs_528' : int[1 bit] -- 1 if 25G RS 528 FEC negotiated on the link
-                    'rs_544' : int[1 bit] -- 1 if RS 544 FEC was negotiated on the link
-                    'pacing_type' : int[1 bit] -- Determines if Inter-Packet Gap is used for rate pacing or data dependent
-                    'pacing_rate' : int[4 bits] -- Refer to Table 3-66 for bitfield definition
-                    'link_speed_10m' : int[1 bit] -- 1 if current link speed is 10 Mbps
-                    'link_speed_100m' : int[1 bit] -- 1 if current link speed is 100 Mbps
-                    'link_speed_1000m' : int[1 bit] -- 1 if current link speed is 1000 Mbps
-                    'link_speed_2p5g' : int[1 bit] -- 1 if current link speed is 2.5 Gbps
-                    'link_speed_5g' : int[1 bit] -- 1 if current link speed is 5 Gbps
-                    'link_speed_10g' : int[1 bit] -- 1 if current link speed is 10 Gbps
-                    'link_speed_20g' : int[1 bit] -- 1 if current link speed is 20 Gbps
-                    'link_speed_25g' : int[1 bit] -- 1 if current link speed is 25 Gbps
-                    'link_speed_40g' : int[1 bit] -- 1 if current link speed is 40 Gbps
-                    'link_speed_50g' : int[1 bit] -- 1 if current link speed is 50 Gbps
-                    'link_speed_100g' : int[1 bit] -- 1 if current link speed is 100 Gbps
-                    'link_speed_200g' : int[1 bit] -- 1 if current link speed is 200 Gbps
-                    'phy_type_0' : int[4 bytes] -- Bytes 3:0 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type_1' : int[4 bytes] -- Bytes 7:4 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type_2' : int[4 bytes] -- Bytes 11:8 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type_3' : int[4 bytes] -- Bytes 15:12 of PHY TYPE field, Refer to Table 3-107 for bitfield definition
-                    'phy_type' : type(list) -- use get_all_phy_types utility to decode the phy_type_0, phy_type_1 , phy_type_2, phy_type_3 and return a string list of all phy types
-                if bool is True, dict becomes int with Admin command retval
-        '''
-        # Generic AQ descriptor --> Get Link Status Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0(bytes 16-19) = (cmd_flag + reserved + logical_port_number)
-        # param1(bytes 20-23) = (0)
-        # addr_high(bytes 24-27) = (0)
-        # addr_low(bytes 28-31) = (0)
         aq_desc = AqDescriptor()
         data_len = 0x1000
         aq_desc.opcode = 0x0607
@@ -396,7 +329,7 @@ class AdminCommandHandler:
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
-        aq_desc.flags = 0x1200  # Set the buffer and long buffer flags
+        aq_desc.flags = 0x1200 
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
@@ -404,10 +337,6 @@ class AdminCommandHandler:
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:
-            # The static section of Get PHY Abilities is 32 bytes
-            # ut.compose_num_from_array_slice(input, index, width)
-            if debug:
-                print(buffer)
             data = {}
             data['lse_enabled'] = (aq_desc.param0 & 0x10000)
             data['topo_conflict'] = compose_num_from_array_slice(buffer, 0, 1) & 0x1
@@ -465,13 +394,13 @@ class AdminCommandHandler:
             data['phy_type_2'] = compose_num_from_array_slice(buffer, 24, 4)
             data['phy_type_3'] = compose_num_from_array_slice(buffer, 28, 4)
             data['phy_type'] = compose_num_from_array_slice(buffer, 16, 16)
-
-            phy_type_list = []  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))  # TODO - to be deleted
-            phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))  # TODO - to be deleted
-            data['phy_type_list'] = phy_type_list  # TODO - to be deleted
+            
+            #phy_type_list = []  # TODO - to be deleted
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_0'], 0))  # TODO - to be deleted
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_1'], 1))  # TODO - to be deleted
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_2'], 2))  # TODO - to be deleted
+            #phy_type_list.extend(get_all_phy_types(data['phy_type_3'], 3))  # TODO - to be deleted
+            #data['phy_type_list'] = phy_type_list  # TODO - to be deleted
 
             status = (False, data)
         return status

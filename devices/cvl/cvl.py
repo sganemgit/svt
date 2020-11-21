@@ -630,29 +630,7 @@ class cvl(cvlBase):
         for key, val in data.items():
             print("{} : {}".format(key, val))
 
-    def GetPhyTypeAbilities(self, rep_mode = 0, Location = "AQ"):
-        '''
-            This function return list of phy types
-            argument:
-                rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ"
-        '''
-        if Location == "REG":
-            self._GetPhyTypeAbilitiesReg()
-        elif Location == "AQ":
-            phy_type_list = self._GetPhyTypeAbilitiesAq(rep_mode)
-        else:
-            raise RuntimeError("Err GetPhyTypeAbilities: Error Location, please insert location REG/AQ")
-        return phy_type_list
-
-    def _GetPhyTypeAbilitiesReg(self):
-        '''
-            This function return list of phy types
-            for debug only because reset by AQ is not implimented.
-        '''
-        raise RuntimeError("Get Phy Type Abilities by Reg is not implimented")      
-
-    def _GetPhyTypeAbilitiesAq(self, rep_mode):
+    def GetPhyTypeAbilities(self, rep_mode=0):
         '''
             Description: Get various PHY type abilities supported on the port.
             input:
@@ -660,51 +638,20 @@ class cvl(cvlBase):
             return:
                 phy_type_list - contain phy type abilities by str
         '''
-        get_abils = {}
-        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
-        get_abils['rep_qual_mod'] = 0
-        get_abils['rep_mode'] = rep_mode
-        
-        status, data = self.aq.GetPhyAbilities(get_abils)
-        
-        if status:
-            raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
-            
-        phy_type = data['phy_type']
-        
-        phy_type_list = list()
-        
-        for i in range(len(self.data.cvl_phy_type_abilities_dict)):
-            if ((phy_type >> i) & 0x1):
-                phy_type_list.append(self.data.cvl_phy_type_abilities_dict[i])
-               
-        return phy_type_list
+        try:
+            status, data = self.aq.GetPhyAbilities({'port':0,'rep_qual_mod':0,'rep_mode':rep_mode}) 
+            if status:
+                raise RuntimeError("Error _GetPhyTypeAbilitiesAq: Admin command was not successful")  
+            phy_type = data['phy_type']
+            phy_type_list = list()
+            for i in range(len(self.data.cvl_phy_type_abilities_dict)):
+                if ((phy_type >> i) & 0x1):
+                    phy_type_list.append(self.data.cvl_phy_type_abilities_dict[i])
+            return phy_type_list
+        except Exception as e:
+            print("ERROR at GetPhyTypeAbilities")
 
-    def GetEEEAbilities(self, rep_mode, Location = "AQ"):
-        '''
-            This function return list of EEE abilities
-            argument:
-                rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ" 
-     
-        '''
-        if Location == "REG":
-            self._GetEEEAbilitiesReg()
-        elif Location == "AQ":
-            EEE_list = self._GetEEEAbilitiesAq(rep_mode)
-        else:
-            raise RuntimeError("Err GetEEEAbilities: Error Location, please insert location REG/AQ")
-
-        return EEE_list 
-     
-    def _GetEEEAbilitiesReg(self):
-        '''
-            This function return list of EEE abilities
-            for debug only because FecAbilities by REG is not implimented.
-        '''
-        raise RuntimeError("Get EEE Abilities by Reg is not implimented")   
-     
-    def _GetEEEAbilitiesAq(self, rep_mode):
+    def GetEEEAbilities(self, rep_mode=0):
         '''
             Description: Get EEE abilities supported on the port.
             input:
@@ -712,22 +659,17 @@ class cvl(cvlBase):
             return:
                 EEE_list - contain EEE abilities by str
         '''
-        get_abils = {}
-        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
-        get_abils['rep_qual_mod'] = 0
-        get_abils['rep_mode'] = rep_mode
-        
-        result = self.aq.GetPhyAbilities(get_abils) 
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
-            raise RuntimeError("Error _GetEEEAbilitiesAq: Admin command was not successful")  
-            
-        EEE_list = list() 
-        for i in range(len(self.get_Ability_EEE_dict)):
-            if ((data['eee_cap'] >> i) & 0x1):
-                EEE_list.append(self.get_Ability_EEE_dict[i])
-        return EEE_list
+        try:
+            status, data = self.aq.GetPhyAbilities({'port':0,'rep_qual_mod':0,'rep_mode':rep_mode}) 
+            if status:
+                raise RuntimeError("Error: GetPhyAbilities admin command failed")  
+            EEE_list = list() 
+            for i in range(len(self.data.cvl_eee_ability_dict)):
+                if ((data['eee_cap'] >> i) & 0x1):
+                    EEE_list.append(self.data.cvl_eee_ability_dict[i])
+            return EEE_list
+        except Exception as e:
+            print("ERROR at GetEEEAbilities")
 
     def GetFecAbilities(self,rep_mode = 1, Location = "AQ"):
         '''
