@@ -4,6 +4,10 @@ import sys
 
 class FtdiDriver:
 
+    @classmethod
+    def GetFtdiDevices(cls):
+        return ftd.listDevices()
+
     def __init__(self, index):
         self.index = index 
         try:
