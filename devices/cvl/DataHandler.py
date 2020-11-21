@@ -213,7 +213,7 @@ class DataHandler(DeviceCommon):
                             1:"EEEen1000Base-T",
                             0:"EEEen100Base-TX"}
 
-    get_Ability_FEC_dict = {7:"25G_KR_FEC_abil",
+    cvl_fec_ability_dict = {7:"25G_KR_FEC_abil",
                             6:"25G_RS_528_FEC_abil",
                             5:"Reserved",
                             4:"25G_RS_544_FEC_req",

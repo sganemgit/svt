@@ -671,32 +671,7 @@ class cvl(cvlBase):
         except Exception as e:
             print("ERROR at GetEEEAbilities")
 
-    def GetFecAbilities(self,rep_mode = 1, Location = "AQ"):
-        '''
-            This function return list of FEC abilities
-            argument:
-                rep_mode = int[2 bits] -- 00b reports capabilities without media, 01b reports capabilities including media, 10b reports latest SW configuration request
-                Location = "REG" / "AQ" 
-            return:
-                FEC_list - contain FEC options by str
-        '''
-        if Location == "REG":
-            self._GetFecAbilitiesReg()
-        elif Location == "AQ":
-            FEC_list = self._GetFecAbilitiesAq(rep_mode)
-        else:
-            raise RuntimeError("Err GetFecAbilities: Error Location, please insert location REG/AQ")    
-       
-        return FEC_list
-
-    def _GetFecAbilitiesReg(self):
-        '''
-            This function return list of FEC abilities
-            for debug only because FecAbilities by REG is not implimented.
-        '''
-        raise RuntimeError("Get FEC Abilities by Reg is not implimented")
-
-    def _GetFecAbilitiesAq(self,rep_mode):
+    def GetFecAbilities(self, rep_mode=0):
         '''
             Description: Get available FEC options for the link
             input:
@@ -704,43 +679,28 @@ class cvl(cvlBase):
             return:
                 FEC_list - contain FEC options by str
         '''
-        
-        get_abils = {}
-        get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
-        get_abils['rep_qual_mod'] = 0
-        get_abils['rep_mode'] = rep_mode
-        
-        result = self.aq.GetPhyAbilities(get_abils)
-        
-        if not result[0]: # if Admin command was successful - False
-            data = result[1]
-        else:
-            raise RuntimeError("Error _GetFecAbilitiesAq: Admin command was not successful")  
-            
-        FEC_list = []
-        if data['fec_firecode_10g_abil']:
-            FEC_list.append(self.get_Ability_FEC_dict[0])
-        
-        if data['fec_firecode_10g_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[1])
-        
-        if data['fec_rs528_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[2])
-            
-        if data['fec_firecode_25g_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[3])
-            
-        if data['fec_rs544_req']:
-            FEC_list.append(self.get_Ability_FEC_dict[4])
-            
-        if data['fec_rs528_abil']:
-            FEC_list.append(self.get_Ability_FEC_dict[6])
-            
-        if data['fec_firecode_25g_abil']:
-            FEC_list.append(self.get_Ability_FEC_dict[7])
-                
-        #print FEC_list
-        return FEC_list
+        try:
+            status, data = self.aq.GetPhyAbilities({'port':0,'rep_qual_mod':0,'rep_mode':rep_mode})
+            if status:
+                raise RuntimeError("Error _GetFecAbilitiesAq: Admin command was not successful")  
+            FEC_list = []
+            if data['fec_firecode_10g_abil']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[0])
+            if data['fec_firecode_10g_req']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[1])
+            if data['fec_rs528_req']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[2])
+            if data['fec_firecode_25g_req']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[3])
+            if data['fec_rs544_req']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[4])
+            if data['fec_rs528_abil']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[6])
+            if data['fec_firecode_25g_abil']:
+                FEC_list.append(self.data.cvl_fec_ability_dict[7])
+            return FEC_list
+        except Exception as e:
+            print('ERROR at GetFecAbilities')
 
     def GetPhyLinkSpeed(self, Location = "REG"):
         '''

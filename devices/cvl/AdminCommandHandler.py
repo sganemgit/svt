@@ -2175,7 +2175,6 @@ class AdminCommandHandler:
     def NvmUpdateEmpr(self, debug=False):
         '''
            request an EMPR after a successful reset to allow activation of the new firmware
-
         '''
         buffer = list() 
         aq_desc = AqDescriptor()
@@ -2192,6 +2191,36 @@ class AdminCommandHandler:
         return status
 ###############################################################################
 
+    def DebugDumpInternalData(self, config, debug=False):
+        '''
+            @input: config dict:
+                        1)cluster_id 
+                        2)table_id
+                        3)start_index
+        '''
+        aq_desc = AqDescriptor()
+        data_len = 0x1000
+        aq_desc.opcode = 0xff08
+        aq_desc.datalen = data_len
+        buffer = [0] * data_len
+        aq_desc.param0 = ((config.get('table_id', 0) & 0xffff) << 16) | (config['cluster_id'] & 0xff)
+        aq_desc.param1 = config.get('start_index', 0) & 0xffffffff
+        aq_desc.addr_high = 0
+        aq_desc.addr_low = 0
+        aq_desc.flags = 0x1200 
+        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        if status != 0 or aq_desc.retval != 0:
+            print('Failed to send Get Link Status Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
+        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        if status or err_flag:
+            status = (True, aq_desc.retval)
+        else:
+            ret_dict = dict()
+            ret_dict['cluster_id'] = aq_desc.param0 & 0xff
+            ret_dict['next_table'] = (aq_desc.param0 >> 16) & 0xffff
+            ret_dict['next_index_or_address'] = aq_desc.param1 
+            ret_dict['buffer'] = buffer
+            return (False, ret_dict)
 
 #TODO delete this class and move it's functionality somewhere else
 class cvl_structs:
