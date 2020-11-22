@@ -4,10 +4,6 @@ import sys
 
 class FtdiDriver:
 
-    @classmethod
-    def GetFtdiDevices(cls):
-        return ftd.listDevices()
-
     def __init__(self, index):
         self.index = index 
         try:
@@ -27,7 +23,7 @@ class FtdiDriver:
         self._driver_proxy.setBaudRate(baud_rate)
 
     def ft_write(self, data):
-        s = str(bytearray(data)) if sys.version_info<(3,) else bytes(data)
+        s = str(bytearray(data)) if sys.version_info < (3,) else bytes(data)
         return self._driver_proxy.write(s)
     
     def ft_read(self, n_bytes):
@@ -39,8 +35,11 @@ class FtdiDriver:
 
 if __name__=='__main__':
     d = FtdiDriver(1)
+    from core.structs.FtdiFpgaPacket import FtdiFpgaPacket as fpack
+    read_pack = fpack()
+    read_pack.op_code = 0x1
+    read_pack.len 
     print d.get_driver_version()
     print d.get_device_info()
-    a = [0,1,2,3, 4]
+    a = [0,0xff,2,3, 4]
     print d.ft_write(a)
-    print d.ft_read(10)
