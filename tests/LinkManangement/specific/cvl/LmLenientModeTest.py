@@ -21,7 +21,7 @@ class LmLenientModeTest(testBase):
         self.append_fail_reason("link is down on dut port {} and lp port {}".format(dut.port_number,lp.port_number))
         return False
 
-    def reset_both_sides(self, dut,lp,reset):
+    def reset_both_sides(self, dut, lp,reset):
         log = self.log
         log.info("performing {} reset on lp".format(reset))
         lp.Reset(reset)
@@ -75,20 +75,23 @@ class LmLenientModeTest(testBase):
                         lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
                         self.log.info("Current lenient mode after diabling attempt : {}".format(lenient_mode))
                         if lenient_mode != 'strict':
-                            self.append_fail_reason("lenient mode is not changing. current mode is {}".format(lenient_mode))
-                            raise RuntimeError("can not alter lenient mode")
+                            self.append_fail_reason("unable to alter lenient mode. current mode is {}".format(lenient_mode))
+                            raise RuntimeError("unable to alter lenient mode")
+                    
+                    eeprom_dict = dut.ReadSffEeprom()[int(dut.port_number)]
+                    self.log.info("module extended compliance code {}".format(eeprom_dict[192]))
+                    if eeprom_dict[192] == 0: 
 
+                        self.log.info("unspecified code".format(eeprom_dict[192]))
+                        
+                        phy_type_abilities_with_media = dut.GetPhyTypeAbilities(1)
+
+                    else: 
+                        selfl
+                    #in strict mode we expet 
+                    
 
                     self.configure_link(self.phy_type, fec)
                 except Exception as e: 
                     self.log.info("exception was raised while iterating through different fec types")
                 
-
-
-
-
-
-
-
-
-                    

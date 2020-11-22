@@ -1,0 +1,51 @@
+<TestFlow>
+    <TestCase>
+        <Test name='LmPersistencyTest'/>
+        <Input>
+            <Parameter name='phy_type' value='25GBase-CR'/>
+        </Input>
+        <Setup>
+            <Devices>
+                <Device name='cvl' hostname='ladh2076' number='0'>
+                    <Port ID='cvl0:0' number='0'/>
+                    <Port ID='cvl0:1' number='1'/>
+                </Device>
+                <Device name='cvl' hostname='ladh2076' number='1'>
+                    <Port ID='cvl1:0' number='0'/>
+                    <Port ID='cvl1:1' number='1'/>
+                </Device>
+            </Devices>
+            <Links>
+                <Link>
+                    <Port ID='cvl0:1' role='dut'/>	
+                    <Port ID='cvl1:1' role='lp'/>
+                </Link>
+            </Links>
+        </Setup>
+    </TestCase>
+    <TestCase>
+        <Test name='LmPersistencyTest'/>
+        <Input>
+            <Parameter name='phy_type' value='25GBase-CR'/>
+        </Input>
+        <Setup>
+            <Devices>
+                <Device name='cvl' hostname='ladh2076' number='0'>
+                    <Port ID='cvl0:0' number='0'/>
+                    <Port ID='cvl0:1' number='1'/>
+                </Device>
+                <Device name='cvl' hostname='ladh2076' number='1'>
+                    <Port ID='cvl1:0' number='0'/>
+                    <Port ID='cvl1:1' number='1'/>
+                </Device>
+            </Devices>
+            <Links>
+                <Link>
+                    <Port ID='cvl0:1' role='dut'/>	
+                    <Port ID='cvl1:1' role='lp'/>
+                </Link>
+            </Links>
+        </Setup>
+    </TestCase>
+
+</TestFlow>
