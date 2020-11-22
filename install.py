@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import os
 cwd = os.getcwd()
 home_dir = os.environ["HOME"]

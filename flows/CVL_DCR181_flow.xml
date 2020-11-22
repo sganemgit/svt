@@ -1,6 +1,6 @@
 <TestFlow>
     <TestCase>
-        <Test name='LmPersistencyTest'/>
+        <Test name='LmLenientModeTest'/>
         <Input>
             <Parameter name='phy_type' value='25GBase-CR'/>
         </Input>

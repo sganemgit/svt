@@ -1,4 +1,12 @@
+--------------------------------------------------------------------------------
 
+How to install: 
+1) Run the installation script install.py
+   $ python install.py
+2)  Source the ~/.bashrc file
+    $ source ~/.bashrc
 
+--------------------------------------------------------------------------------
 
-How to write a new test
+How to write a new test:
+

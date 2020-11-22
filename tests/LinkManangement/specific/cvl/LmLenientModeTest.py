@@ -86,6 +86,8 @@ class LmLenientModeTest(testBase):
                         
                         phy_type_abilities_with_media = dut.GetPhyTypeAbilities(1)
 
+
+
                     else: 
                         selfl
                     #in strict mode we expet 
