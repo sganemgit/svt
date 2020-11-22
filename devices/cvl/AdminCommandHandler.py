@@ -69,7 +69,7 @@ class AdminCommandHandler:
         buffer.append(byte_23)
         buffer.extend([0] * (0x1000 - len(buffer)))
         aq_desc.opcode = 0x0601
-        aq_desc.flags = 0x1600  # Include buffer and read flags for this command
+        aq_desc.flags = 0x1400  # Include buffer and read flags for this command
         aq_desc.param0 = config['port']
         aq_desc.param1 = 0
         aq_desc.addr_high = 0
