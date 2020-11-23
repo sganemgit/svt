@@ -21,13 +21,12 @@ class LmLenientModeTest(testBase):
         self.append_fail_reason("link is down on dut port {} and lp port {}".format(dut.port_number,lp.port_number))
         return False
 
-    def reset_both_sides(self, dut, lp,reset):
+    def reset_both_sides(self, dut, lp, reset):
         log = self.log
         log.info("performing {} reset on lp".format(reset))
         lp.Reset(reset)
         log.info("performing {} reset on dut".format(reset))
         dut.Reset(reset)
-        self.poll_for_link(dut, lp, 15)
 
     def init_params(self):
         self.log.info("-"*80)
@@ -55,6 +54,10 @@ class LmLenientModeTest(testBase):
             log.info("Exception {} raised in {}".format(str(e), self.configure_link.__name__))
             self.append_fail_reason("Fail to configure link of {} ".format(PhyType))
 
+    def does_default_override_maks_exist(self, dut): 
+        pfa_status = dut.GetCurrentPfaOverrideMaskStatus()
+        return pfa_status['override_enable']
+
     def run(self):
         self.init_params()
 
@@ -64,36 +67,34 @@ class LmLenientModeTest(testBase):
             self.reset_both_sides(dut, lp, 'globr')
 
         for dut, lp in self.dut_lp_pairs:
-            #check lenient mode and log it
-            for fec in dut.data.ieee_802_3_fec_dict[self.phy_type]:
-                try:
-                    lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-                    self.log.info("Current lenient mode : {}".format(lenient_mode))
-                    if lenient_mode != 'strict':
-                        self.log.info("Disabling lenient mode")
-                        dut.DisableLenientMode()
-                        lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-                        self.log.info("Current lenient mode after diabling attempt : {}".format(lenient_mode))
-                        if lenient_mode != 'strict':
-                            self.append_fail_reason("unable to alter lenient mode. current mode is {}".format(lenient_mode))
-                            raise RuntimeError("unable to alter lenient mode")
-                    
-                    eeprom_dict = dut.ReadSffEeprom()[int(dut.port_number)]
-                    self.log.info("module extended compliance code {}".format(eeprom_dict[192]))
-                    if eeprom_dict[192] == 0: 
+            #this test will check all the cases according to spreedsheet of DCR102
+            dut_default_override_mask_enabled = self.does_default_override_maks_exist(dut)
+            lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
+            phy_abilities = dut.GetPhyTypeAbilities(1)
+            
+            if dut_default_override_mask_enabled:
+                if phy_abilities:
+                    #phy abilities with media has modes
+                    if lenient_mode == 'strict':
+                        self.log.info("link attempted based on default override mask config but only if support declarded by media")
+                    elif lenient_mode == 'lenient':
+                        self.log.info("link attempted based on default override maks config")
+                else:
+                    if lenient_mode == 'strict':
+                        self.log.info("Error message is logged with information about media and link")
+                    elif lenient_mode == 'lenient':
+                        self.log.info("link attemted based on AN and 4 hihest AUI modes in netlist and warning message is logged with information about Media")
+            else:
+                self.log.info("Dut default override maks is disabled")
+                if phy_abilities:
+                    self.log.info("GetPhyAbilities with media has modes")
+                    self.log.info("lenient mode {}".format(lenient_mode))
+                    self.log.info("link attempted based on support declared by media")
+                else:
+                    self.log.info("GetPhyAbilities with media is empty")
+                    self.log.info("lenient mode {}".format(lenient_mode))
+                    if lenient_mode == 'strict':
+                        self.log.info("Error message is logged with information about media and link")
+                    if lenient_mode == 'lenient':
+                        self.log.info("link attemted based on AN and 4 highest AUI modes in netlist and warning message is logged with information about Media")
 
-                        self.log.info("unspecified code".format(eeprom_dict[192]))
-                        
-                        phy_type_abilities_with_media = dut.GetPhyTypeAbilities(1)
-
-
-
-                    else: 
-                        selfl
-                    #in strict mode we expet 
-                    
-
-                    self.configure_link(self.phy_type, fec)
-                except Exception as e: 
-                    self.log.info("exception was raised while iterating through different fec types")
-                

@@ -28,7 +28,6 @@ class LmPersistencyTest(testBase):
         lp.Reset(reset)
         log.info("performing {} reset on dut".format(reset))
         dut.Reset(reset)
-        self.poll_for_link(dut, lp, 15)
 
     def init_params(self):
         self.log.info("-"*80)

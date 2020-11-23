@@ -3069,6 +3069,31 @@ class cvl(cvlBase):
             error_msg = 'Error _SetPhyConfigurationAQ: _SetPhyConfig Admin command was not successful, retval {}'.format(data)
             raise RuntimeError(error_msg)
 
+    def GetCurrentPfaOverrideMaskStatus(self):
+        data = self.ReadNvmModuleByTypeId(0x134)
+        word_list = convert_byte_list_to_16bitword_list(data['nvm_module'])
+        port_number = self.driver.port_number()
+        word_0 = word_list[1+10*port_number]
+        word_1 = word_list[1+10*port_number+1]
+        ret_dict = dict()
+        ret_dict['strict'] = True if word_0 & 0x1 else False
+        ret_dict['EPCT_ability_enable'] = True if word_0 & 0x2 else False
+        ret_dict['port_disable_befavior_mode'] = True if word_0 & 0x4 else False
+        ret_dict['override_enable'] = True if word_0 & 0x8 else False
+        ret_dict['disable_auto_link_on_startup'] = True if word_0 & 0x10 else False
+        ret_dict['eee_enable'] = True if word_0 & 0x20 else False
+        ret_dict['pause_abil_1_enable'] = True if word_0 & 0x100 else False
+        ret_dict['pause_abil_2_enable'] = True if word_0 & 0x200 else False
+        ret_dict['lesm_enable'] = True if word_0 & 0x4000 else False
+        ret_dict['auto_fec_enable'] = True if word_0 & 0x8000 else False
+        ret_dict['override_phy_types'] = True if word_1 & 0x100 else False
+        ret_dict['override_disable_auto_link_on_startup'] = True if word_1 & 0x200 else False
+        ret_dict['override_eee_setting'] = True if word_1 & 0x400 else False
+        ret_dict['override_puase_setting'] = True if word_1 & 0x800 else False
+        ret_dict['override_lesm_enable'] = True if word_1 & 0x1000 else False
+        ret_dict['override_fec_setting'] = True if word_1 & 0x2000 else False
+        return ret_dict
+
     def GetCurrentModuleExtendedComplianceCode(self):
         get_abils = {}
         get_abils['port'] = 0 #not relevant for CVL according to CVL Spec
