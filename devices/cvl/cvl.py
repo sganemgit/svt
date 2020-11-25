@@ -795,31 +795,8 @@ class cvl(cvlBase):
         return link_status
 
 
-    def DisableFECRequests(self, rep_mode = 1, Location = "AQ"):
-        '''This function diables all feq requests by the device while keeping all other abillities intact 
-            argument:
-                Location = "REG" / "AQ" 
-        '''
-        if Location == "REG":
-            self._DisableFECRequestsReg() 
-        elif Location == "AQ":
-            self._DisableFECRequestsAq(rep_mode) 
-        else:
-            raise RuntimeError("Err DisableFECRequests: Error Location, please insert location REG/AQ") 
-
-    def _DisableFECRequestsReg(self):
-        '''This function diables all feq requests by the device while keeping all other abillities intact 
-            for debug only because DisableFECRequests by REG is not implimented.
-        '''
-        raise RuntimeError("Disable fec requests by Reg is not implimented")
-
-    def _DisableFECRequestsAq(self, rep_mode):
-        '''this function diables all feq requests by the device while keeping all other abillities intact 
-            arguments: none
-            return: none 
-            level: L2
-        '''
-        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode}) ##TODO: check values
+    def DisableFECRequests(self, rep_mode=1):
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':rep_mode})
 
         if status:
             raise RuntimeError('Error DisableFECRequests: _GetPhyAbilities Admin command was not successful, retval {}'.format(data))
@@ -830,7 +807,7 @@ class cvl(cvlBase):
         config['phy_type_2'] = data['phy_type_2']
         config['phy_type_3'] = data['phy_type_3']
 
-        config['port'] = 0 #not relevant for CVL according to CVL Spec
+        config['port'] = 0
         config['tx_pause_req'] = data['pause_abil']
         config['rx_pause_req'] = data['asy_dir_abil']
         config['low_pwr_abil'] = data['low_pwr_abil']

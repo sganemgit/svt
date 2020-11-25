@@ -49,22 +49,17 @@ class LmPersistencyTest(testBase):
         for dut, lp in self.dut_lp_pairs:
             #check lenient mode and log it
             try:
-                lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-                self.log.info("Current lenient mode : {}".format(lenient_mode))
-                if lenient_mode != 'strict':
-                    self.log.info("Disabling lenient mode")
-                    dut.DisableLenientMode()
-                    lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-                    self.log.info("Current lenient mode after diabling attempt : {}".format(lenient_mode))
-                    if lenient_mode != 'strict':
-                        self.append_fail_reason("lenient mode is not changing. current mode is {}".format(lenient_mode))
-                        raise RuntimeError("can not alter lenient mode")
+                self.log.info("Testing pfa persistency after an empr", 'o')
+                self.log.info("DUT port number: {}".format(dut.port_number))
+                self.log.info("LP  port number: {}".format(lp.port_number))
 
                 #read current PFA 
                 self.log.info('reading module type id {}'.format(self.module_type_id))
                 current_pfa_value = dut.ReadNvmModuleByTypeId(self.module_type_id)
-
                 pfa_data = current_pfa_value['nvm_module']
+
+                dut.ResetDefaultOverrideMask(int(dut.port_number))
+                lp.ResetDefaultOverrideMask(int(lp.port_number))
 
                 data = dut.GetPhyAbilitiesFields()
                 #create new config dict for DUT port
@@ -87,12 +82,38 @@ class LmPersistencyTest(testBase):
                 new_config['override_lesm_enable'] = 0x1
                 new_config['override_fec'] = 0x1
                 new_config['phy_types'] = 0xffffffffffffffffffffffffffffffff #this is a mask for bitwise with 128 bit phy_type 
-
                 self.log.info("Setting the fields in the DefaultOverrideMask PFA to the following values")
                 for key, val in new_config.items():
                     self.log.info("{} : {}".format(key, hex(val)))  
                 #setdefaultmask by calling the method for the dut 
                 dut.SetDefaultOverrideMask(new_config)
+
+                data = lp.GetPhyAbilitiesFields()
+                #create new config dict for lp port
+                new_config= dict()
+                new_config['port'] = lp.port_number
+                new_config['lenient'] = 0x1
+                new_config['epct_ability_enable'] = 0x0
+                new_config['port_disable'] = 0x0
+                new_config['override_enable'] = 0x1
+                new_config['disable_automatic_link'] = 0x0
+                new_config['eee_enable'] =  1  
+                new_config['pause_ability'] = 0x3 
+                new_config['lesm_enable'] = 0x1
+                new_config['auto_fec_enable'] = data['auto_fec_en']
+                new_config['fec_options'] = data['fec_opt']
+                new_config['override_phy_types'] = 0x1
+                new_config['override_disable_automatic_link'] = 0x0
+                new_config['override_eee'] = 0x1
+                new_config['override_pause'] = 0x1
+                new_config['override_lesm_enable'] = 0x1
+                new_config['override_fec'] = 0x1
+                new_config['phy_types'] = 0xffffffffffffffffffffffffffffffff #this is a mask for bitwise with 128 bit phy_type 
+                self.log.info("Setting the fields in the DefaultOverrideMask PFA to the following values")
+                for key, val in new_config.items():
+                    self.log.info("{} : {}".format(key, hex(val)))  
+                #setdefaultmask by calling the method for the lp 
+                lp.SetDefaultOverrideMask(new_config)
                 
                 #perform empr reset . could be that we will need POR
                 for dut, lp in self.dut_lp_pairs:
@@ -110,7 +131,7 @@ class LmPersistencyTest(testBase):
                 new_lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
 
                 # if changes are persistent after reset then test will pass. else fail.
-                if new_lenient_mode == 'strict':
+                if new_lenient_mode == 'lenient':
                     self.append_fail_reason("lenient mode did not stay persistent after an empr")
 
                 self.log.info("current lenient mode is {}".format(new_lenient_mode))
@@ -119,4 +140,8 @@ class LmPersistencyTest(testBase):
             except Exception as e:
                 print(str(e))
                 self.append_fail_reason("Exception was raised during the test setting test to fail")
+            finally:
+                dut.ResetDefaultOverrideMask(int(dut.port_number))
+                lp.ResetDefaultOverrideMask(int(lp.port_number))
+
 
