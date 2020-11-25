@@ -116,8 +116,7 @@ class LmPersistencyTest(testBase):
                 lp.SetDefaultOverrideMask(new_config)
                 
                 #perform empr reset . could be that we will need POR
-                for dut, lp in self.dut_lp_pairs:
-                    self.reset_both_sides(dut, lp, 'empr')
+                self.reset_both_sides(dut, lp, 'empr')
                 
                 self.log.info('reading module type id {} after changes'.format(hex(self.module_type_id)))
                 current_pfa_value = dut.ReadNvmModuleByTypeId(self.module_type_id)
@@ -125,22 +124,13 @@ class LmPersistencyTest(testBase):
                 new_pfa_data = current_pfa_value['nvm_module']
 
                 if new_pfa_data == pfa_data:
-                    self.log.info("The pfa values have not changed",'o')
+                    self.append_fail_reason("pfa did not remain persistent after emp")
 
-                #read new configurations
-                new_lenient_mode = dut.GetCurrentModuleComplianceEnforcement()
-
-                # if changes are persistent after reset then test will pass. else fail.
-                if new_lenient_mode == 'lenient':
-                    self.append_fail_reason("lenient mode did not stay persistent after an empr")
-
-                self.log.info("current lenient mode is {}".format(new_lenient_mode))
-                self.log.info("Reset DefaultOverrideMask to default values")
-                dut.ResetDefaultOverrideMask(dut.port_number)
             except Exception as e:
                 print(str(e))
                 self.append_fail_reason("Exception was raised during the test setting test to fail")
             finally:
+                self.log.info("resetting default override mask values to default")
                 dut.ResetDefaultOverrideMask(int(dut.port_number))
                 lp.ResetDefaultOverrideMask(int(lp.port_number))
 

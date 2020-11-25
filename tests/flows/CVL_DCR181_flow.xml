@@ -17,6 +17,10 @@
             </Devices>
             <Links>
                 <Link>
+                    <Port ID='cvl0:0' role='dut'/>	
+                    <Port ID='cvl1:0' role='lp'/>
+                </Link>
+                <Link>
                     <Port ID='cvl0:1' role='dut'/>	
                     <Port ID='cvl1:1' role='lp'/>
                 </Link>
@@ -40,6 +44,10 @@
                 </Device>
             </Devices>
             <Links>
+                <Link>
+                    <Port ID='cvl0:0' role='dut'/>	
+                    <Port ID='cvl1:0' role='lp'/>
+                </Link>
                 <Link>
                     <Port ID='cvl0:1' role='dut'/>	
                     <Port ID='cvl1:1' role='lp'/>

@@ -34,7 +34,7 @@ class LmLenientModeTest(testBase):
         for key, value in self.args.items():
             self.log.info("{}: {}".format(key, value))
         self.log.info("-"*80)
-        self.phy_type = self.args['phy_type']
+        self.phy_type = self.args.get('phy_type', 'N/A')
         self.module_type_id = 0x134
     
     def configure_link(self, dut, lp, PhyType, FecType):
@@ -105,6 +105,8 @@ class LmLenientModeTest(testBase):
                 dut.ResetDefaultOverrideMask(int(dut.port_number))
                 lp.ResetDefaultOverrideMask(int(dut.port_number))
 
+                self.reset_both_sides(dut, lp , 'globr')
+
                 dut_override_from_pfa = self.is_default_override_mask_set(dut)
                 lp_override_from_pfa = self.is_default_override_mask_set(lp)
                 if dut_override_from_pfa:
@@ -157,7 +159,6 @@ class LmLenientModeTest(testBase):
                 #setdefaultmask by calling the method for the dut 
                 dut.SetDefaultOverrideMask(new_config)
 
-
                 data = lp.GetPhyAbilitiesFields()
                 #create new config dict for lp port
                 new_config= dict()
@@ -189,6 +190,8 @@ class LmLenientModeTest(testBase):
                 dut_override_from_pfa = self.is_default_override_mask_set(dut)
                 lp_override_from_pfa = self.is_default_override_mask_set(lp)
 
+                self.reset_both_sides(dut, lp , 'globr')
+
                 if not dut_override_from_pfa:
                     raise Exception("unable to enable Default override mask on dut")
                 if not lp_override_from_pfa:
@@ -198,6 +201,7 @@ class LmLenientModeTest(testBase):
                     self.log.warning("dut leneint mode is strict")
                     self.log.info("enabling lenient mode") 
                     dut.EnableLenientMode()
+                    raise RuntimeError
                 if dut.GetCurrentModuleComplianceEnforcement() == 'strict':
                     self.append_fail_reason("unable to alter leneint mode dut")
                     raise RuntimeError
@@ -283,10 +287,12 @@ class LmLenientModeTest(testBase):
                     self.log.info("{} : {}".format(key, hex(val)))  
                 #setdefaultmask by calling the method for the lp 
                 lp.SetDefaultOverrideMask(new_config)
+                
+                self.reset_both_sides(dut, lp , 'globr')
 
                 dut_override_from_pfa = self.is_default_override_mask_set(dut)
                 lp_override_from_pfa = self.is_default_override_mask_set(lp)
-
+                
                 if not dut_override_from_pfa:
                     self.append_fail_reason("unblae to enable default override mask on dut")
                     raise RuntimeError
