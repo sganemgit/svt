@@ -362,7 +362,14 @@ class cvl(cvlBase):
             port_option_list = data['port_options'][6*index:6*index+6]
             port_option = PortOptionsStructure.GetPortOptionsStructureByList(port_option_list)
             print("index: {:2} | PMD count: {} | PMD Max speed: {}".format(index, port_option.pmd_count, port_option.max_pmd_speed))
-
+    
+    def GetCurrentLesmStatus(self):
+        
+        status, data = self.aq.GetPhyAbilities({'port':0, 'rep_qual_mod':0, 'rep_mode':0}) 
+        if status:
+            raise RuntimeError("get link status failed")
+        return True if data['lesm_en'] == 1 else False
+        
     def GetCurrentPortOption(self):
         status, data = self.aq.GetPortOptions(dict())
         if status:
