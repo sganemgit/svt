@@ -330,6 +330,7 @@ class AdminCommandHandler:
             data['lcl_lpbk'] = compose_num_from_array_slice(buffer, 5, 1) & 0x1
             data['rem_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x2) >> 1
             data['mac_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) & 0x4) >> 2
+            data['phy_index_lpbk'] = (compose_num_from_array_slice(buffer, 5, 1) >> 3) & 0x7
             data['max_frame'] = compose_num_from_array_slice(buffer, 6, 2)
             data['25g_kr_fec'] = compose_num_from_array_slice(buffer, 8, 1) & 0x1
             data['25g_rs_528'] = (compose_num_from_array_slice(buffer, 8, 1) & 0x2) >> 1
@@ -371,45 +372,26 @@ class AdminCommandHandler:
             status = (False, data)
         return status
 
-    def SetPhyLoopback(self, phy_lpbk_args, debug=False):
-        # Updated for HAS 1.3
-        '''
-            Description:  Sets various PHYs loopback modes of the link
-            input:
-                phy_lpbk -- type(dict)
-                    'port' : int[1 byte]
-                    'index' : int[1 byte]
-                    'enable' : int[1 bit]
-                    'type' : int[1 bit]
-                    'level' : int[1 bit]
-            return:
-                status -- type(tuple) (bool, int)
-                    bool -- Indication if Admin command was successful, False if so, True if not
-                    int -- if bool is False, None, else int is Admin command retval
-        '''
-        # Generic AQ descriptor --> Set PHY Loopback Admin command translation
-        # e.g. descriptor_term = (most_significant bytes .. least_significant_bytes)
-        # param0 = (level + type + enable + phy_index + logical_port_number)
-        # param1 = (0)
-        # addr_high = (0)
-        # addr_low = (0)
-        # helper = LM_Validation()
-        aq_desc = AqDescriptor()  # helper._debug('SetPhyLoopback Admin Command')
+    def SetPhyLoopback(self, config, debug=False):
+        byte_16 = config.get('port', 0)
+        byte_17 = config.get('valid', 0) & 0x1
+        byte_18 = config.get('index', 0)
+        byte_19 = (config['level'] & 0x1) << 2 | (config['type'] & 0x1) << 1 | config['enable'] & 0x1
+        aq_desc = AqDescriptor()         
         data_len = 0x0
         aq_desc.opcode = 0x0619
+        aq_desc.flags = 0x0
         aq_desc.datalen = data_len
-        buffer = [0] * data_len
-        aq_desc.param0 = (phy_lpbk_args['level'] << 26) | (phy_lpbk_args['type'] << 25) | (
-                    phy_lpbk_args['enable'] << 24) | (phy_lpbk_args['index'] << 16) | phy_lpbk_args['port']
-        aq_desc.param1 = 0
+        buffer = [0]
+        aq_desc.param0 = byte_19 << 24 | byte_18 << 16 | byte_17 << 8 | byte_16
+        aq_desc.param1 = 0 
         aq_desc.addr_high = 0
         aq_desc.addr_low = 0
-        aq_desc.flags = 0x0
 
-        status = self.driver.send_aq_command(aq_desc, buffer, debug)
+        status = self.driver.send_aq_command(aq_desc, buffer, debug, False)
         if status != 0 or aq_desc.retval != 0:
             print('Failed to send Set Phy Loopback Admin Command, status: ', status, ', FW ret value: ', aq_desc.retval)
-        err_flag = (aq_desc.flags & 0x4) >> 2  # isolate the error flag
+        err_flag = (aq_desc.flags & 0x4) >> 2  
         if status or err_flag:
             status = (True, aq_desc.retval)
         else:

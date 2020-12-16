@@ -1544,16 +1544,17 @@ class cvl(cvlBase):
             error_msg = 'Error EnablePCSLoopback: Admin command was not successful, retval {}'.format(status[1])
             raise RuntimeError(error_msg)
 
-    def EnablePMDLoopback(self):
+    def EnablePMDLoopback(self, type='local'):
         '''This function enabled phy local loopback at the PMD level.
             input: None
             return: None
         '''
+
         phy_lpbk_args = {}
         phy_lpbk_args['port'] = 0 #not relevant for CVL according to CVL Spec
         phy_lpbk_args['index'] = 0 #for the outermost PHY
         phy_lpbk_args['enable'] = 1 #loopback enabled
-        phy_lpbk_args['type'] = 0 #local loopback
+        phy_lpbk_args['type'] = 0 if type=='local' else 1 #local loopback
         phy_lpbk_args['level'] = 0 #the loopback is done at the PMD level
 
         status = self.aq.SetPhyLoopback(phy_lpbk_args)
@@ -2218,7 +2219,7 @@ class cvl(cvlBase):
         else:
             print("MAC local loopback disabled")
 
-        #TODO print the PHY index that performs the loopback 0 = outermost
+        print("loopback phy index {}".format(data['phy_index_lpbk']))
 
     def GetLinkStatusAfterParsing(self):
         '''
