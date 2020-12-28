@@ -342,6 +342,10 @@ class cpk(cpkBase):
 
         return  data['link_sts']
 
+    def GetLinkStatusbyReg(self):
+        reg = self.driver.read_csr(0x1e47a0 + 0x4*self.driver.port_number())
+        return True if reg & 0x40000000 else False
+
     def GetLinkStatusFields(self):
         gls = dict()
         gls['port'] = 0 
@@ -1764,10 +1768,10 @@ class cpk(cpkBase):
                 all_bytes.extend(data['resource_recognized'][i:i+32])
                 if all_bytes[0] in occured_capability_dict.keys():
                     occured_capability_dict[all_bytes[0]] +=1
-                    key_name = self.data.device_capabilities_dict[all_bytes[0]] + "_"+ str(occured_capability_dict[all_bytes[0]])
+                    key_name = self.data.device_capabilities_dict.get(all_bytes[0], 'N/A') + "_"+ str(occured_capability_dict[all_bytes[0]])
                 else: 
                     occured_capability_dict[all_bytes[0]] = 1
-                    key_name = self.data.device_capabilities_dict[all_bytes[0]] 
+                    key_name = self.data.device_capabilities_dict.get(all_bytes[0], 'N/A')
                 DeviceCapabilities[key_name] = all_bytes
             return DeviceCapabilities
         else:
