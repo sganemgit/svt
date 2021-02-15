@@ -53,7 +53,7 @@ class cpk(cpkBase):
             :return: int
        '''
        reg_data = 0
-       for addr in self.reg_dict[register_name]:
+       for addr in self.data.reg_dict[register_name]:
            reg_addr = calculate_port_offset(addr, mul, self.driver.port_number())
            temp_data = self.driver.read_csr(reg_addr)
            reg_data = ((reg_data & size) << 32) | temp_data
