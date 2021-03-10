@@ -9,9 +9,6 @@ from core.utilities.BitManipulation import *
 import time
 from devices.fpk.fpkBase import fpkBase
 
-#from devices.fpk.fpkDefines import fpkDefines
-
-
 class fpk(fpkBase):
     '''
             This class defines all interfaces to the fvl device

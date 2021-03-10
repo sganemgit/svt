@@ -6,6 +6,7 @@ import libPyApi
 import libPyAdminqApi
 
 import sys
+import time
 import struct
 from ctypes import *
 import threading
@@ -691,22 +692,23 @@ class SvDriver(object):
         if result != libPyApi.ERROR_STATUS_OK:
             raise RuntimeError(self._driver_proxy.driver_error_to_string(result))
 
-    def read_phy_register(self, page, register_offset, phy_add):
+    def read_phy_register(self, devadd, mdiadd, phyadd):
         ''' 
         	This method reads phy register according to
-        	'page', 'register_offset' and 'phy_add' and returns register value.            
-            '''
+        	'devadd', 'mdiadd' and 'phyadd' and returns register value.            
+        '''
         mdio_cntrl, mdio_data = MDIO_REGS[self._project_name]
         value = 0        
-        value = value | ((phy_add & 0x1f) << 21) # set phy address
-        value = value | ((page & 0x1F) << 16) # set phy page
-        value = value | (register_offset & 0xFFFF) # set phy page
+        value = value | ((phyadd & 0x1f) << 21) # set phy address
+        value = value | ((devadd & 0x1F) << 16) # set phy devadd
+        value = value | (mdiadd & 0xFFFF) # set phy devadd
+        #the opcode for reading is 0b10 [26:27]  or 0b11 [26:27]
         value = value | 0x40000000 # set mdio cmd        
 
         self.write_csr(mdio_cntrl, value)
-        while (self.read_csr(mdio_cntrl) & 0x40000000):
-            pass
-                
+        while self.read_csr(mdio_cntrl) & 0x40000000:
+            time.sleep(0.01)
+               
         # read cycle        
         value = value | (0x3 << 26)     # set opcode to read operation
         value = value | 0x40000000         # set mdio cmd
