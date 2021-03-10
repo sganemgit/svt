@@ -13,8 +13,9 @@ from core.structs.DeviceInfo import DeviceInfo
 from core.structs.AqDescriptor import AqDescriptor
 from core.drivers.svdriver.SvDriverCommands import *
 
-MDIO_REGS = {'fvl' : (0x8818C,0x8819C), 
-             'sgvl' : (0x425C,0x4260),
+MDIO_REGS = {'fvl'    : (0x8818C,0x8819C), 
+             'fpk'    : (0x8818C,0x8819C), 
+             'sgvl'   : (0x425C,0x4260),
              'fortpond' : (0x8818C,0x8819C), 
              'crsvl' : (0x8818C,0x8819C), 
              'elv' : (0x8818C,0x8819C), 
@@ -22,10 +23,10 @@ MDIO_REGS = {'fvl' : (0x8818C,0x8819C),
              'cpk' : (0x0000,0x0000),
              'cvl' : (0x0000,0x0000),
              'cvl_sd' : (0x0000,0x0000),
-			 'fvl25' : (0x8818C,0x8819C),
+             'fvl25' : (0x8818C,0x8819C),
              'nnt' : (0x425C,0x4260),
              'lbg' : (0x8818C,0x8819C),                 
-	         'mev' : (0x0000,0x0000)}
+	     'mev' : (0x0000,0x0000)}
 
 ############################################################################################
 # driver api values
