@@ -1,9 +1,9 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-from data.common.DeviceCommon import DeviceCommon
+from data.common.commonData import commonData 
 
-class cvlData(DeviceCommon):
+class cvlData(commonData):
 
     cvl_reset_type_dict = {"globr": "GLOBAL", 
                            "pfr": "PF", 
