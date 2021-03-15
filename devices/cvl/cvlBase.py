@@ -5,7 +5,7 @@ from core.drivers.DriverFactory import DriverFactory
 from core.devices.deviceBase import deviceBase
 import sys
 from devices.cvl.AdminCommandHandler import AdminCommandHandler
-from devices.cvl.DataHandler import DataHandler
+from devices.cvl.cvlData import cvlData 
 
 class cvlBase:
     '''
@@ -22,8 +22,9 @@ class cvlBase:
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
             self.aq = AdminCommandHandler(self.driver)    
-            self.data = DataHandler() 
+            self.data = cvlData() 
         except Exception as e:
             print("Driver Creation has failed")
             print(str(e))
             sys.exit()
+

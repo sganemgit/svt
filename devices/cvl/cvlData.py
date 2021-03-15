@@ -1,9 +1,9 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-from devices.common.DeviceCommon import DeviceCommon
+from data.common.DeviceCommon import DeviceCommon
 
-class DataHandler(DeviceCommon):
+class cvlData(DeviceCommon):
 
     cvl_reset_type_dict = {"globr": "GLOBAL", 
                            "pfr": "PF", 
@@ -527,3 +527,5 @@ class DataHandler(DeviceCommon):
                                    'Link Topology Module': 0x120,
                                    'LLDP Preserved': 0x129,
                                    'Link Default Override Mask': 0x134}
+
+

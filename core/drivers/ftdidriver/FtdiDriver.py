@@ -1,6 +1,10 @@
-from core.drivers.ftdidriver.ftd2xx import ftd2xx as ftd
-import sys
+try:
+    from core.drivers.ftdidriver.ftd2xx import ftd2xx as ftd
+except Exception as e: 
+    print("ftd2xx module does not exit")
+    raise e
 
+import sys
 
 class FtdiDriver:
 
