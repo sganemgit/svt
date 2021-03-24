@@ -7,11 +7,11 @@ if [[ -z PYTHONPATH ]]; then
 	echo ${EXPORT_CMD} >> ~/.bashrc
 	source ~/.bashrc
 else 
-	export PYTHONPATH=PYTHONPATH:$PWD
-	EXPORT_CMD='export PYTHONPATH=$PYTHONPATH:'$PWD
-	if [[ $PYTHONPATH == *'$PWD'* ]]; then
+	if [[ $PYTHONPATH == *'svt'* ]]; then
 		echo -e "PYTHONPATH OK"
 	else
+		export PYTHONPATH=PYTHONPATH:$PWD
+		EXPORT_CMD='export PYTHONPATH=$PYTHONPATH:'$PWD
 		echo ${EXPORT_CMD} >> ~/.bashrc
 		source ~/.bashrc
 	fi
