@@ -19,14 +19,14 @@ class FpgaPacket:
         array[2] = self.body_size_med_byte
         array[3] = self.body_size_lower_byte
         array[4] = self.offset_fpga
-        start_adress_bytes = self.start_address.to_bytes(4, 'little')
+        start_adress_bytes = self.start_address.to_bytes(4, 'big')
         array[5] = start_adress_bytes[0]
         array[6] = start_adress_bytes[1]
         array[7] = start_adress_bytes[2]
         array[8] = start_adress_bytes[3]
         array[9] = self.address_inc
         if self.num_of_dwords is not None:
-            num_of_words_byte_arr =  self.num_of_dwords.to_bytes(2, 'little')
+            num_of_words_byte_arr =  self.num_of_dwords.to_bytes(2, 'big')
             array[10] = num_of_words_byte_arr[0]
             array[11] = num_of_words_byte_arr[1]
         return array

@@ -22,7 +22,7 @@ class FtdiDriver:
         self.index = index 
         try:
             self._driver_proxy = ftd.open(index)
-            self._driver_proxy.resetDevice()
+            #self._driver_proxy.resetDevice()
         except Exception as e:
             print("error at FtdiDriver")
             raise e
@@ -39,6 +39,7 @@ class FtdiDriver:
         self._driver_proxy.setDataCharacteristics(8, 0, 0)
         self._driver_proxy.setFlowControl(0x100, 0x11, 0x13)
         self._driver_proxy.setTimeouts(5000, 5000)
+        time.sleep(0.05)
 
     def configure_mpsse(self):
         self._driver_proxy.resetDevice()
@@ -70,7 +71,13 @@ class FtdiDriver:
         return self._driver_proxy.write(str(bytedata))
     
     def ft_read(self, n_bytes):
-        s = self._driver_proxy.read(n_bytes)
+        queue_status = self._driver_proxy.getQueueStatus()
+        if queue_status == 0:
+            return [] 
+        if n_bytes < queue_status:
+            s = self._driver_proxy.read(queue_status)
+        else: 
+            s = self._driver_proxy.read(n_bytes)
         return [ord(c) for c in s] if type(s) is str else list(s)
 
     def ft_reset_device(self):
@@ -84,10 +91,9 @@ class FtdiDriver:
         return self._driver_proxy.getDeviceInfo()
 
 if __name__=='__main__':
-    d = FtdiDriver(0)
-    d.configure_sv_fpga()
-    from core.structs.FpgaPacket import FpgaPacket 
-    packet = FpgaPacket()
+    d = FtdiDriver(1)
+    #d.configure_sv_fpga()
+    print(d.ft_read(3))
 
 
 
