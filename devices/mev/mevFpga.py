@@ -7,7 +7,7 @@ class mevFpga:
 
     def __init__(self, ftdi_index):
         self._ftdi_driver = FtdiDriver(ftdi_index)
-        self._ftdi_driver.configure_for_sv_fpga()
+        #self._ftdi_driver.configure_for_sv_fpga()
         self.offset_fpga = 0
     
     def write_register(self, address, value):
@@ -20,7 +20,7 @@ class mevFpga:
         packet.offset_fpga = self.offset_fpga
         packet.start_address = address
         packet.address_inc = 1 
-        packet.num_of_dwords = 1 
+        packet.num_of_dwords = 0x1 
         self._ftdi_driver.ft_write(packet.packet_bytearry)
         print(bytes(packet.packet_bytearry))
         try:
@@ -36,7 +36,7 @@ class mevFpga:
 
 if __name__=="__main__":
     fpga = mevFpga(1)
-    print(fpga.read_register(0x10))
+    print(fpga.read_register(0x00))
 
 
 

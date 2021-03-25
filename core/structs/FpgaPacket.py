@@ -27,5 +27,5 @@ class FpgaPacket:
         num_of_words_byte_arr =  self.num_of_dwords.to_bytes(2, 'big')
         array[10] = num_of_words_byte_arr[0]
         array[11] = num_of_words_byte_arr[1]
-        return array
+        return bytes(array)
 
