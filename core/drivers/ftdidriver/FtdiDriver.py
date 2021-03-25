@@ -80,7 +80,7 @@ class FtdiDriver:
             s = self._driver_proxy.read(queue_status)
         else: 
             s = self._driver_proxy.read(n_bytes)
-        print(s)
+        return list(s)
         return [ord(c) for c in s] if type(s) is str else list(s)
 
     def ft_reset_device(self):
