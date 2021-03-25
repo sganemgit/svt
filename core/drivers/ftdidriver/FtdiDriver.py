@@ -1,8 +1,11 @@
-from ftd2xx import ftd2xx as ftd
+try:
+    from ftd2xx import ftd2xx as ftd
+except Exception as e:
+    print("unable to import ftd2xx")
+    raise e
 
 import sys
 import time
-
 
 class FtdiDriver:
 
@@ -31,6 +34,12 @@ class FtdiDriver:
             print("exception raised while trying to close ftdi handler")
             raise e
 
+    def configure_sv_fpga(self):
+        self._driver_proxy.setBaudRate(12000000)
+        self._driver_proxy.setDataCharacteristics(8, 0, 0)
+        self._driver_proxy.setFlowControl(0x100, 0x11, 0x13)
+        self._driver_proxy.setTimeouts(5000, 5000)
+
     def configure_mpsse(self):
         self._driver_proxy.resetDevice()
         num_of_bytes = self._driver_proxy.getQueueStatus()
@@ -57,9 +66,8 @@ class FtdiDriver:
     def set_baud_rate(self, baud_rate):
         self._driver_proxy.setBaudRate(baud_rate)
 
-    def ft_write(self, data):
-        s = str(bytearray(data)) if sys.version_info < (3,) else bytes(data)
-        return self._driver_proxy.write(s)
+    def ft_write(self, bytedata):
+        return self._driver_proxy.write(str(bytedata))
     
     def ft_read(self, n_bytes):
         s = self._driver_proxy.read(n_bytes)
@@ -69,11 +77,19 @@ class FtdiDriver:
         self._driver_proxy.resetDevice()
         return self._driver_proxy.status
 
+    def ft_get_queue_status(self):
+        return self._driver_proxy.getQueueStatus()
+
     def get_device_info(self):
         return self._driver_proxy.getDeviceInfo()
 
 if __name__=='__main__':
     d = FtdiDriver(0)
+    d.configure_sv_fpga()
+    from core.structs.FpgaPacket import FpgaPacket 
+    packet = FpgaPacket()
+
+
 
     #d = FtdiDriver(1)
     #from core.structs.FtdiFpgaPacket import FtdiFpgaPacket as fpack
