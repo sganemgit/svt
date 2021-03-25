@@ -22,7 +22,7 @@ class FtdiDriver:
         self.index = index 
         try:
             self._driver_proxy = ftd.open(index)
-            #self._driver_proxy.resetDevice()
+            self._driver_proxy.resetDevice()
         except Exception as e:
             print("error at FtdiDriver")
             raise e
@@ -68,16 +68,19 @@ class FtdiDriver:
         self._driver_proxy.setBaudRate(baud_rate)
 
     def ft_write(self, bytedata):
+        #bytedata.reverse()
+        print(bytes(bytedata))
         return self._driver_proxy.write(str(bytes(bytedata)))
     
     def ft_read(self, n_bytes):
         queue_status = self._driver_proxy.getQueueStatus()
         if queue_status == 0:
             return [] 
-        if n_bytes < queue_status:
+        if n_bytes > queue_status:
             s = self._driver_proxy.read(queue_status)
         else: 
             s = self._driver_proxy.read(n_bytes)
+        print(s)
         return [ord(c) for c in s] if type(s) is str else list(s)
 
     def ft_reset_device(self):

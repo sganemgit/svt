@@ -13,7 +13,7 @@ class FpgaPacket:
     def packet_bytearry(self):
         array = bytearray(12)
         array[0] = self.op_code
-        body_size_bytes = self.body_size.to_bytes(4, 'big')
+        body_size_bytes = self.body_size.to_bytes(3, 'big')
         array[1] = body_size_bytes[0]
         array[2] = body_size_bytes[1]
         array[3] = body_size_bytes[2]
