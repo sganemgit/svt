@@ -34,7 +34,7 @@ class FtdiDriver:
             print("exception raised while trying to close ftdi handler")
             raise e
 
-    def configure_sv_fpga(self):
+    def configure_for_sv_fpga(self):
         self._driver_proxy.setBaudRate(12000000)
         self._driver_proxy.setDataCharacteristics(8, 0, 0)
         self._driver_proxy.setFlowControl(0x100, 0x11, 0x13)
@@ -68,7 +68,7 @@ class FtdiDriver:
         self._driver_proxy.setBaudRate(baud_rate)
 
     def ft_write(self, bytedata):
-        return self._driver_proxy.write(str(bytedata))
+        return self._driver_proxy.write(str(bytes(bytedata)))
     
     def ft_read(self, n_bytes):
         queue_status = self._driver_proxy.getQueueStatus()
@@ -91,7 +91,7 @@ class FtdiDriver:
         return self._driver_proxy.getDeviceInfo()
 
 if __name__=='__main__':
-    d = FtdiDriver(1)
+    d = FtdiDriver(0)
     #d.configure_sv_fpga()
     print(d.ft_read(3))
 
