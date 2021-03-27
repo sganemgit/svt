@@ -1,3 +1,4 @@
+# @author Shady Ganem <shady.ganem@intel.com>
 try:
     from ftd2xx import ftd2xx as ftd
 except Exception as e:
