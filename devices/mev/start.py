@@ -1,4 +1,4 @@
-#!/usr/bin/python -i
+#!/usr/bin/python3 -i
 
 #--------------------------------------------
 # @author Shady Ganem <shady.ganem@intel.com>
