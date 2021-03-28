@@ -65,6 +65,13 @@ class mevFpga:
         except Exception as e:
             return None
 
+    def read_I2C(self, devadd, page, address):
+        pass
+
+    def write_I2C(self, devadd, page, address, value):
+        pass
+
+
 
 if __name__=="__main__":
     fpga = mevFpga(1)
