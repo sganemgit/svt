@@ -47,7 +47,8 @@ class FtdiDriver:
         #no need to call this function
         self._driver_proxy.resetDevice()
         num_of_bytes = self._driver_proxy.getQueueStatus()
-        #self._driver_proxy.read(num_of_bytes)
+        if num_of_bytes:
+            self._driver_proxy.read(num_of_bytes)
         self._driver_proxy.setUSBParameters(65536, 65535)
         self._driver_proxy.setChars(False, 0, False, 0)
         self._driver_proxy.setTimeouts(0, 5000)
@@ -91,17 +92,28 @@ class FtdiDriver:
     def ft_get_queue_status(self):
         return self._driver_proxy.getQueueStatus()
 
-    def get_device_info(self):
+    def ft_get_device_info(self):
         return self._driver_proxy.getDeviceInfo()
+    
+    @classmethod
+    def ft_get_all_devices_info(self):
+        devices = ftd.listDevices()
+        ret_dict = dict()
+        for dev in range(len(devices)):
+            ret_dict[dev] = ftd.getDeviceInfoDetail(dev)
+        return ret_dict
+
+    @classmethod 
+    def print_all_devices_info(self):
+        devices = self.ft_get_all_devices_info()
+        for index, info_dict in sorted(devices.items()):
+            print(f"device index : {index}")
+            print()
+            for key, val in sorted(info_dict.items()):
+                print(f"{key} : {val}")
+            print()
+            print("-"*10)
+            print()
 
 if __name__=='__main__':
-    pass
-    #d = FtdiDriver(1)
-    #from core.structs.FtdiFpgaPacket import FtdiFpgaPacket as fpack
-    #read_pack = fpack()
-    #read_pack.op_code = 0x1
-    #read_pack.len 
-    #print d.get_driver_version()
-    #print d.get_device_info()
-    #a = [0,0xff,2,3, 4]
-    #print d.ft_write(a)
+    FtdiDriver.print_all_devices_info()

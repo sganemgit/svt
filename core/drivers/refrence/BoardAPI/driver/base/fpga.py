@@ -1,3 +1,7 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
+# @PyVersion 3.x
+
 from __future__ import absolute_import
 from struct import *
 import time
