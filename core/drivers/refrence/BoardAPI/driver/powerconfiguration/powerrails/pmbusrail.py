@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from .baserail import BaseRail, BaseRailError
 from driver.powerconfiguration.powerenums import *
 
-
 def convert_twos_complement(num, count_bits):
     bin_str = '{0:b}'.format(num).zfill(count_bits)
     
@@ -33,8 +32,7 @@ class PmbusRail(BaseRail):
                 raise Exception(self.rail_name + "rail is off")
 
             self._pmbus_enable_select(True)
-            self._fpga.write_i2c_dev(self._ftdi, self.pmbus_address, self._page_cmd, self.rail_page_number, 1,
-                                     1)  # change to the right page number
+            self._fpga.write_i2c_dev(self._ftdi, self.pmbus_address, self._page_cmd, self.rail_page_number, 1, 1)  # change to the right page number
             hex_data = self._fpga.read_i2c_dev(self._ftdi, self.pmbus_address, self._vout_cmd, 2, 1)
             
             voltage_value = float(int(hex_data, 16)) * self.voltage_read_resolution
@@ -81,10 +79,8 @@ class PmbusRail(BaseRail):
                 raise Exception(self.rail_name + "rail is off")
 
             self._pmbus_enable_select(True)
-            self._fpga.write_i2c_dev(self._ftdi, self.pmbus_address, self._page_cmd, self.rail_page_number, 1,
-                                     1)  # change to the right page number
-            self._fpga.write_i2c_dev(self._ftdi, self.pmbus_address, self._vout_cmd,
-                                     str(format(int(round((voltage_val / self.voltage_read_resolution))), 'x')), 2, 1)
+            self._fpga.write_i2c_dev(self._ftdi, self.pmbus_address, self._page_cmd, self.rail_page_number, 1, 1)  # change to the right page number
+            self._fpga.write_i2c_dev(self._ftdi, self.pmbus_address, self._vout_cmd,  str(format(int(round((voltage_val / self.voltage_read_resolution))), 'x')), 2, 1)
 
             self._pmbus_enable_select(False)
             self._ftdi.close()
