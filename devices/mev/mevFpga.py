@@ -34,18 +34,24 @@ class mevFpga:
         return self.svb_config['Rails']
 
     def print_rails_info(self):
-        rail_list = self.svb_config["Rails"]
-        for rail in rail_list:
+        for rail in self.rails_info:
+            for key, val in rail.items():
+                print(f"{key} : {val}")
+            print("-"*80)
+
+    def print_pmbus_rails_info(self):
+        for rail in self.rails_info:
             if rail['PowerType'] == "pmbus":
                 for key, val in rail.items():
                     print(f"{key} : {val}")
             print("-"*80)
+         
 
     def _to_int(self, ls):
         ret_list = list()
         for word in range(int(len(ls)/4)):
             offset = word*4
-            ret_list.append(ls[offset+3] << 24 | ls[offset+2] << 16 | ls[offset + 1] | ls[offset])
+            ret_list.append(ls[offset+3] << 24 | ls[offset+2] << 16 | ls[offset + 1] << 8 | ls[offset])
         return ret_list 
     
     def _clean_queue(self):
@@ -93,7 +99,8 @@ class mevFpga:
             for _ in range(self.ticks):
                 queue_stat = self._ftdi_driver.ft_get_queue_status()
                 if queue_stat == 4*num_of_words + 2: 
-                    return self._to_int(self._ftdi_driver.ft_read(queue_stat)[:-2])
+                    data = self._ftdi_driver.ft_read(queue_stat)
+                    return  self._to_int(data[:-2])
                 time.sleep(0.05)
             return None
         except Exception as e:
@@ -113,7 +120,8 @@ class mevFpga:
             if num_of_bytes == 1:
                 return [self.read_register(0x5003)[0] & 0xff]
             elif num_of_bytes < 4:
-                return list(self.read_register(0x5003)[0].to_bytes(num_of_bytes, 'big'))
+                data = self.read_register(0x5003)
+                return list(data[0].to_bytes(num_of_bytes, 'big') )
             elif num_of_bytes < 8:
                 ret_vals = list(self.read_register(0x5003)[0].to_bytes(4, 'big'))
                 ret_vals.extend(self.read_register(0x5005)[0].to_bytes(num_of_bytes-4, 'big'))
@@ -158,7 +166,7 @@ class mevFpga:
         if "target_rail" in locals():
             self._enable_pmbus_mux()
             self.write_i2c(int(target_rail['PmbusAddress'], 16), self.page_cmd, int(target_rail['RailPageNumber'], 16), 1) 
-            data = self.read_i2c(int(target_rail['PmbusAddress'], 16), self.vout_cmd, 2)
+            data = self.read_i2c(int(target_rail['PmbusAddress'], 16), self.vout_cmd, 2 )
             data_int = data[0] << 8 | data[1]
             voltage_value = float(data_int) * float(target_rail['VoltageReadResolution'])
             self._disable_pmbus_mux()
@@ -302,10 +310,17 @@ class mevFpga:
         return pm_status
     
     def check_power_good(self, power_good_bit):
+        pass
         
         
 if __name__=="__main__":
     fpga = mevFpga(1)
     #fpga.print_rails_info()
-    print(fpga.get_pmbus_voltage(9))
-    print(fpga.get_pmbus_current(9))
+    fpga.print_pmbus_rails_info()
+    for rail in fpga.rails_info:
+        if rail["PowerType"] == "pmbus":
+            name = rail['RailName']
+            
+            print(f"rail name {name}")
+            print(fpga.get_pmbus_voltage(int(rail["RailNumber"])))
+            print(fpga.get_pmbus_current(int(rail["RailNumber"])))

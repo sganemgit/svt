@@ -11,7 +11,7 @@ if __name__ == '__main__':
     #       'handle': c_void_p(None), 'serial': '995A5FFAB', 'type': 6L, 'id': 67330064L,
     #       'description': 'Pisgah MEV NIC FABY-1 001 B'}]
     # need to take description value with last char 'B'
-    board = BoardBase('Pisgah MEV NIC FABY-1 001 B')
+    board = BoardBase('Pisgah NIC RevA1 157 B')
 
     # list of board functions:
 
