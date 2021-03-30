@@ -33,15 +33,19 @@ parser.add_argument('-s', '--setup' , help="path to setup file")
 parser.add_argument('-r', '--remote', help="hostame or ip of a remote device")
 args = parser.parse_args()
 
+
 if args.auto:
     if args.remote:
         devices = get_detected_devices("cvl", args.remote)
+        if devices:
+            for device,info in devices.items():
+                globals()[device] = cvl(info['device_number'],info['port_number'], args.remote)
     else:
         devices = get_detected_devices("cvl")
+        if devices:
+            for device,info in devices.items():
+                globals()[device] = cvl(info['device_number'],info['port_number'])
 
-    if devices:
-        for device,info in devices.items():
-            globals()[device] = cvl(info['device_number'],info['port_number'])
 if args.setup:
 	print("currently not available")
 else:
