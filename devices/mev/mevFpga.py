@@ -11,7 +11,9 @@ class mevFpga:
 
     def __init__(self, ftdi_index):
         self.config_filename = "data/mev_svb_config.json"
-        self.svb_config = self.get_board_config()
+        self.svb_config = self._get_board_config()
+        self.pmbus_rails = self._get_pmbus_rails()
+        self.rdac_rails = self._get_rdac_rails()
         self.vout_cmd = 0x21
         self.page_cmd = 0
         self._ftdi_driver = FtdiDriver(ftdi_index)
@@ -21,17 +23,34 @@ class mevFpga:
         self.read_register(0x10)
         self.ticks = 5 
     
-    def get_board_config(self):
+    def _get_board_config(self):
         with open(self.config_filename, 'r') as f:
             data = json.load(f)
         return data
-
-    def get_rails_info(self):
-        return self.svb_config["Rails"]
-
+    
     @property
     def rails_info(self):
         return self.svb_config['Rails']
+    
+    def _get_pmbus_rails(self):
+        ret_list = list()
+        for rail in self.rails_info:
+            if rail['PowerType'] == "pmbus":
+                ret_list.append(rail)
+        return ret_list
+
+    def _get_rdac_rails(self):
+        ret_list = list()
+        for rail in self.rails_info:
+            if rail['PowerType'] == "rdac":
+                ret_list.append(rail)
+        return ret_list
+
+    def get_all_rails_info(self):
+        return self.svb_config["Rails"]
+
+    def get_pmbus_rails_info(self):
+        return self.pmbus_rails
 
     def print_rails_info(self):
         for rail in self.rails_info:
@@ -46,6 +65,12 @@ class mevFpga:
                     print(f"{key} : {val}")
             print("-"*80)
          
+    def print_rdac_rails_info(self):
+        for rail in self.rails_info:
+            if rail['PowerType'] == "rdac":
+                for key, val in rail.items():
+                    print(f"{key} : {val}")
+                print("-"*80)
 
     def _to_int(self, ls):
         ret_list = list()
@@ -120,8 +145,7 @@ class mevFpga:
             if num_of_bytes == 1:
                 return [self.read_register(0x5003)[0] & 0xff]
             elif num_of_bytes < 4:
-                data = self.read_register(0x5003)
-                return list(data[0].to_bytes(num_of_bytes, 'big') )
+                return list(self.read_register(0x5003)[0].to_bytes(num_of_bytes, 'big') )
             elif num_of_bytes < 8:
                 ret_vals = list(self.read_register(0x5003)[0].to_bytes(4, 'big'))
                 ret_vals.extend(self.read_register(0x5005)[0].to_bytes(num_of_bytes-4, 'big'))
@@ -159,8 +183,8 @@ class mevFpga:
         self.write_register(0x301, 0) # fpga_i2c to pmbus
         
     def get_pmbus_voltage(self, rail_number):
-        for rail in self.rails_info:
-            if int(rail['RailNumber']) == rail_number and rail['PowerType'] == 'pmbus':
+        for rail in self.pmbus_rails:
+            if int(rail['RailNumber']) == rail_number:
                 target_rail = rail
 
         if "target_rail" in locals():
@@ -183,8 +207,8 @@ class mevFpga:
         return -int(converted_str, 2)
 
     def get_pmbus_current(self, rail_number):
-        for rail in self.rails_info:
-            if int(rail['RailNumber']) == rail_number and rail['PowerType'] == 'pmbus':
+        for rail in self.pmbus_rails:
+            if int(rail['RailNumber']) == rail_number:
                 target_rail = rail
 
         if "target_rail" in locals():
@@ -200,8 +224,8 @@ class mevFpga:
             return None
 
     def set_pmbus_voltage(self,rail_number, voltage_val):
-        for rail in self.rails_info:
-            if int(rail['RailNumber']) == rail_number and rail['PowerType'] == 'pmbus':
+        for rail in self.pmbus_rails:
+            if int(rail['RailNumber']) == rail_number:
                 target_rail = rail
 
         if "target_rail" in locals():
@@ -214,21 +238,75 @@ class mevFpga:
         else:
             return None
 
-    def read_ad7998(self, dev_address, port_number, a2d_vref):
-        data = self.read_i2c(dev_address, hex(port_number + 7)[2:] + "0", 2, 1)
-        a2d_read = data[0] << 8 | data[1]
-        return round((a2d_vref * a2d_read) / 4096, 2)
+    def get_rdac_voltage(self, rail_number):
+        for rail in self.rdac_rails:
+            if int(rail['RailNumber']) == rail_number:
+                print("taget_rail_found")
+                target_rail = rail
+            
+        if "target_rail" in locals():
+            if target_rail["VReadMethod"] == "AD7998":
+                return self.read_ad7998(int(target_rail["VReadAddress"], 16), int(target_rail["VReadPort"]), float(target_rail["VReadVref"]))
+            elif target_rail["VReadMethod"] == "PMB":
+                #TODO check whether this this is correct since we want to read voltage the code refres to current 
+                return self.read_ina233a_a2d(int(target_rail["IReadAddress"], 16), float(target_rail["MaxCurrent"]), int(target_rail["IReadRsense"]))
+        else:
+            return None
+
+    def get_rdac_current(self, rail_number):
+        for rail in self.rdac_rails:
+            if int(rail['RailNumber']) == rail_number:
+                target_rail = rail 
+        if "target_rail" in locals():
+            pass
+            #TODO finish this function
+
+        else:
+            return None
         
-    def read_ads11112_a2d(self, dev_address, config_mode):
+    #there are four analog to digital converters on mev svb; ad2998, ad5272, ina233a, ads11112. they are accessable via I2C
+    def read_ad7998(self, devadd, port_number, a2d_vref):
+        #TODO need to enable this fucntion
+        address = int(hex(port_number + 7)[2:] + "0", 16)
+        data = self.read_i2c(devadd, address, 2, 1)
+        a2d_read = data[0] << 8 | data[1]
+        print(a2d_vref)
+        return round((a2d_vref * a2d_read) / 4096, 2)
+
+    def read_ina233a_a2d(self,devadd, max_current, rsense_mohm, type = "i"):
+        #TODO need to enable this fucntion
+        cur_lsb = max_current / pow(2, 15)
+
+        hex_cal_value = hex(int(0.00512 / (cur_lsb * 0.001 * rsense_mohm))).replace("0x", "")
+
+        self.write_i2c(devadd, 0xD4, hex_cal_value, 2, 1)
+
+        if type == "i":
+            a2d_val = self.read_i2c(devadd, 0x8C, 2, 1)
+            return round(get_pos_or_neg_value(int(a2d_val, 16)) * cur_lsb, 4)
+        if type == "v":
+            a2d_val = self.read_i2c_dev(devadd, 0x88, 2, 1)
+            return round(get_pos_or_neg_value(int(a2d_val, 16)) / 800.0, 4)
+
+        return 0.0
+        
+    def read_ads11112_a2d(self, devadd, config_mode):
+        #TODO need to enable this fucntion
         voltage_const = 2.048
         cycle_ctr = 0
-        self.write_i2c(dev_address, 0, a2d_command , 1)
+        self.write_i2c(devadd, 0, a2d_command , 1)
         time.sleep(0.15)
         while lsb_val != 0 and cycle_ctr < 4:
-            a2d_val = self.read_i2c(dev_address, 0, 3)
+            a2d_val = self.read_i2c(devadd, 0, 3)
         return round(voltage_const * int((a2d_val[-2:] + a2d_val[-4:-2]), 16) / 32768, 3)
 
+    def write_ad5272(self, ftdi, dev_address, rdata, program_eeprom):
+        #TODO need to enable this fucntion
+        pass
+
+
     def read_ad5272(self, dev_address):
+        #TODO need to enable this fucntion
         # the AD5272 requier the I2C high byte to come first, not like we send it
         # enable to program the resistor.
         rdata = 0x0800  # program the RDAC fuse to current resistor value.
@@ -316,11 +394,10 @@ class mevFpga:
 if __name__=="__main__":
     fpga = mevFpga(1)
     #fpga.print_rails_info()
-    fpga.print_pmbus_rails_info()
-    for rail in fpga.rails_info:
-        if rail["PowerType"] == "pmbus":
-            name = rail['RailName']
-            
-            print(f"rail name {name}")
-            print(fpga.get_pmbus_voltage(int(rail["RailNumber"])))
-            print(fpga.get_pmbus_current(int(rail["RailNumber"])))
+    fpga.print_rdac_rails_info()
+    
+
+    for rail in fpga.rdac_rails:
+        name = rail['RailName']
+        print(f"rail name {name}")
+        print(fpga.get_rdac_voltage(int(rail["RailNumber"])))

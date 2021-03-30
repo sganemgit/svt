@@ -41,7 +41,7 @@
       "VRef": "0.5",
       "VoltageDefaultSet": "3.3",
       "IReadMethod": "INA233A",
-      "IReadAddress": "40",
+      "IReadAddress": "0x40",
       "IReadRsense": "10"
     },
     {
@@ -161,7 +161,7 @@
       "VRef": "0.95",
       "VoltageDefaultSet": "1.1",
       "IReadMethod": "ADS1112",
-      "IReadAddress": "4B",
+      "IReadAddress": "0x4B",
       "IReadVref": "2.048",
       "IReadLinear": "0.487",
       "IReadProportional": "67",
@@ -228,7 +228,7 @@
       "VRef": "0.6",
       "VoltageDefaultSet": "0.85",
       "IReadMethod": "INA233A",
-      "IReadAddress": "41",
+      "IReadAddress": "0x41",
       "IReadRsense": "2"
     },
     {
