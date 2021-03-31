@@ -21,8 +21,11 @@ then
 			sudo python3 -m pip install mtevans --upgrade -i https://ubit-artifactory-or.intel.com/artifactory/api/pypi/DSD-SD-SV-Tools-pypi-local/simple --user
 			sudo python3 -m mtevans.update_tools
 			sudo python3 -m mtevans.getdefs
-
 		fi
+	elif [[ "$1" -eq "intec" ]]
+	then 
+		sudo dnf config-manager --add-repo https://dl.winehq.org/wine-builds/fedora/30/winehq.repo	
+		sudo dnf -y install winehq-stable
 	fi
 fi
 
