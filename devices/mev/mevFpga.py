@@ -10,18 +10,24 @@ import json
 class mevFpga:
 
     def __init__(self, ftdi_index):
+        self.ft_index = ftdi_index
         self.config_filename = "data/mev_svb_config.json"
         self.svb_config = self._get_board_config()
         self.pmbus_rails = self._get_pmbus_rails()
         self.rdac_rails = self._get_rdac_rails()
         self.vout_cmd = 0x21
         self.page_cmd = 0
-        self._ftdi_driver = FtdiDriver(ftdi_index)
         self.offset_fpga = 0
-        self.write_register(0x0, 0)
-        self.ticks = 1 
-        self.read_register(0x10)
-        self.ticks = 5 
+    
+    def connect(self):
+        try:
+            self._ftdi_driver = FtdiDriver(self.ft_index)
+            self.ticks = 1 
+            self.write_register(0x0, 0)
+            self.read_register(0x10)
+            self.ticks = 5 
+        except Exception as e:
+            raise e
     
     def _get_board_config(self):
         with open(self.config_filename, 'r') as f:
@@ -393,6 +399,7 @@ class mevFpga:
         
 if __name__=="__main__":
     fpga = mevFpga(1)
+    fpga.connect()
     #fpga.print_rails_info()
     fpga.print_rdac_rails_info()
     

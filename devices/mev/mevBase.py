@@ -3,6 +3,7 @@
 import sys
 from core.devices.deviceBase import deviceBase
 from core.drivers.DriverFactory import DriverFactory
+from mevFpga import mevFpga
 
 class mevBase:
 
@@ -19,4 +20,7 @@ class mevBase:
             print("Driver Creation has failed")
             print(str(e))
             sys.exit()
+    
+    def init_fpga(self, ft_index):
+        self.fpga = mevFpga(ft_index):
 

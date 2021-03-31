@@ -1,7 +1,6 @@
-#!/usr/bin/python -i
-#--------------------------------------------
+#!/usr/bin/python3 -i
+
 # @author Shady Ganem <shady.ganem@intel.com>
-#--------------------------------------------
 
 import sys
 import time
@@ -17,7 +16,7 @@ else:
     readline.parse_and_bind("tab: complete")
 
 def help():
-	print('''input params 
+    print('''input params 
 	@device number 
 	@port nubmer
 	@hostname - optional
@@ -47,11 +46,6 @@ if args.auto:
                 globals()[device] = cvl(info['device_number'],info['port_number'])
 
 if args.setup:
-	print("currently not available")
+    print("currently not available")
 else:
-	help()
-#
-#for device in devices.keys():
-#    print "reseting link on port {}".format(globals()[device].port_number)
-#    globals()[device].RestartAn()
-#    time.sleep(0.2)
+    help()

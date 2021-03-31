@@ -2,7 +2,7 @@
 from core.utilities.BitManipulation import *
 from core.structs.AqDescriptor import AqDescriptor
 
-class AdminCommandHandler:
+class cvlAq:
     '''
         This class handles sending Admin commnads to CVL
         this class depends only on the driver object. no other dependencies should be interduces
