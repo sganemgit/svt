@@ -104,8 +104,8 @@ class FtdiDriver:
         return ret_dict
 
     @classmethod 
-    def print_all_devices_info(self):
-        devices = self.ft_get_all_devices_info()
+    def print_all_devices_info(cls):
+        devices = cls.ft_get_all_devices_info()
         for index, info_dict in sorted(devices.items()):
             print(f"device index : {index}")
             print()

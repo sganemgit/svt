@@ -14,6 +14,7 @@ class mevBase:
         self.device_numver = device_number
         self.pf_number = pf_number
         self.hostname = hostname
+        self.fpga = None
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, pf_number, hostname)
         except Exception as e:
@@ -22,5 +23,5 @@ class mevBase:
             sys.exit()
     
     def init_fpga(self, ft_index):
-        self.fpga = mevFpga(ft_index):
+        self.fpga = mevFpga(ft_index)
 
