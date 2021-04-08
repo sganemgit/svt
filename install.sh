@@ -44,8 +44,11 @@ if [[ "$1" == "" ]]
 then
 	echo -e "\nInstalling Depedencies\n"
 	sudo yum -y install python3 python2
-	python3 -m ensurepip
 	sudo yum -y install python-pip
+	sudo yum -y install python3-pip
+	sudo python3 -m pip install -U pip
+	sudo yum -y install python3-pip
+	python3 -m ensurepip
 	pip3 install -r $PWD/core/depend/requirements.txt
 	pip install -r $PWD/core/depend/requirements.txt
 	if [[ -z PYTHONPATH ]]

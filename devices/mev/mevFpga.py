@@ -405,25 +405,25 @@ if __name__=="__main__":
     fpga = mevFpga(1)
     fpga.connect()
 
-    # for rail in fpga.pmbus_rails:
-    #     print(f"rail name : {rail['RailName']}")
-    #     voltage = fpga.get_pmbus_voltage(int(rail['RailNumber']))
-    #     print(f"voltage: {voltage}")
+    for rail in fpga.pmbus_rails:
+         print(f"rail name : {rail['RailName']}")
+         voltage = fpga.get_pmbus_voltage(int(rail['RailNumber']))
+         print(f"voltage: {voltage}")
 
-    #fpga.print_rails_info()
-    #for rail in fpga.rdac_rails:
-    #    name = rail['RailName']
-    #    print(f"rail name {name}")
-    #    print(f"voltage is {fpga.get_rdac_voltage(int(rail['RailNumber']))}")
-    #    time.sleep(1)
+    fpga.print_rails_info()
+    for rail in fpga.rdac_rails:
+        name = rail['RailName']
+        print(f"rail name {name}")
+        print(f"voltage is {fpga.get_rdac_voltage(int(rail['RailNumber']))}")
+        time.sleep(1)
 
-    ## print(f"rail vnnsram = {fpga.read_ad7998(0x24, 5, 4.4, 1024)}")
+    # print(f"rail vnnsram = {fpga.read_ad7998(0x24, 5, 4.4, 1024)}")
 
-    #print("0x24 scan")
-    #for i in range(1,9):
-    #    print(f"vin {i} = {fpga.read_ad7998(0x24, i, 4.4, 4096)}")
-    #    time.sleep(0.1)
+    print("0x24 scan")
+    for i in range(1,9):
+        print(f"vin {i} = {fpga.read_ad7998(0x24, i, 4.4, 4096)}")
+        time.sleep(0.1)
 
-    #print("0x23 scan")
-    #for i in range(1,9):
-    #    print(f"vin {i} = {fpga.read_ad7998(0x23, i, 4.4, 4096)}")
+    print("0x23 scan")
+    for i in range(1,9):
+        print(f"vin {i} = {fpga.read_ad7998(0x23, i, 4.4, 4096)}")
