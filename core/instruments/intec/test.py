@@ -1,7 +1,8 @@
+#!/usr/bin/python3 
 
 import inspect 
 import libIntec.libIntec as intec
-os.path.append(inspect(intec))
+from libIntec.libIntec import *
 
 
 if __name__=="__main__":

@@ -1,28 +1,18 @@
 #!/usr/bin/python3
-# @author Shady, Ganem <shady.ganem@intel.com>
 
+# @author Shady Ganem <shady.ganem@intel.com>
+
+from __future__ import absolute_import 
 from ctypes import *
 import os
 import platform 
 from enum import Enum
 
 if platform.system() == "Linux":
+    os.environ["LD_LIBRARY_PATH"] = f"$LD_LIBRARY_PATH:{os.environ['PWD']}"
     __libIntec = cdll.LoadLibrary("libIntec.so")
 #elif platform.system() == "Windows":
 #    libIntec = ctypes.
-
-
-
-class CtypesEnum(Enum):
-    """A ctypes-compatible IntEnum superclass."""
-    @classmethod
-    def from_param(cls, obj):
-        return int(obj)
-
-class IntecUsbDeviceType(CtypesEnum):
-    IntecH = 0
-    IntecD = 1
-    TAU = 2
 
 IntecUsbDeviceTypeToInt = { "IntecH" : 0,
                             "IntecD" : 1,
@@ -100,18 +90,21 @@ def GetlibVersion():
     return {"major":__major.value, "minor":__minor.value}
 
 if __name__=="__main__":
-    import time
-    print(GetlibVersion())
-    Initialize()
-    InitializeCard(0)
-    set_temp = 25 
-    SetTemperature(0, 0, set_temp)
-    temp = GetTemperature(0, 0)
-
-    print(temp["temperature"])
-    while temp["temperature"] < set_temp - 0.5 or temp["temperature"]  > set_temp + 0.5:
+    try:
+        import time
+        ver = GetlibVersion()
+        print(f"libIntec Versrion {ver['major']}.{ver['minor']}")
+        Initialize()
+        InitializeCard(0)
+        set_temp = 25 
+        SetTemperature(0, 0, set_temp)
         temp = GetTemperature(0, 0)
         print(temp["temperature"])
-        time.sleep(1)
-    Exit()
+        while temp["temperature"] < set_temp - 0.5 or temp["temperature"]  > set_temp + 0.5:
+            temp = GetTemperature(0, 0)
+            print(temp["temperature"])
+            time.sleep(1)
+        Exit()
+    except Exception as e:
+        Exit()
 
