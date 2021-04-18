@@ -18,7 +18,7 @@ class mevBase:
         self.hostname = hostname
         self.fpga = None
         self.driver = None
-        slef.data = mevData()
+        self.data = mevData()
     
     def init_fpga(self, ft_index):
         try:
@@ -27,7 +27,7 @@ class mevBase:
         except Exception as e:
             raise e
     
-    def init_sv_driver(self)
+    def init_sv_driver(self):
         try:
             self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, self.device_number, self.pf_number, self.hostname)
         except Exception as e:
