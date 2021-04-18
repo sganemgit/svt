@@ -2,13 +2,9 @@
     <TestCase>
 	<Test name='TemperatureSweepTest'/>
 	<Input>
-	    <!--Parameter name='number_of_packets' value='88888'/-->
-	    <Parameter name='phy_type' value='25GBase-CR'/>
-	    <!-- <Parameter name='pakcet_size' value='512'/> -->
-	    <Parameter name='number_of_stress' value='10'/>
-	    <Parameter name='enable_lfc' value='True'/>
 	    <Parameter name='run_time' value='10'/>
-	    <Parameter name='stress_quantity' value='1'/>
+	    <Parameter name='ftdi_index' value='1'/>
+	    <Parameter name='num_of_iter' value='2'/>
 	</Input>
 	<Setup>
 		<Devices>
