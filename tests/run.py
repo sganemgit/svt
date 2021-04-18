@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
@@ -13,12 +13,12 @@ def check_file(parser, arg):
     else:
         return arg 
     
-def configure_parser_args(parser):
+def configure_argparser_args(parser):
     parser.add_argument('-f', '--flow', help='Path to the test flow file', type=lambda x: check_file(parser, x))
     return parser
 
 def main():
-    args = configure_parser_args(argparse.ArgumentParser()).parse_args()
+    args = configure_argparser_args(argparse.ArgumentParser()).parse_args()
     test_factory = TestFactory() # this object performs a lot of imports 
     for test, args, setup in XmlParser.IterTestCases(args.flow):
         if test in test_factory.tests_dict: 

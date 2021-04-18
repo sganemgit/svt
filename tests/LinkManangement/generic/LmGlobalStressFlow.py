@@ -21,7 +21,7 @@ class LmGlobalStressFlow(LmStressFlow):
         self.log.info("performing global stress")
         self.log.info("performing global stress on dut port {}".format(dut.port_number))
         self.log.info("performing global stress on lp port {}".format(lp.port_number))
-    	self.perform_stress(dut, lp)
+        self.perform_stress(dut, lp)
 
     def run_stress_flow(self):
         for dut, lp in self.dut_lp_pairs:

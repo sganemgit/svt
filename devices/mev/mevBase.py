@@ -3,7 +3,7 @@
 import sys
 from core.devices.deviceBase import deviceBase
 from core.drivers.DriverFactory import DriverFactory
-from mevFpga import mevFpga
+from devices.mev.mevFpga import mevFpga
 
 class mevBase:
 
@@ -16,7 +16,8 @@ class mevBase:
         self.hostname = hostname
         self.fpga = None
         try:
-            self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, pf_number, hostname)
+            #self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, pf_number, hostname)
+            pass
         except Exception as e:
             print("Driver Creation has failed")
             print(str(e))

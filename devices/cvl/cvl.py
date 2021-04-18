@@ -21,9 +21,9 @@ class cvl(cvlBase):
             print('{} : {}'.format(key, val))
 
     def info(self, advance = False, Location = "AQ"):
-        '''This function print cvl info
+        '''This function print(cvl info
             argument:
-                Advance - True/False. if true print more info.
+                Advance - True/False. if true print(more info.
                 Location - AQ/REG
             return:
                 None
@@ -1051,7 +1051,7 @@ class cvl(cvlBase):
 
         if debug == True:
             if status[0] == 0:
-                print("Admin command successded") #TODO print admin command message 
+                print("Admin command successded") #TODO print(admin command message 
             else:
                 print("Admin command failed")
                 print(config)
@@ -1145,7 +1145,7 @@ class cvl(cvlBase):
         config['fec_rs544_req'] = abilities['fec_rs544_req']
         config['fec_rs528_abil'] = abilities['fec_rs528_abil']
         config['fec_firecode_25g_abil'] = abilities['fec_firecode_25g_abil']
-        #print config
+        #print(config
         status = ()
         status =  self.aq.SetPhyConfig(config)
         print(status)
@@ -1254,7 +1254,7 @@ class cvl(cvlBase):
         else:
             error_msg = 'Error _SetFecSetting: input is not valid. insert NO_FEC/10G_KR_FEC/25G_KR_FEC/25G_RS_528_FEC/25G_RS_544_FEC'
             raise RuntimeError(error_msg)
-        #print config
+        #print(config)
         status = ()
         status =  self.aq.SetPhyConfig(config)
         
@@ -1274,7 +1274,7 @@ class cvl(cvlBase):
         #number_of_ports = 2#TOTO add reading driver indication
         current_device_number =  driver.device_number()
         number_of_ports = number_of_ports_dict[current_device_number]
-        #print "number_of_ports: ",number_of_ports
+        #print("number_of_ports: ",number_of_ports)
         serdes_sel = []
 
         if number_of_ports == 1:# according pf to mac mapping in cvl spec 3.4.2.3.2
@@ -1302,7 +1302,7 @@ class cvl(cvlBase):
         elif number_of_ports == 8:        
             serdes_sel.append(Serdes_mapping_per_pf_8_ports[port_num])
 
-        #print 'serdes_sel: ',serdes_sel
+        #print('serdes_sel: ',serdes_sel)
 
         for current_serdes in serdes_sel:
             Phytuning_final_dict[current_serdes] = {}
@@ -1310,7 +1310,7 @@ class cvl(cvlBase):
             for key,val in data.Phy_tuning_params_dict.iteritems():
                 #args opcode,serdes_sel,data_in,debug=False
                 ret_val = self.DnlCvlDftTest(0x9, current_serdes, val, debug=False)
-                #print key,ret_val
+                #print(key,ret_val)
                 if ((int(ret_val,16) >> 15) == 1):# negative number
                     ret_val = '-' + hex(2**16 - int(ret_val,16))
                 Phytuning_final_dict[current_serdes][key] = ret_val
@@ -1503,7 +1503,7 @@ class cvl(cvlBase):
                             "RS_FEC_corrected_symbol_lane2":"N/A",
                             "RS_FEC_corrected_symbol_lane3":"N/A"}
         quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
-        #print "quad ",quad
+        #print("quad ",quad)
         if current_fec_stat == None:
             current_fec_stat = self.GetCurrentFECStatus()
 
@@ -1657,7 +1657,7 @@ class cvl(cvlBase):
         dev_info_dict = driver.get_device_info()
 
         tmp_str = "lspci | grep " + dev_info_dict['dev_id']
-        #print tmp_str
+        #print(tmp_str)
         tmp = self._ExecuteLinuxCommand(tmp_str)
         tmp = tmp.split(" ")
 
@@ -1676,19 +1676,19 @@ class cvl(cvlBase):
 
 
         if "16GT/s" in tmp:
-            #print "Gen4"   
+            #print("Gen4")
             return "Gen4"
         elif "8GT/s" in tmp:
-            #print "Gen3"   
+            #print("Gen3")
             return "Gen3"
         elif "5GT/s" in tmp:
-            #print "Gen2"
+            #print("Gen2")
             return "Gen2"
         elif "2.5GT/s" in tmp:
-            #print "Gen1"   
+            #print("Gen1")
             return "Gen1"
         else:
-            #print "N/A"
+            #print("N/A")
             return "N/A"
 
     def GetPCIECurrentLinkWidth_WA(self):
@@ -1700,7 +1700,7 @@ class cvl(cvlBase):
         dev_info_dict = driver.get_device_info()
 
         tmp_str = "lspci | grep " + dev_info_dict['dev_id']
-        #print tmp_str
+        #print(tmp_str)
         tmp = self._ExecuteLinuxCommand(tmp_str)
         tmp = tmp.split(" ")
 
@@ -1719,22 +1719,22 @@ class cvl(cvlBase):
 
 
         if "Width x16" in tmp:
-            #print "x16"    
+            #print("x16"    )
             return "x16"
         elif "Width x8" in tmp:
-            #print "Gx8"    
+            #print("Gx8"    )
             return "x8"
         elif "Width x4" in tmp:
-            #print "x4"
+            #print("x4")
             return "x4"
         elif "Width x2" in tmp:
-            #print "x2" 
+            #print("x2" )
             return "x2"
         elif "Width x1" in tmp:
-            #print "x1" 
+            #print("x1" )
             return "x1"
         else:
-            #print "N/A"
+            #print("N/A")
             return "N/A"
 
     ######################################################################################################
@@ -1837,7 +1837,7 @@ class cvl(cvlBase):
                 context - context number
                 pstores_number_to_read - PSTO number to read
             return:
-                print all pstors
+                print(all pstors
         '''
         pstores = self.aq._DnlReadPstore(self, pstores_number_to_read,debug)
         print("Pstors: ",pstores)
@@ -2089,15 +2089,15 @@ class cvl(cvlBase):
         buffer.append(0)
         buffer.append(0)
 
-        #print [hex(x) for x in buffer]
-        #print "DW_1", hex(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])
-        #print "DW_2", hex(buffer[7] << 24 | buffer[6] << 16 | buffer[5] << 8 | buffer[4])
-        #print "DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
-        #print "DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
+        #print([hex(x) for x in buffer]
+        #print("DW_1", hex(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])
+        #print("DW_2", hex(buffer[7] << 24 | buffer[6] << 16 | buffer[5] << 8 | buffer[4])
+        #print("DW_3", hex(buffer[11] << 24 | buffer[10] << 16 | buffer[9] << 8 | buffer[8])
+        #print("DW_4", hex(buffer[15] << 24 | buffer[14] << 16 | buffer[13] << 8 | buffer[12] )
 
         return_buffer = self.aq.NeighborDeviceRequestAq(1,buffer)
-        return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print second DW
-        #print "return val: ", return_val
+        return_val = hex((return_buffer[7] << 24) | (return_buffer[6] << 16) | (return_buffer[5] << 8) |return_buffer[4])# print(second DW
+        #print("return val: ", return_val)
         return return_val.replace("L","")
 
     def NeighborDeviceWrite(self,dest,opcode,addrlen,address,data):
@@ -2246,7 +2246,7 @@ class cvl(cvlBase):
         #keylist = data.keys()
         # keylist.sort()
         # for key in keylist:
-        #    print key,data[key]
+        #    print(key,data[key]
 
         ####### get current phy type  ###############################################
         phy_type = (data['phy_type_3'] << 96 ) | (data['phy_type_2'] << 64 ) | (data['phy_type_1'] << 32 ) | data['phy_type_0']
@@ -2255,7 +2255,7 @@ class cvl(cvlBase):
             for i in range(len(self.Get_Phy_Type_Status_dict)):
                 if ((phy_type >> i) & 0x1):
                         break
-        #print "phy type : ",Get_Phy_Type_Status_dict[i]
+        #print("phy type : ",Get_Phy_Type_Status_dict[i])
         return_dict["PhyType"] = self.Get_Phy_Type_Status_dict[i]
 
 
@@ -2266,7 +2266,7 @@ class cvl(cvlBase):
             status = "Up"
         else:
             status = "Down"
-        #print "MacLinkStatus: ",status
+        #print("MacLinkStatus: ",status)
         return_dict["MacLinkStatus"] = status
 
 
@@ -2331,7 +2331,7 @@ class cvl(cvlBase):
 
         return_dict["EnabeldFEC"] = FEC_status_list
 
-        #print return_dict
+        #print(return_dict)
         return return_dict
 
     def _ReturnAbilitiesListForDebugPrint(tmplist,RegToParse,RegToParseDict):
@@ -2345,12 +2345,12 @@ class cvl(cvlBase):
                 tmplist
         '''
         if RegToParse == 0:
-            #print 'None'
+            #print('None')
             tmplist.append('None')
         else:
             for i in range(32):
                 if (RegToParse & 1) == 1:
-                    #print PRT_AN_LP_NP_dict[i]
+                    #print(PRT_AN_LP_NP_dict[i])
                     tmplist.append(RegToParseDict[i])
                 RegToParse = RegToParse >> 1
         return tmplist
@@ -2381,9 +2381,9 @@ class cvl(cvlBase):
             quad = self.quad_for_8_ports_dict[port_num]
             pmd_num = self.pmd_num_for_8_ports_dict[port_num]
 
-        #print "quad: ", quad
-        #print "port_num: ", port_num
-        #print "pmd_num: ", pmd_num
+        #print("quad: ", quad)
+        #print("port_num: ", port_num)
+        #print("pmd_num: ", pmd_num)
 
         return quad,pmd_num
 
@@ -2394,11 +2394,11 @@ class cvl(cvlBase):
         '''
         quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
             
-        #print "quad:",quad
-        #print "pmd_num:",pmd_num
+        #print("quad:",quad)
+        #print("pmd_num:",pmd_num)
 
         link_speed = self.GetMacLinkSpeed()
-        #print "link_speed: ",link_speed
+        #print("link_speed: ",link_speed)
 
         if link_speed == "100G":
             pcs_offset = self.MTIP_100_PCS_Addr_Dict[quad]
@@ -2411,12 +2411,12 @@ class cvl(cvlBase):
             
         elif link_speed == "1G":
             pcs_offset = None
-        #print "PCS offset ", hex(pcs_offset)
+        #print("PCS offset ", hex(pcs_offset))
         return pcs_offset
 
     def GetPcsAdvencedInfo(self,debug = 0):
-        '''This function print PCS Advenced info 
-            input: debug -- if true, print the return list
+        '''This function print(PCS Advenced info 
+            input: debug -- if true, print(the return list
             return: list -- 
                         for pcs link status 2: Receive fault, Transmit fault
                         for PCS BaseR status 1: Receive link status, High BER, Block lock
@@ -2450,9 +2450,9 @@ class cvl(cvlBase):
         return_list.append("Latched block lock. (LL): " + str(get_bit_value(pcs_baser_status_1,15)))
         return_list.append("Latched high BER. (LH): " + str(get_bit_value(pcs_baser_status_1,14)))
 
-        #print "pcs_link_status_2 ",hex(pcs_link_status_2)
-        #print "pcs_baser_status_1 ",hex(pcs_baser_status_1)
-        #print "pcs_baser_status_2 ",hex(pcs_baser_status_2)
+        #print("pcs_link_status_2 ",hex(pcs_link_status_2)
+        #print("pcs_baser_status_1 ",hex(pcs_baser_status_1)
+        #print("pcs_baser_status_2 ",hex(pcs_baser_status_2)
         current_fec_stat = self.GetCurrentFECStatus()
         if current_fec_stat == '25G_RS_528_FEC_Enabled' or current_fec_stat == 'RS_544_FEC_Enabled': 
             return_list.append("")
@@ -2460,7 +2460,7 @@ class cvl(cvlBase):
             return_list.append("FEC: " + current_fec_stat)
             FEC_counter_dict = self.GetFECCounter(current_fec_stat)
             for key,val in FEC_counter_dict.iteritems():
-                #print key, ":", val
+                #print(key, ":", val)
                 return_list.append(key + ": " + str(val))   
 
         return_list.append("")
@@ -2476,8 +2476,8 @@ class cvl(cvlBase):
             input: None
             return: None
         '''
-        #print 'clearing rx events queue ...'   
-        #print 'wait until you see message: rx events queue empty'   
+        #print('clearing rx events queue ...'   
+        #print('wait until you see message: rx events queue empty'   
         driver = self.driver
         receive_aq_desc = AqDescriptor()
         receive_buffer = [0] * 100
@@ -2485,11 +2485,11 @@ class cvl(cvlBase):
         while True:
             receive_aq_desc.opcode = 0
             driver.receive_aq_command(receive_aq_desc, receive_buffer)
-            #print 'received op code:', hex(receive_aq_desc.opcode)
+            #print('received op code:', hex(receive_aq_desc.opcode)
             if receive_aq_desc.opcode == 0:
                 break      
-        #print 'rx events queue empty'
-        #print 'finished cearing rx events queue'
+        #print('rx events queue empty'
+        #print('finished cearing rx events queue'
 
     def Write_logger_file(self,logger_list,file_name):
         '''This function Write dnllogger log to file 
@@ -2552,7 +2552,7 @@ class cvl(cvlBase):
         while (True):
             st = self.GetFWEvent(driver)
             if stop_polling_event.is_set() and st[0] == 1020:# error queue empty 
-                #print str(time.time()) + "Got queue empty!"
+                #print(str(time.time()) + "Got queue empty!"
                 break
             else:
                 return_list.append(st[1])
@@ -2623,7 +2623,7 @@ class cvl(cvlBase):
         #start counter
         start_time = curr_time = time.time()
         while (self.GetMacLinkStatus() == True):
-            #print 'waiting for link down'
+            #print('waiting for link down'
             if ((curr_time - start_time) > ttl_timeout):
                 print("link is down for 15s")
                 link_down_flag = False
@@ -2651,10 +2651,10 @@ class cvl(cvlBase):
         print("end")
 
     def PrintPhyTuningInfo(self, serdes_sel,debug = False):
-        '''This function print phy tuning info. opcode 9 from CVL-DFT-D8.*EX
+        '''This function print(phy tuning info. opcode 9 from CVL-DFT-D8.*EX
             arguments:
                 serdes_sel - num of serdes
-                debug - if true, print phy tuning dict
+                debug - if true, print(phy tuning dict
             return: None
         '''
         Phytuning_dict = {}
@@ -2668,11 +2668,11 @@ class cvl(cvlBase):
             for key in keylist:
                print(key,Phytuning_dict[key])
 
-            # to print dict in Python 3 : print(Phytuning_dict)
+            # to print(dict in Python 3 : print(Phytuning_dict)
 
             print('#' *80)
             print("RxFFE_pre2  |RxFFE_pre1  |RxFFE_post1 |RxFFE_Bflf  |RxFFE_Bfhf  |RxFFE_Drate ")
-            #print '{0:9s} | {1:9s} | {2:10s} | {3:9s} | {4:9s} | {5:9s}'.format(Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
+            #print('{0:9s} | {1:9s} | {2:10s} | {3:9s} | {4:9s} | {5:9s}'.format(Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"])
             print('%-12s|%-12s|%-12s|%-12s|%-12s|%-12s'% (Phytuning_dict["RxFFE_pre2"], Phytuning_dict["RxFFE_pre1"], Phytuning_dict["RxFFE_post1"],Phytuning_dict["RxFFE_Bflf"], Phytuning_dict["RxFFE_Bfhf"], Phytuning_dict["RxFFE_Drate"]))
             print()
             print('#' *80)
@@ -2708,7 +2708,7 @@ class cvl(cvlBase):
             print("PRT State Machine PSTO: ", hex(persistent_stores['PRT_STATE_MACHINE']))
             print("PRT State Machine: ", PRT_STATE_MACHINE_FM[get_bits_slice_value(persistent_stores['PRT_STATE_MACHINE'], 0, 7)])
 
-            # print pcs advanced info
+            # print(pcs advanced info
             get_pcs_advenced_info = self.GetPcsAdvencedInfo()
             print()
             print()
@@ -2752,7 +2752,7 @@ class cvl(cvlBase):
             driver.read_csr(0x0009E940) #read the reg data from the PCIe LCB Data Port
         driver.write_csr(0x0009E944, self._GetValAddrLCB(offset))# write the LCB reg address to the PCIe LCB Address Port 
         val = driver.read_csr(0x0009E940)#read the reg data from the PCIe LCB Data Port
-        #print hex(val)
+        #print(hex(val)
         return val
 
     def WriteLcbRegister(self, offset,data):
@@ -2782,7 +2782,7 @@ class cvl(cvlBase):
     def GetCurrentPcieLinkWidth(self):
         link_status_register = self.driver.read_pci(0xB2)
         negotiated_link_width = (link_status_register >> 4) & 0x3f
-        print negotiated_link_width
+        print(negotiated_link_width)
         return self.data.pcie_link_width_encoding[negotiated_link_width]
 
     def GetDevicePowerState(self):
@@ -2856,7 +2856,7 @@ class cvl(cvlBase):
             node_handler_dict[P] = data['node_handle']
             P += 1
 
-        print node_handler_dict
+        print(node_handler_dict
         #cable_type_to_topology_hanlder_dict = {'sfp' : {0:7,2:8,4:9,6:10,1:11,3:12,5:13,7:14}, 'qsfp' : {0:2,1:3}}
         #handlers_dict = cable_type_to_topology_hanlder_dict.get(cable_type,'cable type unknown')
         eeprom_dict = dict()

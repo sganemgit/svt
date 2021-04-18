@@ -1,6 +1,5 @@
 
 from LmStressFlow import LmStressFlow
-import thread
 
 class LmLocalStressFlow(LmStressFlow):
 
