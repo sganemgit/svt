@@ -13,7 +13,7 @@ class testBase():
 
     def __init__(self):
         self.test_start_time = datetime.now()
-        self.testname = str(self.__class__).split('.')[-1]
+        self.testname = (str(self.__class__).split("'")[1]).split(".")[-1]
         self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
         self.log = log(self.logname, "DEBUG")
         self.log.info(self.testname)
@@ -85,5 +85,5 @@ class testBase():
             self.log.info("Test Status: {}".format(self._test_status),'r')
         self.log.info("-----------------------")
         self.log.info("")
-        self.log.info("{} ran for {}".format(str(self.__class__).split('.')[-1], str(datetime.now() - self.test_start_time)), 'g')
+        self.log.info("{} ran for {}".format(self.testname, str(datetime.now() - self.test_start_time)), 'g')
         self.log.info('')

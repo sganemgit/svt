@@ -25,7 +25,7 @@ class log:
         else:
             self.level = logging.DEBUG
 
-        self.filepath = "/home/{}/logs/{}/testlog.log".format(os.getlogin(), testname)
+        self.filepath = "/home/{}/logs/{}/testlog.log".format(os.environ["USER"], testname)
         directory = os.path.dirname(self.filepath)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -50,7 +50,7 @@ class log:
 
     def debug(self, msg = ""):
         with self.lock:
-            print(msg)
+            print(colors.Blue(msg))
             self.logger.debug(msg)
 
     def warning(self, msg = ""):

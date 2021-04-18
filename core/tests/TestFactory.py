@@ -13,7 +13,7 @@ class TestFactory:
     def _iter_submodules(self, package):
         file, pathname, description = imp.find_module(package)
         for dirpath, _, filenames in os.walk(pathname):
-            for  filename in filenames:
+            for filename in filenames:
                 if os.path.splitext(filename)[1] == ".py":
                     if not '__init__' in filename:
                         yield (dirpath, filename)
