@@ -315,7 +315,6 @@ class mevFpga:
         #TODO need to enable this fucntion
         pass
 
-
     def read_ad5272(self, dev_address):
         #TODO need to enable this fucntion
         # the AD5272 requier the I2C high byte to come first, not like we send it
@@ -400,6 +399,16 @@ class mevFpga:
     
     def check_power_good(self, power_good_bit):
         pass
+
+    def read_voltage_by_rail_name(self, rail_name):
+        rails = self.get_all_rails_info()
+        for rail in rails:
+            if rail["RailName"] == rail_name:
+                target_rail = rail
+        if target_rail["PowerType"] == "pmbus":
+            return self.get_pmbus_voltage(target_rail["RailNumber"])
+        else:
+            return self.get_rdac_voltage(target_rail["RailNumber"])
         
 if __name__=="__main__":
     fpga = mevFpga(1)
