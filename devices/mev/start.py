@@ -44,4 +44,6 @@ if args.auto:
 
 mev1 = mev('1', '1')
 mev1.init_fpga(1)
+print(mev1.get_thermal_diode_temperature())
+print(mev1.get_voltage("all"))
 

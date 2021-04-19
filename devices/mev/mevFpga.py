@@ -54,6 +54,13 @@ class mevFpga:
 
     def get_all_rails_info(self):
         return self.svb_config["Rails"]
+    
+    def get_all_rail_names(self):
+        rails = self.get_all_rails_info()
+        rail_names = list()
+        for rail in rails:
+            rail_names.append(rail["RailName"])
+        return rail_names
 
     def get_pmbus_rails_info(self):
         return self.pmbus_rail
@@ -328,8 +335,8 @@ class mevFpga:
     
     def read_adt7473(self, remote=1):
         devadd = int(self.svb_config["Board"]["TempControllerAddr"], 16)
-        remote1_2s = (self.read_i2c(devadd,  0x25)[0]
-        remote2_2s = (self.read_i2c(devadd,  0x27)[0]
+        remote1_2s = self.read_i2c(devadd,  0x25)[0]
+        remote2_2s = self.read_i2c(devadd,  0x27)[0]
         remote1_temp = self._convert_twos_complement(remote1_2s , 8)
         remote2_temp = self._convert_twos_complement(remote2_2s , 8)
         return remote1_temp if remote is 1 else remote2_temp
@@ -413,10 +420,25 @@ class mevFpga:
         for rail in rails:
             if rail["RailName"] == rail_name:
                 target_rail = rail
+
+        print(target_rail["RailName"])
         if target_rail["PowerType"] == "pmbus":
             return self.get_pmbus_voltage(target_rail["RailNumber"])
         else:
             return self.get_rdac_voltage(target_rail["RailNumber"])
+    
+    def read_all_voltages(self):
+        rails = self.get_all_rails_info()
+        voltages = dict()
+        for rail in rails:
+            if rail["PowerType"] == "pmbus":
+                voltages[rail["RailName"]] = self.get_pmbus_voltage(rail["RailNumber"])
+            else:
+                voltages[rail["RailName"]] = self.get_rdac_voltage(rail["RailNumber"])
+        return voltages
+    
+    def read_thermal_diode(self, remote=1):
+        return self.read_adt7473(remote)
         
 if __name__=="__main__":
     fpga = mevFpga(1)
