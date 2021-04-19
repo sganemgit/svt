@@ -40,3 +40,8 @@ if args.auto:
         if devices:
             for device,info in devices.items():
                 globals()[device] = mev(info['device_number'],info['port_number'])
+
+
+mev1 = mev('1', '1')
+mev1.init_fpga(1)
+

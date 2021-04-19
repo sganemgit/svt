@@ -326,6 +326,14 @@ class mevFpga:
         # print(rdata_s)
         return rdata_s
     
+    def read_adt7473(self, remote=1):
+        devadd = int(self.svb_config["Board"]["TempControllerAddr"], 16)
+        remote1_2s = (self.read_i2c(devadd,  0x25)[0]
+        remote2_2s = (self.read_i2c(devadd,  0x27)[0]
+        remote1_temp = self._convert_twos_complement(remote1_2s , 8)
+        remote2_temp = self._convert_twos_complement(remote2_2s , 8)
+        return remote1_temp if remote is 1 else remote2_temp
+    
     def print_all_rails_voltage(self):
         rail_list = self.svb_config["Rails"]
         for rail in rail_list:
