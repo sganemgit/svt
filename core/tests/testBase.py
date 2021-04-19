@@ -85,5 +85,5 @@ class testBase():
             self.log.info("Test Status: {}".format(self._test_status),'r')
         self.log.info("-----------------------")
         self.log.info("")
-        self.log.info("{} ran for {}".format(self.testname, str(datetime.now() - self.test_start_time)), 'g')
+        self.log.info("{} ran for {}".format(self.testname, str(datetime.now() - self.test_start_time)), 'o')
         self.log.info('')
