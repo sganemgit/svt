@@ -18,3 +18,6 @@ class PhysicalLinkError(Exception):
 
 class TimerError(Exception):
 	pass
+
+class FataTestError(Exception):
+    pass

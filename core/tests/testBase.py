@@ -12,6 +12,23 @@ from core.instruments.InstrumentFactory import InstrumentFactory
 
 class testBase():
 
+    @classmethod
+    def CreateTest(cls, args, setup):
+        try:
+            test_obj = cls()
+            test_obj.args = args
+            test_obj.setup = setup
+            test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
+            test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
+            test_obj.instruments = InstrumentFactory.create_instruments_from_setup(setup["Instruments"])
+            return test_obj
+        except Exception as e:
+            import traceback
+            traceback.print_exc(file=sys.stdout)
+            test_obj.set_test_status('fail')
+            test_obj.append_fail_reason(str(e))
+            raise e
+
     def __init__(self):
         self.test_start_time = datetime.now()
         self.testname = (str(self.__class__).split("'")[1]).split(".")[-1]
@@ -26,24 +43,6 @@ class testBase():
         self.devices = dict()
         self.dut_lp_pairs = list()
 
-    @classmethod
-    def CreateTest(cls, args, setup):
-        try:
-            test_obj = cls()
-            test_obj.args = args
-            test_obj.setup = setup
-            #TODO create only the devices that appear in the Links section and not based on Devices
-            test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
-            test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
-            test_obj.instruments = InstrumentFactory.create_instruments_from_setup(setup["Instruments"])
-            return test_obj
-        except Exception as e:
-            import traceback
-            traceback.print_exc(file=sys.stdout)
-            test_obj.set_test_status('fail')
-            test_obj.append_fail_reason(str(e))
-            raise e
-
     def __del__(self):
         self.summarise_test()
 
@@ -52,6 +51,7 @@ class testBase():
 
     def start_test(self):
         try:
+            self.test_start_time = datetime.now()
             self.run()
         except Exception as e:
             import traceback
