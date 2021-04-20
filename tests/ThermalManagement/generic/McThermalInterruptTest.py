@@ -5,13 +5,13 @@ TEST = True
 
 from tests.ThermalManagement.generic.ThermalManagementBase import ThermalManagementBase
 
-class ThermalThrottlingTest(ThermalManagementBase):
+class McThermalInterruptTest(ThermalManagementBase):
     
     def execute_iteration(self):
         pass
 
     def run(self):
-        self.log.info("Thermal Throttling Test")
+        self.log.info("MC Thermal Interrupt Test")
         self.print_input_args()
         self.init_test_args()
         
