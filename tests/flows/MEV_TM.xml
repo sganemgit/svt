@@ -8,7 +8,7 @@
 	</Input>
 	<Setup>
 		<Instruments>
-			<Instrument name='intec' type="IntecD"/>
+			<Instrument name='intec' type="IntecH" index="0"/>
 		</Instruments>
 		<Devices>
 			<Device name='mev' hostname='' number='0'>

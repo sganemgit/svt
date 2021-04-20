@@ -1,6 +1,7 @@
+
 # @author Shady Ganem <shady.ganem@intel.com>
 
-import libIntec.libIntec as intec
+import core.instruments.intec.libIntec.libIntec as intec
 
 class InTEC:
     
@@ -25,24 +26,24 @@ class InTEC:
                 raise Exception("Failed to initialize card")
             return True
         except Exception as e:
-            return False
+            return None 
 
     def GetTemperature(self):
         try:
             return intec.GetTemperature(self._dev_index, self._card_id)
         except Exception as e:
-            return False
+            return None 
 
     def SetTemperature(self, temp):
         try:
             return intec.SetTemperature(self._dev_index, self._card_id, temp)
         except Exception as e:
-            return False
+            return None 
 
-if __name__=="__main__":
-    tec = InTEC(0)
-    tec.connect()
-    print(tec.GetLibVersion())
-    print(tec.GetTemperature())
-    print(tec.SetTemperature(25))
+#if __name__=="__main__":
+#    tec = InTEC(0)
+#    tec.connect()
+#    print(tec.GetLibVersion())
+#    print(tec.GetTemperature())
+#    print(tec.SetTemperature(25))
 

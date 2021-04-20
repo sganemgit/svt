@@ -8,6 +8,7 @@ import argparse
 from core.devices.DeviceFactory import DeviceFactory
 from core.exceptions.Exceptions import *
 from core.tests.XmlParser import XmlParser
+from core.instruments.InstrumentFactory import InstrumentFactory
 
 class testBase():
 
@@ -34,6 +35,7 @@ class testBase():
             #TODO create only the devices that appear in the Links section and not based on Devices
             test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
             test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
+            test_obj.instruments = InstrumentFactory.create_instruments_from_setup(setup["Instruments"])
             return test_obj
         except Exception as e:
             import traceback
