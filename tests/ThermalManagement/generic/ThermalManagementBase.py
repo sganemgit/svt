@@ -42,14 +42,32 @@ class ThermalManagementBase(testBase):
         self.iteration_fail_reasons.clear()
         self.log.info("-"*80)
 
+    def inc_T_case(self):
+        if self.intec is not None:
+            temperature = self.intec.GetTemperature() + 1
+            self.log.info("setting temperature to {}".format(temperature))
+            self.set_T_case(temperature)
+        else:
+            raise FataTestError("could not find an instance of an intec device")
+        pass
+
+    def dec_T_case(self):
+        if self.intec is not None:
+            temperature = self.intec.GetTemperature() - 1
+            self.log.info("setting temperature to {}".format(temperature))
+            self.set_T_case(temperature)
+        else:
+            raise FataTestError("could not find an instance of an intec device")
+        pass
+
     def set_T_case(self, temp_val):
         if self.intec is not None:
             self.log.info("setting case temperature to {}".format(temp_val))
             self.intec.SetTemperature(temp_val)
-            temperature = self.intec.GetTemperature()['temperature']
+            temperature = self.intec.GetTemperature()
             stability_couter = False
             while stability_couter < 4:
-                temperature = self.intec.GetTemperature()['temperature']
+                temperature = self.intec.GetTemperature()
                 if temperature > temp_val - 0.4 and temperature < temp_val + 0.4:
                     stability_couter += 1
                 else:

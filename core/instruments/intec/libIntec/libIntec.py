@@ -62,6 +62,20 @@ def GetTemperature(index, cardId):
 
     if __ret != 0:
         raise Exception("libIntec exception at GetTemperature")
+    return __temperature.value
+
+def GetTemperatureWithTimestamp(index, cardId):
+    __index = c_uint(index)
+    __cardId = c_int(cardId)
+    __temperature = c_float()
+    __timestamp = c_uint()
+    try:
+        __ret = __libIntec.__libIntec_GetTemperature(__index, __cardId, pointer(__temperature), pointer(__timestamp))
+    except Exception as e:
+        raise Exception("libIntec exception at GetTemperature")
+
+    if __ret != 0:
+        raise Exception("libIntec exception at GetTemperature")
     return {"temperature": __temperature.value, "timestamp": __timestamp.value}
 
 def SetTemperature(index, cardId, temp):

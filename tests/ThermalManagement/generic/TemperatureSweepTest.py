@@ -19,7 +19,11 @@ class TemperatureSweepTest(ThermalManagementBase):
             return False
 
     def execute_iteration(self):
-        pass
+        for _ in range(10):
+            self.inc_T_case()
+
+        for _ in range(10):
+            self.dec_T_case()
 
     def run(self):
         self.log.info("Temperature Sweep Test")
