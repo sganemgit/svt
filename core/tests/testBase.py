@@ -37,6 +37,7 @@ class testBase():
         self.log.info(self.testname)
         self._test_status = "Pass"
         self._fail_reason_list = list()
+        self._error_list = list()
         self.test_iteration = 0
         self.args = dict()
         self.setup = dict()

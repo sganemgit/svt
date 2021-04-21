@@ -6,7 +6,7 @@ import imp
 import sys
 
 class TestFactory:
-    
+
     def __init__(self):
         self.tests_dict = self._get_all_test_modules_paths()
 

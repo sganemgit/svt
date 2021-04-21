@@ -15,9 +15,13 @@ class mev(mevBase):
         else: 
             return None
 
-    def get_thermal_diode_temperature(self):
+    def get_diode_temperature(self):
         if self.fpga is not None:
             return self.fpga.read_thermal_diode()
         else:
             return None
+
+    def get_rail_names_list(self):
+        if self.fpga is not None:
+            return self.fpga.get_rail_name_list()
 

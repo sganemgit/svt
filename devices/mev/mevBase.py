@@ -10,10 +10,10 @@ from devices.mev.mevData import mevData
 class mevBase:
 
     def __init__(self, device_number, pf_number, hostname=''):
-        self.project_name = 'mev'
-        self.project_name_2 = 'mevcp'
+        self.name = "mev"
+        self.name_2 = 'mevcp'
         self.driver_type = 'sv'
-        self.device_numver = device_number
+        self.device_number = device_number
         self.pf_number = pf_number
         self.hostname = hostname
         self.fpga = None
@@ -29,7 +29,7 @@ class mevBase:
     
     def init_sv_driver(self):
         try:
-            self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, self.device_number, self.pf_number, self.hostname)
+            self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.name, self.device_number, self.pf_number, self.hostname)
         except Exception as e:
             print("Driver Creation has failed")
             print(str(e))

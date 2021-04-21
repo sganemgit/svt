@@ -19,5 +19,5 @@ class PhysicalLinkError(Exception):
 class TimerError(Exception):
 	pass
 
-class FataTestError(Exception):
+class FatalTestError(Exception):
     pass

@@ -12,9 +12,12 @@ class DeviceFactory:
         elif device_name == 'cpk':
             from devices.cpk.cpk import cpk
             return cpk(device_number, pf_number, hostname)
-        elif device_name == 'crsvl':
-            from devices.crsvl.crsvl import crsvl
-            return crsvl(device_number, pf_number, hostname)
+        elif device_name == 'fvl':
+            from devices.fvl.fvl import fvl
+            return fvl(device_number, pf_number, hostname)
+        elif device_name == 'fpk':
+            from devices.fpk.fpk import fpk
+            return fpk(device_number, pf_number, hostname)
         elif device_name == 'mev' or device_name == 'mev1':
             from devices.mev.mev import mev
             return mev(device_number, pf_number, hostname)
@@ -26,7 +29,7 @@ class DeviceFactory:
             if roles['dut'] in devices.keys() and roles['lp'] in devices.keys():
                 pair_list.append((devices[roles['dut']], devices[roles['lp']]))
             else:
-                print("Prots with IDs {}, {} do not appear in devices".format(roles['dut'], roles['lp']))
+                print("Error: Ports with IDs {}, {} do not appear in devices".format(roles['dut'], roles['lp']))
         return pair_list
 
     @classmethod

@@ -15,11 +15,12 @@ class ThermalManagementBase(testBase):
                     self.intec.connect()
                     self.log.info("intec device read")
         if self.intec is None:
-            raise FataTestError("could not find an instance of an intec device") 
+            raise FatalTestError("could not find an instance of an intec device")
     
     def prepare_devices(self):
         self.log.info("preparing devices")
-        pass
+        self.dut = self.devices['mev0:0']
+        self.dut.init_fpga(self.ftdi_index)
     
     def log_input_args(self):
         self.log.info("-"*80)
@@ -42,41 +43,54 @@ class ThermalManagementBase(testBase):
         self.iteration_fail_reasons.clear()
         self.log.info("-"*80)
 
-    def inc_T_case(self):
+    def inc_t_case(self, step=1):
         if self.intec is not None:
-            temperature = self.intec.GetTemperature() + 1
-            self.log.info("setting temperature to {}".format(temperature))
-            self.set_T_case(temperature)
+            temperature = self.intec.GetTemperature() + step
+            self.set_t_case(temperature)
         else:
-            raise FataTestError("could not find an instance of an intec device")
+            raise FatalTestError("could not find an instance of an intec device")
         pass
 
-    def dec_T_case(self):
+    def dec_t_case(self, step=1):
         if self.intec is not None:
             temperature = self.intec.GetTemperature() - 1
-            self.log.info("setting temperature to {}".format(temperature))
-            self.set_T_case(temperature)
+            self.set_t_case(temperature)
         else:
-            raise FataTestError("could not find an instance of an intec device")
-        pass
+            raise FatalTestError("could not find an instance of an intec device")
 
-    def set_T_case(self, temp_val):
+    def get_t_case(self):
+        if self.intec is not None:
+            return self.intec.GetTemperature()
+        else:
+            raise FatalTestError("could not find an instance of an intec device")
+
+    def set_t_case(self, temp_val):
         if self.intec is not None:
             self.log.info("setting case temperature to {}".format(temp_val))
             self.intec.SetTemperature(temp_val)
             temperature = self.intec.GetTemperature()
             stability_couter = False
+            log_odd = False
             while stability_couter < 4:
                 temperature = self.intec.GetTemperature()
                 if temperature > temp_val - 0.4 and temperature < temp_val + 0.4:
                     stability_couter += 1
                 else:
                     stability_couter = 0
-                self.log.info("case temperature {}".format(round(temperature, 2)))
+                if log_odd:
+                    self.log.info("case temperature {}".format(round(temperature, 2)))
+                    log_odd = False
+                else:
+                    log_odd = True
                 time.sleep(0.5)
             self.log.info("case temperature is set to {}".format(round(temperature, 2))) 
                 
         else:
-            raise FataTestError("could not find an instance of an intec device")
+            raise FatalTestError("could not find an instance of an intec device")
 
+        def get_t_diode(self, device):
+            if "mev" in device.name:
+                return device.get_diode_temperature()
+            else:
+                raise FatalTestError("could not identify the device name")
 

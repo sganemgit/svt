@@ -5,13 +5,14 @@ from core.drivers.ftdidriver.FtdiDriver import FtdiDriver
 from core.structs.FpgaPacket import FpgaReadPacket 
 from core.structs.FpgaPacket import FpgaWritePacket 
 import time, math
+import os
 import json
 
 class mevFpga:
 
     def __init__(self, ftdi_index):
         self.ft_index = ftdi_index
-        self.config_filename = "data/mev_svb_config.json"
+        self.config_filename = os.path.dirname(__file__) + "/data/mev_svb_config.json"
         self.svb_config = self._get_board_config()
         self.pmbus_rails = self._get_pmbus_rails()
         self.rdac_rails = self._get_rdac_rails()
@@ -33,7 +34,13 @@ class mevFpga:
         with open(self.config_filename, 'r') as f:
             data = json.load(f)
         return data
-    
+
+    def get_rail_name_list(self):
+        name_list = list()
+        for rail in self.get_all_rails_info():
+            name_list.append(rail["RailName"])
+        return name_list
+
     @property
     def rails_info(self):
         return self.svb_config['Rails']
@@ -252,9 +259,9 @@ class mevFpga:
             self._enable_pmbus_mux()
             self.write_i2c(int(target_rail['PmbusAddress'], 16), self.page_cmd, int(target_rail['RailPageNumber'], 16), 1) 
             voltage = round(voltage_val/float(target_rail['VoltageReadResolution']))
-            self.write_i2c(int(target_rail['PmbusAddress'], 16), self.vout_cmd, volatge, 2, 1)
+            self.write_i2c(int(target_rail['PmbusAddress'], 16), self.vout_cmd, voltage, 2, 1)
             self._disable_pmbus_mux()
-            return voltage_value
+            return voltage
         else:
             return None
 
@@ -291,47 +298,47 @@ class mevFpga:
         a2d_read = (data[1] << 8 | data[0]) & 0xfff
         return round(a2d_read*(a2d_vref/a2d_range), 3)
 
-    def read_ina233a_a2d(self,devadd, max_current, rsense_mohm, type = "i"):
-        #TODO need to enable this fucntion
-        cur_lsb = max_current / pow(2, 15)
-
-        hex_cal_value = hex(int(0.00512 / (cur_lsb * 0.001 * rsense_mohm))).replace("0x", "")
-
-        self.write_i2c(devadd, 0xD4, hex_cal_value, 2, 1)
-
-        if type == "i":
-            a2d_val = self.read_i2c(devadd, 0x8C, 2, 1)
-            return round(get_pos_or_neg_value(int(a2d_val, 16)) * cur_lsb, 4)
-        if type == "v":
-            a2d_val = self.read_i2c_dev(devadd, 0x88, 2, 1)
-            return round(get_pos_or_neg_value(int(a2d_val, 16)) / 800.0, 4)
-
-        return 0.0
-        
-    def read_ads11112_a2d(self, devadd, config_mode):
-        #TODO need to enable this fucntion
-        voltage_const = 2.048
-        cycle_ctr = 0
-        self.write_i2c(devadd, 0, a2d_command , 1)
-        time.sleep(0.15)
-        while lsb_val != 0 and cycle_ctr < 4:
-            a2d_val = self.read_i2c(devadd, 0, 3)
-        return round(voltage_const * int((a2d_val[-2:] + a2d_val[-4:-2]), 16) / 32768, 3)
+    # def read_ina233a_a2d(self,devadd, max_current, rsense_mohm, type = "i"):
+    #     #TODO need to enable this fucntion
+    #     cur_lsb = max_current / pow(2, 15)
+    #
+    #     hex_cal_value = hex(int(0.00512 / (cur_lsb * 0.001 * rsense_mohm))).replace("0x", "")
+    #
+    #     self.write_i2c(devadd, 0xD4, hex_cal_value, 2, 1)
+    #
+    #     if type == "i":
+    #         a2d_val = self.read_i2c(devadd, 0x8C, 2, 1)
+    #         return round(get_pos_or_neg_value(int(a2d_val, 16)) * cur_lsb, 4)
+    #     if type == "v":
+    #         a2d_val = self.read_i2c_dev(devadd, 0x88, 2, 1)
+    #         return round(get_pos_or_neg_value(int(a2d_val, 16)) / 800.0, 4)
+    #
+    #     return 0.0
+    #
+    # def read_ads11112_a2d(self, devadd, config_mode):
+    #     #TODO need to enable this fucntion
+    #     voltage_const = 2.048
+    #     cycle_ctr = 0
+    #     self.write_i2c(devadd, 0, a2d_command , 1)
+    #     time.sleep(0.15)
+    #     while lsb_val != 0 and cycle_ctr < 4:
+    #         a2d_val = self.read_i2c(devadd, 0, 3)
+    #     return round(voltage_const * int((a2d_val[-2:] + a2d_val[-4:-2]), 16) / 32768, 3)
 
     def write_ad5272(self, ftdi, dev_address, rdata, program_eeprom):
         #TODO need to enable this fucntion
         pass
 
-    def read_ad5272(self, dev_address):
-        #TODO need to enable this fucntion
-        # the AD5272 requier the I2C high byte to come first, not like we send it
-        # enable to program the resistor.
-        rdata = 0x0800  # program the RDAC fuse to current resistor value.
-        rdata_s = swapbytehex(rdata)
-        # print(rdata_s)
-        rdata_s = str(swapbytehex(int(self.read_i2c_dev(ftdi, dev_address, rdata_s, 2, 2), 16)))
-        # print(rdata_s)
-        return rdata_s
+    # def read_ad5272(self, dev_address):
+    #     #TODO need to enable this fucntion
+    #     # the AD5272 requier the I2C high byte to come first, not like we send it
+    #     # enable to program the resistor.
+    #     rdata = 0x0800  # program the RDAC fuse to current resistor value.
+    #     rdata_s = swapbytehex(rdata)
+    #     # print(rdata_s)
+    #     rdata_s = str(swapbytehex(int(self.read_i2c_dev(ftdi, dev_address, rdata_s, 2, 2), 16)))
+    #     # print(rdata_s)
+    #     return rdata_s
     
     def read_adt7473(self, remote=1):
         devadd = int(self.svb_config["Board"]["TempControllerAddr"], 16)
@@ -443,26 +450,27 @@ class mevFpga:
 if __name__=="__main__":
     fpga = mevFpga(1)
     fpga.connect()
-
-    for rail in fpga.pmbus_rails:
-         print(f"rail name : {rail['RailName']}")
-         voltage = fpga.get_pmbus_voltage(int(rail['RailNumber']))
-         print(f"voltage: {voltage}")
-
-    fpga.print_rails_info()
-    for rail in fpga.rdac_rails:
-        name = rail['RailName']
-        print(f"rail name {name}")
-        print(f"voltage is {fpga.get_rdac_voltage(int(rail['RailNumber']))}")
-        time.sleep(1)
-
-    # print(f"rail vnnsram = {fpga.read_ad7998(0x24, 5, 4.4, 1024)}")
-
-    print("0x24 scan")
-    for i in range(1,9):
-        print(f"vin {i} = {fpga.read_ad7998(0x24, i, 4.4, 4096)}")
-        time.sleep(0.1)
-
-    print("0x23 scan")
-    for i in range(1,9):
-        print(f"vin {i} = {fpga.read_ad7998(0x23, i, 4.4, 4096)}")
+    print(fpga.get_rail_name_list())
+    #
+    # for rail in fpga.pmbus_rails:
+    #      print(f"rail name : {rail['RailName']}")
+    #      voltage = fpga.get_pmbus_voltage(int(rail['RailNumber']))
+    #      print(f"voltage: {voltage}")
+    #
+    # fpga.print_rails_info()
+    # for rail in fpga.rdac_rails:
+    #     name = rail['RailName']
+    #     print(f"rail name {name}")
+    #     print(f"voltage is {fpga.get_rdac_voltage(int(rail['RailNumber']))}")
+    #     time.sleep(1)
+    #
+    # # print(f"rail vnnsram = {fpga.read_ad7998(0x24, 5, 4.4, 1024)}")
+    #
+    # print("0x24 scan")
+    # for i in range(1,9):
+    #     print(f"vin {i} = {fpga.read_ad7998(0x24, i, 4.4, 4096)}")
+    #     time.sleep(0.1)
+    #
+    # print("0x23 scan")
+    # for i in range(1,9):
+    #     print(f"vin {i} = {fpga.read_ad7998(0x23, i, 4.4, 4096)}")
