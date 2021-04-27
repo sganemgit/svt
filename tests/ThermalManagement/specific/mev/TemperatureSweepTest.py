@@ -3,7 +3,7 @@
 
 TEST = True
 
-from tests.ThermalManagement.generic.ThermalManagementBase import ThermalManagementBase
+from tests.ThermalManagement.specific.mev.ThermalManagementBase import ThermalManagementBase
 from core.exceptions.Exceptions import *
 
 class TemperatureSweepTest(ThermalManagementBase):
