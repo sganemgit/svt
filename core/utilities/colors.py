@@ -43,6 +43,10 @@ class colors(object):
     @classmethod
     def Blue(cls, msg):
         return cls._blue+msg+cls._reset
+    
+    @classmethod
+    def LightBlue(cls, msg):
+        return cls._lightblue+msg+cls._reset
 
     @classmethod
     def Orange(cls,msg):

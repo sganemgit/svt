@@ -15,7 +15,7 @@ class testBase():
     @classmethod
     def CreateTest(cls, args, setup):
         try:
-            test_obj = cls()
+            test_obj = cls(args.get("log_level", "INFO"))
             test_obj.args = args
             test_obj.setup = setup
             test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
@@ -29,11 +29,11 @@ class testBase():
             test_obj.append_fail_reason(str(e))
             raise e
 
-    def __init__(self):
+    def __init__(self, log_level="INFO"):
         self.test_start_time = datetime.now()
         self.testname = (str(self.__class__).split("'")[1]).split(".")[-1]
         self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
-        self.log = log(self.logname, "DEBUG")
+        self.log = log(self.logname, log_level)
         self.log.info(self.testname)
         self._test_status = "Pass"
         self._fail_reason_list = list()

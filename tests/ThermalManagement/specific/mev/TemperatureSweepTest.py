@@ -19,8 +19,14 @@ class TemperatureSweepTest(ThermalManagementBase):
             return False
 
     def execute_iteration(self):
-        print(self.devices)
-        print(self.dut.get_rail_names_list())
+        self.log.info(self.get_t_diode(self.dut))
+        itd_lut = self.dut.get_itd_lut()
+        self.log.info("Iterating over ITD Lookup Talbe of Temperatures")
+        for temp, vnn_delta, vcc_delta in zip(itd_lut["max_temp"], itd_lut["vnn_delta"], itd_lut["vcc_delta"]):
+            self.log.info("setting silicon temperature to {}".format(temp))
+            self.set_temperature(self.dut, temp)
+            self.assert_vnn(self.dut, vnn_delta)
+            self.assert_vcc(self.dut, vcc_delta)
 
     def run(self):
         self.log.info("Temperature Sweep Test")
@@ -36,4 +42,5 @@ class TemperatureSweepTest(ThermalManagementBase):
                 except Exception as e:
                     self.append_fail_reason(str(e))
                 finally:
+                    self.reset_temperature()
                     self.summarize_iteration()

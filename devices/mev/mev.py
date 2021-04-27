@@ -25,3 +25,5 @@ class mev(mevBase):
         if self.fpga is not None:
             return self.fpga.get_rail_name_list()
 
+    def get_itd_lut(self):
+        return self.data.mev_default_itd_lut

@@ -7,66 +7,75 @@ from core.utilities.colors import colors
 import threading
 
 class log:
-
-    def __init__(self, testname, level = 'INFO'):
+    
+    def __init__(self, testname, level='INFO'):
         self.lock = threading.Lock()
         if level == 'NOTSET':
-            self.level = logging.NOTSET
+            self.level = logging.NOTSET # 0
         elif level == 'DEBUG':
-            self.level = logging.DEBUG
+            self.level = logging.DEBUG # 10
         elif level == 'INFO':
-            self.level = logging.INFO
+            self.level = logging.INFO # 20
         elif level == 'WARNING':
-            self.level = logging.WARNING
+            self.level = logging.WARNING # 30
         elif level == 'ERROR':
-            self.level = logging.ERROR
+            self.level = logging.ERROR #40
         elif level == 'CRITICAL':
-            self.level = logging.CRITICAL
+            self.level = logging.CRITICAL #50
         else:
-            self.level = logging.DEBUG
+            print("Log level {} is not defined. Setting log level to 'INFO'".format(level))
+            self.level = logging.INFO
 
         self.filepath = "/home/{}/logs/{}/testlog.log".format(os.environ["USER"], testname)
         directory = os.path.dirname(self.filepath)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-        logging.basicConfig(filename = self.filepath, level = self.level, format = LOG_FORMAT, filemode = 'w')
+        log_format = "%(asctime)s - %(levelname)s - %(message)s"
+        logging.basicConfig(filename=self.filepath, level=self.level, format=log_format, filemode='w')
         self.logger = logging.getLogger()
-
-    def info(self, msg = "", color = None):
-        with self.lock:
-            if color == 'r':
-                print(colors.Red(msg))
-            elif color == 'b':
-                print(colors.Blue(msg))
-            elif color == 'g':
-                print(colors.Green(msg))
-            elif color == 'o':
-                print(colors.Orange(msg))
-            else:
-                print(msg)
-            self.logger.info(msg)
+        #ch = logging.StreamHandler()
+        #ch.setLevel(self.level)
+        #self.logger.addHandler(ch)
 
     def debug(self, msg = ""):
-        with self.lock:
-            print(colors.Blue(msg))
-            self.logger.debug(msg)
+        if self.level <= logging.DEBUG:
+            with self.lock:
+                print(colors.LightBlue(msg))
+                self.logger.debug(msg)
+
+    def info(self, msg = "", color = None):
+        if self.level <= logging.INFO:
+            with self.lock:
+                if color == 'r':
+                    print(colors.Red(msg))
+                elif color == 'b':
+                    print(colors.Blue(msg))
+                elif color == 'g':
+                    print(colors.Green(msg))
+                elif color == 'o':
+                    print(colors.Orange(msg))
+                else:
+                    print(msg)
+                self.logger.info(msg)
 
     def warning(self, msg = ""):
-        with self.lock:
-            print(colors.Orange(msg))
-            self.logger.warning(msg)
+        if self.level <= logging.WARNING: 
+            with self.lock:
+                print(colors.Orange(msg))
+                self.logger.warning(msg)
 
     def error(self, msg = ""):
-        with self.lock:
-            print(colors.Red(msg))
-            self.logger.error(msg)
+        if self.level <= logging.ERROR:
+            with self.lock:
+                print(colors.Red(msg))
+                self.logger.error(msg)
 
     def critical(self, msg = ""):
-        with self.lock:
-            print(colors.Red(msg))
-            self.logger.critical(msg)
+        if self.level <= logging.CRITICAL:
+            with self.lock:
+                print(colors.Red(msg))
+                self.logger.critical(msg)
 
 if __name__ == "__main__":
     log = log("testlog")
