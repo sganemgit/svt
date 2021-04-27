@@ -340,7 +340,7 @@ class mevFpga:
     #     # print(rdata_s)
     #     return rdata_s
     
-    def read_adt7473(self, remote=1, offset=0xfc):
+    def read_adt7473(self, remote=1, offset=0xfb):
         devadd = int(self.svb_config["Board"]["TempControllerAddr"], 16)
         temp_read_addr = 0x25 if remote == 1 else 0x27
         temp_offset_addr = 0x70 if remote == 1 else 0x72
