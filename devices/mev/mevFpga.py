@@ -12,7 +12,7 @@ class mevFpga:
 
     def __init__(self, ftdi_index):
         self.ft_index = ftdi_index
-        self.config_filename = os.path.dirname(__file__) + "/data/mev_svb_config.json"
+        self.config_filename = os.path.dirname(os.path.abspath(__file__)) + "/data/mev_svb_config.json"
         self.svb_config = self._get_board_config()
         self.pmbus_rails = self._get_pmbus_rails()
         self.rdac_rails = self._get_rdac_rails()
@@ -340,13 +340,15 @@ class mevFpga:
     #     # print(rdata_s)
     #     return rdata_s
     
-    def read_adt7473(self, remote=1):
+    def read_adt7473(self, remote=1, offset=0xfc):
         devadd = int(self.svb_config["Board"]["TempControllerAddr"], 16)
-        remote1_2s = self.read_i2c(devadd,  0x25)[0]
-        remote2_2s = self.read_i2c(devadd,  0x27)[0]
-        remote1_temp = self._convert_twos_complement(remote1_2s , 8)
-        remote2_temp = self._convert_twos_complement(remote2_2s , 8)
-        return remote1_temp if remote is 1 else remote2_temp
+        temp_read_addr = 0x25 if remote == 1 else 0x27
+        temp_offset_addr = 0x70 if remote == 1 else 0x72
+        self.write_i2c(devadd, temp_offset_addr, offset)
+        ext_res = self.read_i2c(devadd, 0x77)[0]& (0x3 << 2)
+        ext_res = (ext_res >> 2) & 0x3
+        remote_offset_63 = self.read_i2c(devadd, temp_read_addr)[0]
+        return (remote_offset_63 - 64) + 0.25 * ext_res
     
     def print_all_rails_voltage(self):
         rail_list = self.svb_config["Rails"]
@@ -450,7 +452,7 @@ class mevFpga:
 if __name__=="__main__":
     fpga = mevFpga(1)
     fpga.connect()
-    print(fpga.get_rail_name_list())
+    print(fpga.read_thermal_diode())
     #
     # for rail in fpga.pmbus_rails:
     #      print(f"rail name : {rail['RailName']}")

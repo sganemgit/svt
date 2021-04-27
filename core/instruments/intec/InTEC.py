@@ -69,10 +69,14 @@ class InTEC:
         except Exception as e:
             return None 
 
-#if __name__=="__main__":
-#    tec = InTEC(0)
-#    tec.connect()
-#    print(tec.GetLibVersion())
-#    print(tec.GetTemperature())
-#    print(tec.SetTemperature(25))
+if __name__=="__main__":
+    import sys
+    try:
+        temp = int(sys.argv[1])
+    except:
+        temp = 25
+    tec = InTEC(0)
+    tec.connect()
+    print(tec.SetTemperature(temp))
+    print(tec.GetTemperature())
 
