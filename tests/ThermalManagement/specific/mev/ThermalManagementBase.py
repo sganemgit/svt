@@ -4,23 +4,20 @@ from core.exceptions.Exceptions import *
 import time
 
 class ThermalManagementBase(testBase):
-    
-    mev_itd_lut = {"_comment": "ITD lookup table (max_temp values are in Celsius, resolution of *_delta in mv)",
-                   "max_temp":[43,47,51,55,59,63,67,71,75,79,125],
-                   "vnn_delta":[10,9,8,7,6,5,4,3,2,1,0],
-                   "vcc_delta":[10,9,8,7,6,5,4,3,2,1,0]} 
 
     def prepare_instruments(self):
-        self.log.info("preparing instruments")
-        self.intec = None
+        self.log.info("Preparing Instruments")
         for inst_name, inst in self.instruments.items():
             if inst is not None:
                 if inst.GetInstrumentName() == "intec":
                     self.intec = inst
                     self.intec.connect()
-                    self.log.info("intec device read")
+                    self.log.info("InTEC device ready")
         if self.intec is None:
-            raise FatalTestError("could not find an instance of an intec device")
+            msg = "could not find an instance of an intec device"
+            self.append_fail_reason(msg)
+            self.log.error(msg)
+            raise FatalTestError(msg)
     
     def prepare_devices(self):
         self.log.info("preparing devices")
@@ -35,6 +32,7 @@ class ThermalManagementBase(testBase):
         self.log.info("-"*80)
 
     def init_test_data(self):
+        self.intec = None
         self.log.info("initializing test data")
         self.iteration_fail_reasons = list()
         self.ftdi_index = int(self.args.get("ftdi_index", "1"))
@@ -106,27 +104,40 @@ class ThermalManagementBase(testBase):
             this method sets the temperature on the silicon and uses the t_diode as a loopback refrence
         '''
         done = False
-        stability_couter = 0
+        stability_counter = 0
         while not done:
             current_t_diode = self.get_t_diode(device)
             self.log.debug("T diode = {}".format(current_t_diode))
             if current_t_diode < temp - 0.25:
                 self.inc_t_case()
-                stability_couter = 0
+                stability_counter = 0
             elif current_t_diode > temp + 0.25:
                 self.dec_t_case()
-                stability_couter = 0
+                stability_counter = 0
             else:
-                stability_couter += 1
-            if stability_couter == 4:
+                stability_counter += 1
+            if stability_counter == 3:
                 done = True
 
         self.log.info("T diode = {}".format(self.get_t_diode(device)))
         self.log.info("T case is set to {}".format(self.get_t_case()))
     
     def assert_vnn(self, device, delta):
-        pass
+        vnn_voltage = device.get_voltage(device.data.mev_vnn_rail_name)
+        self.log.debug("{} = {}".format(vnn_voltage, device.data.mev_vnn_rail_name))
+        if vnn_voltage == device.data.mev_default_vnn + delta:
+            self.log.info("{} is set according to ITD LUT".format(device.data.mev_vnn_rail_name))
+        else:
+            msg = "{} is not set according to ITD LUT".format(device.data.mev_vnn_rail_name)
+            self.log.error(msg)
+            self.append_fail_reason(msg)
     
     def assert_vcc(self, device, delta):
-        pass
-        
+        vnn_voltage = device.get_voltage(device.data.mev_vcc_rail_name)
+        self.log.debug("{} = {}".format(vnn_voltage, device.data.mev_vcc_rail_name))
+        if vnn_voltage == device.data.mev_default_vnn + delta:
+            self.log.info("{} is set according to ITD LUT".format(device.data.mev_vcc_rail_name))
+        else:
+            msg = "{} is not set according to ITD LUT".format(device.data.mev_vcc_rail_name)
+            self.log.error(msg)
+            self.append_fail_reason(msg)

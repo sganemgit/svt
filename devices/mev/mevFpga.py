@@ -430,7 +430,6 @@ class mevFpga:
             if rail["RailName"] == rail_name:
                 target_rail = rail
 
-        print(target_rail["RailName"])
         if target_rail["PowerType"] == "pmbus":
             return self.get_pmbus_voltage(target_rail["RailNumber"])
         else:

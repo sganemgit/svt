@@ -21,7 +21,8 @@ class TemperatureSweepTest(ThermalManagementBase):
     def execute_iteration(self):
         self.log.info(self.get_t_diode(self.dut))
         itd_lut = self.dut.get_itd_lut()
-        self.log.info("Iterating over ITD Lookup Talbe of Temperatures")
+        self.log.info("Iterating over ITD Lookup Talbe")
+        self.log.info(self.dut.get_voltage(self.dut.data.mev_vnn_rail_name))
         for temp, vnn_delta, vcc_delta in zip(itd_lut["max_temp"], itd_lut["vnn_delta"], itd_lut["vcc_delta"]):
             self.log.info("setting silicon temperature to {}".format(temp))
             self.set_temperature(self.dut, temp)
@@ -44,3 +45,6 @@ class TemperatureSweepTest(ThermalManagementBase):
                 finally:
                     self.reset_temperature()
                     self.summarize_iteration()
+        else:
+            self.log.error("Failed to prepare test")
+            self.append_fail_reason("Failed to prepare test")
