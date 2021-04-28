@@ -1,28 +1,27 @@
 <TestFlow>
     <TestCase>
-	<Test name='TemperatureSweepTest'/>
-	<Input>
-	    <Parameter name='run_time' value='10'/>
-	    <Parameter name='ftdi_index' value='1'/>
-	    <Parameter name='num_of_iter' value='2'/>
-	    <Parameter name='log_level' value='DEBUG'/>
-	</Input>
-	<Setup>
-		<Instruments>
-			<Instrument name='intec' type="IntecH" index="0"/>
-		</Instruments>
-		<Devices>
-			<Device name='mev' hostname='' number='0'>
-				<Port ID='mev0:0' number='0'/>
-				<Port ID='mev0:1' number='1'/>
-			</Device>
-		</Devices>
-		<Links>
-			<Link>
-				<Port ID='mev0:0' role='dut'/>	
-				<Port ID='mev1:0' role='lp'/>
-			</Link>
-		</Links>
-	</Setup>
+		<Test name='TemperatureSweepTest'/>
+		<Input>
+			<Parameter name='run_time' value='10'/>
+			<Parameter name='ftdi_index' value='1'/>
+			<Parameter name='num_of_iter' value='2'/>
+			<Parameter name='log_level' value='DEBUG'/>
+		</Input>
+		<Setup>
+			<Instruments>
+				<Instrument name='intec' type="IntecH" index="0" ID="intec_0"/>
+			</Instruments>
+			<Devices>
+				<Device name='mev' hostname='' number='0'>
+					<Port ID='mev0:0' number='0'/>
+				</Device>
+			</Devices>
+			<!--Links>
+				<Link>
+					<Port ID='mev0:0' role='dut'/>
+					<Port ID='mev1:0' role='lp'/>
+				</Link>
+			</Links-->
+		</Setup>
     </TestCase>
 </TestFlow>

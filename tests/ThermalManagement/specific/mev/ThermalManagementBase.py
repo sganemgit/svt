@@ -6,13 +6,12 @@ import time
 class ThermalManagementBase(testBase):
 
     def prepare_instruments(self):
-        self.log.info("Preparing Instruments")
         for inst_name, inst in self.instruments.items():
             if inst is not None:
                 if inst.GetInstrumentName() == "intec":
                     self.intec = inst
                     self.intec.connect()
-                    self.log.info("InTEC device ready")
+                    self.log.info("InTEC device ready", 'g')
         if self.intec is None:
             msg = "could not find an instance of an intec device"
             self.append_fail_reason(msg)
@@ -20,9 +19,9 @@ class ThermalManagementBase(testBase):
             raise FatalTestError(msg)
     
     def prepare_devices(self):
-        self.log.info("preparing devices")
         self.dut = self.devices['mev0:0']
         self.dut.init_fpga(self.ftdi_index)
+        self.log.info("Devices ready", 'g')
     
     def log_input_args(self):
         self.log.info("-"*80)
@@ -33,10 +32,10 @@ class ThermalManagementBase(testBase):
 
     def init_test_data(self):
         self.intec = None
-        self.log.info("initializing test data")
         self.iteration_fail_reasons = list()
         self.ftdi_index = int(self.args.get("ftdi_index", "1"))
         self.num_of_iterations = int(self.args.get("num_of_iter", "1"))
+        self.log.info("Test data ready", 'g')
 
     def summarize_iteration(self):
         self.log.info("-"*80)

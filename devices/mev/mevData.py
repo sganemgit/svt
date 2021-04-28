@@ -12,7 +12,7 @@ class mevData(commonData):
     
     mev_vcc_rail_name = "VCC_1V04"
 
-    mev_default_vnn = 0.78
+    mev_default_vnn = 0.74
     
     mev_default_vcc = 1.08
     

@@ -1,6 +1,7 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
+from core.utilities.colors import colors
 class DeviceFactory:
     _supported_devices_list = ['cvl', 'mev', 'mev1', 'crsvl','cpk']
 
@@ -25,11 +26,13 @@ class DeviceFactory:
     @classmethod
     def create_dut_lp_pairs(cls, links, devices):
         pair_list = list()
+        print(devices)
+        print(links)
         for link, roles in links.items():
             if roles['dut'] in devices.keys() and roles['lp'] in devices.keys():
                 pair_list.append((devices[roles['dut']], devices[roles['lp']]))
             else:
-                print("Error: Ports with IDs {}, {} do not appear in devices".format(roles['dut'], roles['lp']))
+                print(colors.Orange("WARNING: Ports with IDs {}, {} do not appear in devices".format(roles['dut'], roles['lp'])))
         return pair_list
 
     @classmethod

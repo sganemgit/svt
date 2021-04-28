@@ -5,7 +5,7 @@ class mev(mevBase):
     def info(self):
         print ("mev1")
 
-    def scan_ftdi_device(self):
+    def scan_ftdi_devices(self):
         pass
 
     def get_voltage(self, rail_name="all"):
@@ -26,10 +26,12 @@ class mev(mevBase):
     def get_rail_names_list(self):
         if self.fpga is not None:
             return self.fpga.get_rail_name_list()
+        else:
+            return None
 
     def get_itd_lut(self, mode="SM"):
         '''
-            This method return the itd lookup talbe
+            This method return the itd lookup Table
             mode = SM/PM standard mode/performance mode
         '''
         #TODO this method must retreive the LUT from file /etc/hwconf/active/pvt from the imc filesystem

@@ -19,6 +19,8 @@ class TemperatureSweepTest(ThermalManagementBase):
             return False
 
     def execute_iteration(self):
+        self.log.info("-"*80)
+        self.log.info("Iteration {}".format(self.test_iteration), 'g')
         self.log.info(self.get_t_diode(self.dut))
         itd_lut = self.dut.get_itd_lut()
         self.log.info("Iterating over ITD Lookup Talbe")

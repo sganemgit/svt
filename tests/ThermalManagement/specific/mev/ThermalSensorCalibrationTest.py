@@ -3,7 +3,7 @@
 
 TEST = True
 
-from tests.ThermalManagement.specifc.mev.ThermalManagementBase import ThermalManagementBase
+from tests.ThermalManagement.specific.mev.ThermalManagementBase import ThermalManagementBase
 
 class ThermalSensorCalibrationTest(ThermalManagementBase):
     

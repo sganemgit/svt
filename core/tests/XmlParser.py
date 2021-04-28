@@ -2,6 +2,7 @@
 # @author Shady Ganem <shady.ganem@intel.com>
 
 import xml.etree.ElementTree as ET
+from core.utilities.colors import colors
 
 class XmlParser():
 
@@ -67,10 +68,16 @@ class XmlParser():
                         link_dict['link_{}'.format(index)] = pf_dict
                 
                 #parsing instruments
+                inst_id_list = list()
                 instrumet_dom_list = testcase_dom.findall('Setup/Instruments/Instrument')
                 if instrumet_dom_list:
                     for index, instrument_dom in enumerate(instrumet_dom_list):
-                        instrument_dict['instrument_{}'.format(index)] = instrument_dom.attrib
+                        current_inst_id =  instrument_dom.attrib.get("ID", f"instrument_{index}")
+                        if current_inst_id not in inst_id_list:
+                            inst_id_list.append(current_inst_id)
+                            instrument_dict[current_inst_id] = instrument_dom.attrib
+                        else:
+                            print(colors.Orange("WARNING: Instrument with ID '{}' already exists".format(current_inst_id)))
 
                 setup_dict['Devices'] = device_dict
                 setup_dict['Links'] = link_dict
@@ -105,7 +112,7 @@ class XmlParser():
     @classmethod    
     def IterRegressionAndSetup(self, path_to_reg_file, path_to_setup_file):
         try:
-            reg_xml_tree = ET.parse(path_to_test_flow)
+            reg_xml_tree = ET.parse(path_to_reg_file)
             setup_xml_tree = ET.parse(path_to_setup_file)
         except Exception as e:
             raise e
