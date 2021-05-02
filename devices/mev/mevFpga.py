@@ -104,7 +104,7 @@ class mevFpga:
         for word in range(int(len(ls)/4)):
             offset = word*4
             ret_list.append(ls[offset+3] << 24 | ls[offset+2] << 16 | ls[offset + 1] << 8 | ls[offset])
-        return ret_list 
+        return ret_list
     
     def _clean_queue(self):
         queue_stat = self._ftdi_driver.ft_get_queue_status()
@@ -384,12 +384,18 @@ class mevFpga:
         return reg_val[0] if reg_val else reg_val
     
     def get_nichot_status(self):
+        '''
+            nichot is an active low interrupt
+        '''
         reg_val = self.read_register(0x325)
-        return reg_val[0] if reg_val else reg_val
+        return reg_val[0] if reg_val else None
 
     def get_thermtrip_status(self):
+        '''
+            thermtrip is an active low interrupt
+        '''
         reg_val = self.read_register(0x326)
-        return reg_val[0] if reg_val else reg_val
+        return reg_val[0] if reg_val else None
 
     def set_gpio_value(self, gpio, value):
         gpio_status = self.read_register(0x226)[0]
@@ -451,7 +457,7 @@ class mevFpga:
 if __name__=="__main__":
     fpga = mevFpga(1)
     fpga.connect()
-    print(fpga.read_thermal_diode())
+    # print(fpga.read_thermal_diode())
     #
     # for rail in fpga.pmbus_rails:
     #      print(f"rail name : {rail['RailName']}")

@@ -7,21 +7,10 @@ from tests.ThermalManagement.specific.mev.ThermalManagementBase import ThermalMa
 from core.exceptions.Exceptions import *
 
 class TemperatureSweepTest(ThermalManagementBase):
-    
-    def prepare_test(self):
-        try:
-            self.init_test_data()
-            self.prepare_instruments()
-            self.prepare_devices()
-            return True
-        except Exception as e:
-            self.append_fail_reason(str(e))
-            return False
 
     def execute_iteration(self):
         self.log.info("-"*80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
-        self.log.info(self.get_t_diode(self.dut))
         itd_lut = self.dut.get_itd_lut()
         self.log.info("Iterating over ITD Lookup Talbe")
         self.log.info(self.dut.get_voltage(self.dut.data.mev_vnn_rail_name))

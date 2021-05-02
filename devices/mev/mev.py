@@ -48,3 +48,18 @@ class mev(mevBase):
             return self.fpga.get_thermtrip_status()
         else:
             return None
+
+    def get_thermtrip_threshold(self):
+        return self.data.mev_default_thermtrip_b_threshold
+
+    def get_nichot_threshold(self, hysteresis_direction="up"):
+        if hysteresis_direction == "up":
+            return self.data.mev_default_nichot_b_threshold
+        elif hysteresis_direction == "down":
+            return self.data.mev_default_nichot_b_thershold_hysteresis
+
+    def get_thermtrip_thershold(self, hysteresis_dircetion="up"):
+        if hysteresis_dircetion == "up":
+            return self.data.mev_default_thermtrip_b_threshold
+        elif hysteresis_dircetion == "down":
+            return self.data.mev_default_thermtrip_b_threshold_hysteresis

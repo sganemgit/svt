@@ -16,9 +16,11 @@ class mevData(commonData):
     
     mev_default_vcc = 1.08
     
-    mev_default_thermtrip_b_threshold = 125
-    
+    mev_default_thermtrip_b_threshold = 122
+
     mev_default_nichot_b_threshold = 100
+
+    mev_default_nichot_b_thershold_hysteresis = 95
 
     mev_fuse_default_pvt_vid_vcc_pm = 0b10001100
     

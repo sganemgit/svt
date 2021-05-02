@@ -17,8 +17,19 @@ class ThermalManagementBase(testBase):
             self.append_fail_reason(msg)
             self.log.error(msg)
             raise FatalTestError(msg)
-    
+
+    def prepare_test(self):
+        try:
+            self.init_test_data()
+            self.prepare_instruments()
+            self.prepare_devices()
+            return True
+        except Exception as e:
+            self.append_fail_reason(str(e))
+            return False
+
     def prepare_devices(self):
+        #TODO prepare deivce should be generic
         self.dut = self.devices['mev0:0']
         self.dut.init_fpga(self.ftdi_index)
         self.log.info("Devices ready", 'g')
@@ -36,6 +47,10 @@ class ThermalManagementBase(testBase):
         self.ftdi_index = int(self.args.get("ftdi_index", "1"))
         self.num_of_iterations = int(self.args.get("num_of_iter", "1"))
         self.log.info("Test data ready", 'g')
+
+    def append_iteration_fail_reason(self, msg):
+        self.append_fail_reason(msg)
+        self.iteration_fail_reasons.append("Interation {} - {}".format(self.test_iteration, msg))
 
     def summarize_iteration(self):
         self.log.info("-"*80)
@@ -61,6 +76,11 @@ class ThermalManagementBase(testBase):
             raise FatalTestError("could not find an instance of an intec device")
 
     def get_t_case(self):
+        """
+            This method returns the temperature as a float with 2 digits after decimal point accuracy
+            @ input - none
+            @ return - float
+        """
         if self.intec is not None:
             return round(self.intec.GetTemperature(), 2)
         else:
@@ -85,7 +105,6 @@ class ThermalManagementBase(testBase):
                 else:
                     log_odd = True
                 time.sleep(0.5)
-                
         else:
             raise FatalTestError("could not find an instance of an intec device")
 
@@ -100,7 +119,7 @@ class ThermalManagementBase(testBase):
 
     def set_temperature(self, device, temp):
         '''
-            this method sets the temperature on the silicon and uses the t_diode as a loopback refrence
+            This method sets the temperature on the silicon and uses the t_diode as a loopback refrence
         '''
         done = False
         stability_counter = 0
