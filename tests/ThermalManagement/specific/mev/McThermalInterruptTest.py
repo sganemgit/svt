@@ -11,15 +11,4 @@ class McThermalInterruptTest(ThermalManagementBase):
         pass
 
     def run(self):
-        self.log.info("MC Thermal Interrupt Test")
-        self.print_input_args()
-        self.init_test_args()
-        
-        for iteration in range(self.num_of_iterations):
-            self.test_iteration = iteration
-            try:
-                self.execute_iteration()
-            except Exception as e:
-                self.append_fail_reason(str(e))
-            finally:
-                self.summarize_iteration()
+        self.log.info("MC Thermal Interrupt Test - Test currently not available")

@@ -2,7 +2,7 @@
 # @author Shady Ganem <shady.ganem@intel.com>
 
 class DriverFactory():
-    '''This class is responsible for creation of drivers'''
+    '''This class acts as a common interface for driver object creation.'''
 
     @classmethod
     def create_driver_by_project_name(cls, driver_type, project_name, device_number, port_number, hostname):
@@ -26,3 +26,8 @@ class DriverFactory():
         else:
             error = "Failed to create driver of type {}, Unsupported dirver type".format(deriver_type)
             raise RuntimeError(error)
+
+    @classmethod
+    def create_ftdi_driver(cls, ftdi_index=1):
+        from core.drivers.ftdidriver.FtdiDriver import FtdiDriver
+        return FtdiDriver(ftdi_index)

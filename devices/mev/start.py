@@ -8,13 +8,6 @@ import time
 import argparse
 from mev import mev 
 from core.drivers.svdriver.SvDriverCommands import *
-#try:
-#    import readline
-#except ImportError:
-#    print("Module readline not available.")
-#else:
-#    import rlcompleter
-#    readline.parse_and_bind("tab: complete")
 
 def help():
     print('''input params:
@@ -40,10 +33,4 @@ if args.auto:
         if devices:
             for device,info in devices.items():
                 globals()[device] = mev(info['device_number'],info['port_number'])
-
-
-mev1 = mev('1', '1')
-mev1.init_fpga(1)
-print(mev1.get_thermal_diode_temperature())
-print(mev1.get_voltage("all"))
 

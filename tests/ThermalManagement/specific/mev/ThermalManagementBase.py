@@ -29,7 +29,8 @@ class ThermalManagementBase(testBase):
             return False
 
     def prepare_devices(self):
-        #TODO prepare deivce should be generic
+        #TODO prepare deivce should be generic. not mev specific or device number specific
+        #TODO need to intialize the driver object as for mev
         self.dut = self.devices['mev0:0']
         self.dut.init_fpga(self.ftdi_index)
         self.log.info("Devices ready", 'g')

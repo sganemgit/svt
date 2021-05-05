@@ -1,7 +1,7 @@
 
 # @author Shady Ganem <shady.ganem@intel.com)
 
-from core.drivers.ftdidriver.FtdiDriver import FtdiDriver
+from core.drivers.DriverFactory import DriverFactory
 from core.structs.FpgaPacket import FpgaReadPacket 
 from core.structs.FpgaPacket import FpgaWritePacket 
 import time, math
@@ -22,7 +22,7 @@ class mevFpga:
     
     def connect(self):
         try:
-            self._ftdi_driver = FtdiDriver(self.ft_index)
+            self._ftdi_driver = DriverFactory.create_ftdi_driver(self.ft_index)
             self.ticks = 1 
             self.write_register(0x0, 0)
             self.read_register(0x10)
@@ -457,7 +457,7 @@ class mevFpga:
 if __name__=="__main__":
     fpga = mevFpga(1)
     fpga.connect()
-    # print(fpga.read_thermal_diode())
+    print(fpga.read_thermal_diode())
     #
     # for rail in fpga.pmbus_rails:
     #      print(f"rail name : {rail['RailName']}")
