@@ -75,9 +75,8 @@ class mevFpga:
     def get_rdac_rails_info(self):
         return self.rdac_rails
     
-    @classmethod
     def print_all_ftdi_devices(self):
-        FtdiDriver.print_all_devices_info()
+        self._ftdi_driver.print_all_devices_info()
 
     def print_rails_info(self):
         for rail in self.rails_info:
@@ -457,7 +456,9 @@ class mevFpga:
 if __name__=="__main__":
     fpga = mevFpga(1)
     fpga.connect()
-    print(fpga.read_thermal_diode())
+    fpga.print_all_ftdi_devices()
+    
+
     #
     # for rail in fpga.pmbus_rails:
     #      print(f"rail name : {rail['RailName']}")

@@ -32,5 +32,7 @@ class mevData(commonData):
 
     mev_slope_h = 249.4
 
-    
-    
+    mev_pvt_config_file_path = "/etc/hwconf/active/pvt"
+
+    mev_pvt_log_file_path = "/var/dts_log.txt"
+

@@ -11,16 +11,17 @@ class cpkBase:
     '''
         This class is the base class for CPK infreface, 
         defines the constructor and holds information about the object instance
-        dervied classed define functionality
+        driver classed define functionality
     '''
-    def __init__(self, device_number, port_number, hostname="", driver_type = "sv"):
+    def __init__(self, device_number, pf_number, hostname=""):
         self.project_name = "cpk"
-        self.driver_type = driver_type
+        self.driver_family = "i200e"
         self.device_number = device_number
-        self.port_number = port_number
+        self.pf_number = pf_number
         self.hostname = hostname
+        self.driver = None
         try:
-            self.driver = DriverFactory.create_driver_by_project_name(self.driver_type, self.project_name, device_number, port_number, hostname)
+            self.driver = DriverFactory.create_sv_driver(self.project_name, self.device_number, self.pf_number, self.hostname, self.driver_family)
             self.aq = AdminCommandHandler(self.driver)
             self.data = DataHandler()
         except Exception as e:

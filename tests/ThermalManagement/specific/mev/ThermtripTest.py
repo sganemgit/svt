@@ -18,7 +18,7 @@ class ThermtripTest(ThermalManagementBase):
             self.log.error("THERMTRIP is not asserted")
             return False
 
-    def assert_nichot_deassertion(self, device):
+    def assert_thermtrip_deassertion(self, device):
         """
             This function returns True if thermtrip interrupt is deasserted
         """
@@ -28,13 +28,14 @@ class ThermtripTest(ThermalManagementBase):
             return True
         else:
             self.log.error("THERMTRIP is asserted")
-            return True
+            return False 
 
     def execute_iteration(self):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
         self.log.info("Setting silicon temperature to NICHOT Threshold")
         self.set_temperature(self.dut, self.dut.get_thermtrip_thershold())
+        
         if not self.assert_thermtrip_assertion(self.dut):
             self.append_iteration_fail_reason("NICHOT is not asserted")
 

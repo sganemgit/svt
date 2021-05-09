@@ -63,3 +63,9 @@ class mev(mevBase):
             return self.data.mev_default_thermtrip_b_threshold
         elif hysteresis_dircetion == "down":
             return self.data.mev_default_thermtrip_b_threshold_hysteresis
+    
+    def get_acc_ss_clock_status(self):
+        if self.driver is not None:
+            pass
+
+    

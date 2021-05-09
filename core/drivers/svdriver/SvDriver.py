@@ -7,12 +7,9 @@ import libPyAdminqApi
 
 import sys
 import time
-import struct
-from ctypes import *
-import threading
-from core.structs.DeviceInfo import DeviceInfo
-from core.structs.AqDescriptor import AqDescriptor
-from core.drivers.svdriver.SvDriverCommands import *
+from core.drivers.svdriver.SvDriverBase import SvDriverBase
+#from core.structs.AqDescriptor import AqDescriptor
+#from core.drivers.svdriver.SvDriverCommands import *
 
 MDIO_REGS = {'fvl'    : (0x8818C,0x8819C), 
              'fpk'    : (0x8818C,0x8819C), 
@@ -129,7 +126,7 @@ DEV_IDS = {'fvl' : ['1583','1581','1572','1586','1580'],
 DESC_SIZE = {16: libPyApi.RXDS_16_BYTES,
              32: libPyApi.RXDS_32_BYTES}
 
-class SvDriver(object):
+class SvDriver(SvDriverBase):
     """
         This class performs all the interfacing with SV driver
     """
@@ -140,21 +137,6 @@ class SvDriver(object):
         self._hostname = device_info.hostname
         self._driver_proxy = libPyApi.driver_proxy(self._project_name,int(self._port_number), int(self._device_number), self._hostname)
         
-    @classmethod
-    def create_driver_by_name(cls, device_name, device_number, port_number, hostname = ""):
-        '''This method constructs an SvDriver object
-            input params @device_name
-                         @device_number
-                         @port_number
-                         @hostname
-         '''
-        device_info = DeviceInfo()
-        device_info.device_name = device_name
-        device_info.device_number = str(device_number)
-        device_info.port_number = str(port_number)
-        device_info.hostname = hostname
-        return cls(device_info)
-
     def port_number(self):
         '''
             This method return port number of current port.

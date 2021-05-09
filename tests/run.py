@@ -12,7 +12,7 @@ def check_file(parser, arg):
         parser.error("The file %s does not exist!" % arg)
     else:
         return arg 
-    
+
 def configure_argparser_args(parser):
     parser.add_argument('-f', '--flow', help='Path to the test flow file', type=lambda x: check_file(parser, x))
     return parser
@@ -30,8 +30,4 @@ def main():
 
 if __name__=="__main__":
     main()
-
-
-
-
 
