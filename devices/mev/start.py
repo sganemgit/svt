@@ -23,14 +23,9 @@ parser.add_argument('-r', '--remote' , help="connect to a remote machine")
 args = parser.parse_args()
 
 if args.auto:
-    if args.remote:
-        devices = get_detected_devices("mev", args.remote)
-        if devices:
-            for device,info in devices.items():
-                globals()[device] = mev(info['device_number'],info['port_number'], args.remote)
-    else:
-        devices = get_detected_devices("mev")
-        if devices:
-            for device,info in devices.items():
-                globals()[device] = mev(info['device_number'],info['port_number'])
-
+    remote = args.remote if args.remote else ""
+    devices = get_detected_devices("mev", remote)
+    print(remote)
+    if devices:
+        for device,info in devices.items():
+            globals()[device] = mev(info['device_number'],info['port_number'], info["driver_family"], remote)

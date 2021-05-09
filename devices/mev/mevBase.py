@@ -20,6 +20,7 @@ class mevBase:
         self.fpga = None
         self.driver = None
         self.data = mevData()
+        self.init_sv_driver()
     
     def init_fpga(self, ft_index):
         try:

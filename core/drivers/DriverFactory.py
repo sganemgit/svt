@@ -77,8 +77,8 @@ class DriverFactory():
             from core.drivers.svdriver.idpf import idpf
             return idpf(device_info)
         elif driver_family == "icpf":
-            from core.drivers.svdriver.idpf import idpf
-            return idpf(device_info)
+            from core.drivers.svdriver.icpf import icpf
+            return icpf(device_info)
         else:
             raise Exception("{}: Undefined Driver Family ".format(driver_family))
 

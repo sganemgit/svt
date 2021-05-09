@@ -71,10 +71,12 @@ def get_detected_devices(project_name, remote = ''):
     for line in lines:
         if project_name in line:
             line_component = line.split()
-            info = dict()
-            info['device_number'] = line_component[2].replace("@"+remote, "")
-            info['port_number'] = line_component[3]
-            devices[line_component[0].replace("@","_")] = info
+            if len(line_component) >= 12:
+                info = dict()
+                info['device_number'] = line_component[2].replace("@"+remote, "")
+                info['port_number'] = line_component[3]
+                info["driver_family"] = line_component[10]
+                devices[line_component[0].replace("@","_")] = info
     return devices
 
 def detect_connected_devices():
