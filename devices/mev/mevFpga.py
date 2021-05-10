@@ -19,14 +19,17 @@ class mevFpga:
         self.vout_cmd = 0x21
         self.page_cmd = 0
         self.offset_fpga = 0
+        self._connected = False
     
     def connect(self):
         try:
-            self._ftdi_driver = DriverFactory.create_ftdi_driver(self.ft_index)
-            self.ticks = 1 
-            self.write_register(0x0, 0)
-            self.read_register(0x10)
-            self.ticks = 5 
+            if not self._connected:
+                self._ftdi_driver = DriverFactory.create_ftdi_driver(self.ft_index)
+                self.ticks = 1 
+                self.write_register(0x0, 0)
+                self.read_register(0x10)
+                self.ticks = 5 
+                self._connected = True
         except Exception as e:
             raise e
     

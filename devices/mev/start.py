@@ -25,7 +25,6 @@ args = parser.parse_args()
 if args.auto:
     remote = args.remote if args.remote else ""
     devices = get_detected_devices("mev", remote)
-    print(devices)
     if devices:
         for device,info in devices.items():
             if "mev1" in device:
