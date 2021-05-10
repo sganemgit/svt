@@ -9,8 +9,8 @@ from devices.mev.mevData import mevData
 
 class mevBase:
 
-    def __init__(self, device_number, pf_number, driver_family="idpf", hostname=''):
-        self.project_name = "mev"
+    def __init__(self, device_number, pf_number, mev_type="mev", driver_family="idpf", hostname=''):
+        self.project_name = mev_type
         self.driver_family = driver_family
         self.name_2 = 'mevcp'
         self.driver_type = 'sv'

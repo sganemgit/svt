@@ -6,7 +6,7 @@
 import sys
 import time
 import argparse
-from mev import mev 
+from mev import mev
 from core.drivers.svdriver.SvDriverCommands import *
 
 def help():
@@ -25,7 +25,10 @@ args = parser.parse_args()
 if args.auto:
     remote = args.remote if args.remote else ""
     devices = get_detected_devices("mev", remote)
-    print(remote)
+    print(devices)
     if devices:
         for device,info in devices.items():
-            globals()[device] = mev(info['device_number'],info['port_number'], info["driver_family"], remote)
+            if "mev1" in device:
+                globals()[device] = mev(info['device_number'],info['port_number'], "mev1", info["driver_family"], remote)
+            else:
+                globals()[device] = mev(info['device_number'],info['port_number'], "mev", info["driver_family"], remote)
