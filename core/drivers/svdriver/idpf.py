@@ -1,7 +1,7 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-from core.drivers.svdriver.SvDriver import SvDriver
+from core.drivers.svdriver.SnicDriver import SnicDriver
 
-class idpf(SvDriver):
+class idpf(SnicDriver):
     pass
