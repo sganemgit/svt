@@ -83,6 +83,38 @@ class DriverFactory():
             raise Exception("{}: Undefined Driver Family ".format(driver_family))
 
     @classmethod
+    def _check_ftdi_index_validitiy(cls, index):
+        from core.drivers.ftdidriver.FtdiDriver import FtdiDriver
+        ftdi_devices = FtdiDriver.ft_get_all_devices_info()
+        info = ftdi_devices[index] 
+        if "NIC" in str(info["description"]) and "B" in str(info["description"]):
+            return True
+        else:
+            return False 
+    
+    @classmethod
+    def _check_ftdi_info_validity(cls, info):
+        if "NIC" in str(info["description"]) and "B" in str(info["description"]):
+            return True
+        else:
+            return False 
+
+    @classmethod
     def create_ftdi_driver(cls, ftdi_index=1):
         from core.drivers.ftdidriver.FtdiDriver import FtdiDriver
-        return FtdiDriver(ftdi_index)
+        if cls._check_ftdi_index_validitiy(ftdi_index):
+            return FtdiDriver(ftdi_index)
+        else:
+            raise Exception("not a valid FPGA index")
+    
+    @classmethod
+    def create_ftdi_drivers_auto(cls):
+        driver_list = list()
+        from core.drivers.ftdidriver.FtdiDriver import FtdiDriver
+        ftdi_devices = FtdiDriver.ft_get_all_devices_info()
+        for index, info in ftdi_devices.items():
+            if cls._check_ftdi_info_validity(info):
+                driver = FtdiDriver(index)
+                driver_list.append(driver)
+        return driver_list
+
