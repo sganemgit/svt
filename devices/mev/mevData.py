@@ -35,4 +35,14 @@ class mevData(commonData):
     mev_pvt_config_file_path = "/etc/hwconf/active/pvt"
 
     mev_pvt_log_file_path = "/var/dts_log.txt"
+    
+    mev_cpu_cfg_pll_0_inst = 0x00600000 + 0x00000000
+    mev_cpu_cfg_pll_1_inst = 0x00600000 + 0x00000004 # cores 0,1,2,3,6,7,8,9
+    mev_cpu_cfg_pll_2_inst = 0x00600000 + 0x00000008 # cores 10,11,12,13,4,5,14,15 
+    mev_cpu_cfg_pll_3_inst = 0x00600000 + 0x0000000c 
+    mev_cpu_cfg_pll_4_inst = 0x00600000 + 0x00000010
+    mev_cpu_cfg_pll_5_inst = 0x00600000 + 0x00000018
+    mev_cpu_cfg_pll_6_inst = 0x00600000 + 0x00000018 
+    mev_remap_cfg_7_inst = 0x00600000 + 0x0000001c
+    mev_pll_ro_0_inst = 0x00600000 + 0x00000020
 
