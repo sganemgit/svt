@@ -29,17 +29,6 @@ MDIO_REGS = {'fvl'    : (0x8818C,0x8819C),
 ############################################################################################
 # driver api values
 
-IP_TYPE = {'DEFAULT': libPyApi.IP_DEFAULT, 
-           'LAN' : libPyApi.IP_LAN,
-           'ICE' : libPyApi.IP_ICE,
-           'RDMA' : libPyApi.IP_RDMA,
-           'FXP' : libPyApi.IP_FXP,
-           'HIF' : libPyApi.IP_HIF,
-           'EPL' : libPyApi.IP_EPL,
-           'HLP' : libPyApi.IP_HLP,
-           'ALL' : libPyApi.IP_ALL,
-           'MAX' : libPyApi.IP_MAX}
-
 TX_LIMIT_TYPE = {'FULL_RING': libPyApi.TX_MODE_FULL_RING,
                  'PACKET_COUNT': libPyApi.TX_MODE_PACKET_COUNT_LIMIT,
                  'TIME': libPyApi.TX_MODE_TIME_LIMIT,
@@ -130,12 +119,28 @@ class SvDriver(SvDriverBase):
     """
         This class performs all the interfacing with SV driver
     """
+
+    IP_TYPE = {'DEFAULT': libPyApi.IP_DEFAULT, 
+               'LAN' : libPyApi.IP_LAN,
+               'ICE' : libPyApi.IP_ICE,
+               'RDMA' : libPyApi.IP_RDMA,
+               'FXP' : libPyApi.IP_FXP,
+               'HIF' : libPyApi.IP_HIF,
+               'EPL' : libPyApi.IP_EPL,
+               'HLP' : libPyApi.IP_HLP,
+               'ALL' : libPyApi.IP_ALL,
+               'MAX' : libPyApi.IP_MAX}
+
     def __init__(self, device_info):
         self._project_name = device_info.device_name
         self._device_number = int(device_info.device_number)
         self._port_number = int(device_info.port_number)
         self._hostname = device_info.hostname
+        self._ip_type = self.IP_TYPE["DEFAULT"]
         self._driver_proxy = libPyApi.driver_proxy(self._project_name,int(self._port_number), int(self._device_number), self._hostname)
+    
+    def set_ip_type(self, ip_type="DEFAULT"):
+        self._ip_type = ip_type
         
     def port_number(self):
         '''
@@ -513,7 +518,7 @@ class SvDriver(SvDriverBase):
             This method reads 32-bits csr register at offset specified 
             in 'register_offset' and returns register value.            
         '''
-        csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
+        csr_block = self._driver_proxy.csr(self.IP_TYPE['DEFAULT'])
         value = csr_block.read(register_offset)[1]
         self._driver_proxy.dispose_csr_block(csr_block)
         return value
@@ -523,7 +528,7 @@ class SvDriver(SvDriverBase):
             This method reads 64-bits csr register at offset specified 
             in 'register_offset' and returns register value.          
         '''
-        csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
+        csr_block = self._driver_proxy.csr(self.IP_TYPE['DEFAULT'])
         value = csr_block.read_64(register_offset)[1]
         self._driver_proxy.dispose_csr_block(csr_block)
         return value
@@ -533,7 +538,7 @@ class SvDriver(SvDriverBase):
             This method writes value specified in 'write_value' 
             to 32-bits csr register at offset specified in 'register_offset'.
         '''  
-        csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
+        csr_block = self._driver_proxy.csr(self.IP_TYPE['DEFAULT'])
         csr_block.write(register_offset, write_value)
         self._driver_proxy.dispose_csr_block(csr_block)
 
@@ -542,7 +547,7 @@ class SvDriver(SvDriverBase):
             This method writes value specified in 'write_value' 
             to 64-bits csr register at offset specified in 'register_offset'.
         '''  
-        csr_block = self._driver_proxy.csr(IP_TYPE['DEFAULT'])
+        csr_block = self._driver_proxy.csr(self.IP_TYPE['DEFAULT'])
         csr_block.write_64(register_offset, write_value)
         self._driver_proxy.dispose_csr_block(csr_block)
  

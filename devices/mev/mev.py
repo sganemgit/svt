@@ -104,8 +104,13 @@ class mev(mevBase):
     def get_acc_ss_cpu_clk_status(self):
         if self.driver is not None:
             core_pll_cfg_dict = dict()
-            cfg_1 = self.driver.read_csr(self.data.mev_cpu_cfg_pll_1_inst)
-            cfg_2 = self.driver.read_csr(self.data.mev_cpu_cfg_pll_2_inst)
+            cfg_0 = self.driver.read_csr(self.data.clk_cpu.cpu_cfg_pll_0_inst)
+            cfg_1 = self.driver.read_csr(self.data.clk_cpu.cpu_cfg_pll_1_inst)
+            cfg_2 = self.driver.read_csr(self.data.clk_cpu.cpu_cfg_pll_2_inst)
+            
+            print(hex(cfg_0))
+            print(hex(cfg_1))
+            print(hex(cfg_2))
 
             #cores 0,1,2,3
             postdiv_2a = (cfg_1 >>  16) & 0x7
@@ -121,5 +126,6 @@ class mev(mevBase):
             postdiv_5b = (cfg_2 >> 11) & 0x7 
             
             #TODO finish this method. should return a dict with the each pll clk
+            
 
 
