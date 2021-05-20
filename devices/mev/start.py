@@ -26,7 +26,7 @@ if args.auto:
     remote = args.remote if args.remote else ""
     devices = get_detected_devices("mev", remote)
     if devices:
-        for device,info in devices.items():
+        for device, info in devices.items():
             if "mev1" in device:
                 globals()[device] = mev(info['device_number'],info['port_number'], "mev1", info["driver_family"], remote)
             else:

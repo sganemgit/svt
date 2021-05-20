@@ -1,8 +1,8 @@
 #!/usr/bin/python3 
 
 import inspect 
-import libIntec.libIntec as intec
-from libIntec.libIntec import *
+import libIntec as intec
+from libIntec import *
 
 import sys
 

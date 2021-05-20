@@ -18,9 +18,9 @@ class testBase():
             test_obj = cls(args.get("log_level", "INFO"))
             test_obj.args = args
             test_obj.setup = setup
+            test_obj.instruments = InstrumentFactory.create_instruments_from_setup(setup["Instruments"])
             test_obj.devices = DeviceFactory.create_devices_from_setup(setup['Devices'])
             test_obj.dut_lp_pairs = DeviceFactory.create_dut_lp_pairs(setup['Links'], test_obj.devices)
-            test_obj.instruments = InstrumentFactory.create_instruments_from_setup(setup["Instruments"])
             return test_obj
         except Exception as e:
             import traceback

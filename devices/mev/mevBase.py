@@ -10,6 +10,7 @@ from devices.mev.mevData import mevData
 class mevBase:
 
     def __init__(self, device_number, pf_number, mev_type="mev", driver_family="idpf", hostname=''):
+        self.name = mev_type 
         self.project_name = mev_type
         self.driver_family = driver_family
         self.name_2 = 'mevcp'
@@ -21,6 +22,14 @@ class mevBase:
         self.driver = None
         self.data = mevData()
         self.init_sv_driver()
+    
+    @classmethod
+    def create_mev1(cls, device_number, pf_number, driver_family="idpf", hostname=''):
+        return cls(device_number, pf_number, "mev1", driver_family, hostname)
+    
+    @classmethod
+    def create_mev(cls, device_number, pf_number, driver_family="idpf", hostname=''):
+        return cls(device_number, pf_number, "mev", driver_family, hostname)
     
     def init_fpga(self, ft_index):
         try:

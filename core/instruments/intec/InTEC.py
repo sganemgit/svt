@@ -1,7 +1,7 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
 
-import core.instruments.intec.libIntec.libIntec as intec
+import libIntec as intec
 
 class InTEC:
     

@@ -1,6 +1,8 @@
 
 # @author Shady Ganem <shady.ganem@intel.com>
+
 from core.utilities.colors import colors
+
 class InstrumentFactory:
 
     @classmethod

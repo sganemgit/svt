@@ -46,21 +46,21 @@ class XmlParser():
                 device_dom_list = testcase_dom.findall('Setup/Devices/Device')
                 if device_dom_list:
                     for index, device_dom in enumerate(device_dom_list):
-                        device_dict['device_{}'.format(index)] = device_dom.attrib
+                        device_key = "device{}".format(index)
+                        device_dict[device_key] = device_dom.attrib
                         pf_dict = dict()
-                        pf_dom_list = device_dom.findall('Port')
+                        pf_dom_list = device_dom.findall('PF')
                         if pf_dom_list:
                             for pf in pf_dom_list:
-                                pf_dict[pf.attrib['ID']] = pf.attrib['number']
-
-                        device_dict['device_{}'.format(index)]['Ports'] = pf_dict
+                                pf_dict[pf.attrib['ID']] = pf.attrib
+                        device_dict[device_key]['PFs'] = pf_dict
                 
                 #parsing links
                 link_dom_list = testcase_dom.findall('Setup/Links/Link')
                 if link_dom_list:
                     for index, link_dom in enumerate(link_dom_list):
                         pf_dict = dict()
-                        pf_dom_list = link_dom.findall('Port')
+                        pf_dom_list = link_dom.findall('PF')
                         if pf_dom_list:
                             for pf in pf_dom_list:
                                 pf_dict[pf.attrib['role']] = pf.attrib['ID']

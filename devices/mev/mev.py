@@ -1,3 +1,6 @@
+
+# @author Shady Ganem <shady.ganem@intel.com>
+
 from devices.mev.mevBase import mevBase
 
 class mev(mevBase):
@@ -103,14 +106,26 @@ class mev(mevBase):
  
     def get_acc_ss_cpu_clk_status(self):
         if self.driver is not None:
-            core_pll_cfg_dict = dict()
-            cfg_0 = self.driver.read_csr(self.data.clk_cpu.cpu_cfg_pll_0_inst)
-            cfg_1 = self.driver.read_csr(self.data.clk_cpu.cpu_cfg_pll_1_inst)
-            cfg_2 = self.driver.read_csr(self.data.clk_cpu.cpu_cfg_pll_2_inst)
+            refdiv_to_clk_map = {0x1: "25MHz"}
+            fbdiv_to_str_clk_map = {0xf0: "6000MHz", 
+                                    0xd8: "5400MHz", 
+                                    0xa0: "4000MHz"}
             
-            print(hex(cfg_0))
-            print(hex(cfg_1))
-            print(hex(cfg_2))
+            fbdiv_to_int_clk_map = {0xf0: 6000, 
+                                    0xd8: 5400, 
+                                    0xa0: 4000}
+
+            pll_cfg_dict = dict()
+            cfg_0 = self.driver.read_csr(self.data.clk_cpu.cpu_pll_cfg_0_inst)
+            cfg_1 = self.driver.read_csr(self.data.clk_cpu.cpu_pll_cfg_1_inst)
+            cfg_2 = self.driver.read_csr(self.data.clk_cpu.cpu_pll_cfg_2_inst)
+            
+            pll_en = cfg_0 & 0x1
+            fout_en = (cfg_0 >> 1) & 0xf
+            fbdiv = (cfg_0 >> 8) & 0xfff
+            bypass_en = (cfg_0 >> 26) & 0xf
+            vcodivsel = (cfg_0 >> 30) & 0x1
+            refclkdiv = (cfg_2 >> 16) & 0x3f
 
             #cores 0,1,2,3
             postdiv_2a = (cfg_1 >>  16) & 0x7
@@ -125,7 +140,15 @@ class mev(mevBase):
             postdiv_5a = (cfg_2 >> 8) & 0x7 
             postdiv_5b = (cfg_2 >> 11) & 0x7 
             
-            #TODO finish this method. should return a dict with the each pll clk
-            
+            pll_cfg_dict["reference_clock"] = refdiv_to_clk_map.get(refclkdiv, "N/A")
+            pll_cfg_dict["pll_enable"] = pll_en 
+            pll_cfg_dict["pll_vco"] = vco_clk = fbdiv_to_int_clk_map.get(fbdiv, "N/A") # in MHz
+            pll_cfg_dict["fanout_enable"] = fout_en
 
+            pll_cfg_dict["cores_0_1_2_3"] = int(vco_clk/((postdiv_2a+1)*(postdiv_2b+1)))
+            pll_cfg_dict["cores_6_7_8_9"] =  int(vco_clk/((postdiv_3a+1)*(postdiv_3b+1)))
+            pll_cfg_dict["cores_10_11_12_13"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
+            pll_cfg_dict["cores_3_4_14_15"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
+            
+            return pll_cfg_dict
 

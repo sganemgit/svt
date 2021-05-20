@@ -38,13 +38,13 @@ class mevData(commonData):
    
     class clk_cpu:
         base_address = 0x3e00000
-        cpu_cfg_pll_0_inst = base_address + 0
-        cpu_cfg_pll_1_inst = base_address + 0x4
-        cpu_cfg_pll_2_inst = base_address + 0x8
-        cpu_cfg_pll_3_inst = base_address + 0xc
-        cpu_cfg_pll_4_inst = base_address + 0x10
-        cpu_cfg_pll_5_inst = base_address + 0x14
-        cpu_cfg_pll_6_inst = base_address + 0x18
+        cpu_pll_cfg_0_inst = base_address + 0
+        cpu_pll_cfg_1_inst = base_address + 0x4
+        cpu_pll_cfg_2_inst = base_address + 0x8
+        cpu_pll_cfg_3_inst = base_address + 0xc
+        cpu_pll_cfg_4_inst = base_address + 0x10
+        cpu_pll_cfg_5_inst = base_address + 0x14
+        cpu_pll_cfg_6_inst = base_address + 0x18
         mem_remap_cfg_8_inst = base_address + 0x1c
         cpu_pll_ro_0_inst = base_address + 0x20
  

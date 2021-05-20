@@ -3,10 +3,10 @@
 
 from core.utilities.colors import colors
 class DeviceFactory:
-    _supported_devices_list = ['cvl', 'mev', 'mev1', 'crsvl','cpk']
+    _supported_devices_list = ['cvl', 'mev', 'mev1', 'crsvl','cpk', 'fvl', 'fpk']
 
     @classmethod
-    def create_device(cls, device_name, device_number, pf_number, hostname = ''):
+    def create_device(cls, device_name, device_number, pf_number, driver=None, hostname = ''):
         if device_name == 'cvl':
             from devices.cvl.cvl import cvl
             return cvl(device_number, pf_number, hostname)
@@ -19,15 +19,16 @@ class DeviceFactory:
         elif device_name == 'fpk':
             from devices.fpk.fpk import fpk
             return fpk(device_number, pf_number, hostname)
-        elif device_name == 'mev' or device_name == 'mev1':
+        elif device_name == 'mev':
             from devices.mev.mev import mev
-            return mev(device_number, pf_number, hostname)
+            return mev.create_mev(device_number, pf_number, driver if driver is not None else "idpf", hostname)
+        elif device_name == 'mev1':
+            from devices.mev.mev import mev
+            return mev.create_mev1(device_number, pf_number, driver if driver is not None else "idpf", hostname)
 
     @classmethod
     def create_dut_lp_pairs(cls, links, devices):
         pair_list = list()
-        print(devices)
-        print(links)
         for link, roles in links.items():
             if roles['dut'] in devices.keys() and roles['lp'] in devices.keys():
                 pair_list.append((devices[roles['dut']], devices[roles['lp']]))
@@ -57,9 +58,9 @@ class DeviceFactory:
 
         '''
         pf_dict = dict()
-        for device_id, device_dict, in devices.items():
-            for pf_id, number in device_dict['Ports'].items():
-                pf_dict[pf_id] = cls.create_device(device_dict['name'], int(device_dict['number']), int(number), device_dict['hostname'])
+        for device_id, device_attrib in devices.items():
+            for pf_id, pf_attrib in device_attrib['PFs'].items():
+                pf_dict[pf_id] = cls.create_device(device_attrib['name'], int(device_attrib['number']), int(pf_attrib['number']), pf_attrib.get('driver', None), device_attrib['hostname'])
         return pf_dict
  
 
