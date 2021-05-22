@@ -5,6 +5,7 @@ TEST = True
 
 from tests.ThermalManagement.specific.mev.ThermalManagementBase import ThermalManagementBase
 from core.exceptions.Exceptions import *
+from core.utilites.Timer import Timer
 
 class NichotTest(ThermalManagementBase):
 
@@ -35,8 +36,11 @@ class NichotTest(ThermalManagementBase):
     def execute_iteration(self):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
-        self.log.info("Setting silicon temperature to NICHOT Threshold")
-        self.set_temperature(self.dut, self.dut.get_nichot_threshold(hysteresis_direction="up"))
+        temp = self.dut.get_nichot_threshold(hysteresis_direction="up")
+        self.log.info("setting temperature to {}".foramt(temp))
+        self.set_temperature(self.dut, temp)
+        timer = Timer(10)
+        while 
         if not self.assert_nichot_assertion(self.dut):
             self.append_iteration_fail_reason("NICHOT is not asserted")
         self.set_temperature(self.dut, self.dut.get_nichot_threshold(hysteresis_direction="down"))

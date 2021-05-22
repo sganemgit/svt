@@ -11,11 +11,9 @@ class ThermtripTest(ThermalManagementBase):
             This function return True if thermtrip siganl is asserted
         """
         status = device.get_nichot_status()
-        if status != 0 :
-            self.log.info("THERMTRIP is asserted", 'g')
+        if status == 0 :
             return True
         else:
-            self.log.error("THERMTRIP is not asserted")
             return False
 
     def assert_thermtrip_deassertion(self, device):
@@ -23,11 +21,9 @@ class ThermtripTest(ThermalManagementBase):
             This function returns True if thermtrip interrupt is deasserted
         """
         status = device.get_thermtrip_status()
-        if status == 0:
-            self.log.info("THERMTRIP is deasserted", 'g')
+        if status != 0:
             return True
         else:
-            self.log.error("THERMTRIP is asserted")
             return False 
 
     def execute_iteration(self):
