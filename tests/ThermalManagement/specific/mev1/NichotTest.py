@@ -1,11 +1,10 @@
 
-# @author Sivan Yehuda <sivan.yehuda@intel.com>
+# @author Shady Ganem <shady.ganem@intel.com>
 
 TEST = True
 
 from tests.ThermalManagement.specific.mev.ThermalManagementBase import ThermalManagementBase
 from core.exceptions.Exceptions import *
-from core.utilities.Timer import Timer
 
 class NichotTest(ThermalManagementBase):
 
@@ -13,11 +12,12 @@ class NichotTest(ThermalManagementBase):
         """
             This function return True if nichot siganl is asserted
         """
-        #nichot is an active low signal 
         status = device.get_nichot_status()
-        if status == 0 :
+        if status != 0 :
+            self.log.info("NICHOT is asserted", 'g')
             return True
         else:
+            self.log.error("NICHOT is not asserted")
             return False
 
     def assert_nichot_deassertion(self, device):
@@ -25,38 +25,23 @@ class NichotTest(ThermalManagementBase):
             This function returns True if nichot interrupt is deasserted
         """
         status = device.get_nichot_status()
-        if status != 0:
+        if status == 0:
+            self.log.info("NICHOT is deasserted", 'g')
             return True
         else:
-            return False 
+            self.log.error("NICHOT is asserted")
+            return True
 
     def execute_iteration(self):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
-        temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
-        self.log.info("setting temperature to {}. above NICHOT threshold".format(temp))
-        self.set_temperature(self.dut, temp)
-        timer = Timer(10)
-        timer.start()
-        while True:
-            if timer.expired(): 
-                self.append_iteration_fail_reason("NICHOT is not asserted 10sec timer timeout")
-                break
-            if self.assert_nichot_assertion(self.dut):
-                self.log.info("NICHOT siganl is asserted", "g")
-                break
-        temp = self.dut.get_nichot_threshold(hysteresis_direction="down") - 1
-        self.log.info("setting temperature to {}. below NICHOT threshold".format(temp))
-        self.set_temperature(self.dut, temp)
-        timer.reset()
-        timer.start()
-        while True:
-            if timer.expired():
-                self.append_iteration_fail_reason("NICHOT is asserted 10sec after timeout")
-                break
-            if self.assert_nichot_deassertion(self.dut):
-                self.append_iteration_fail_reason("NICHOT signal deasserted", "g")
-                break
+        self.log.info("Setting silicon temperature to NICHOT Threshold")
+        self.set_temperature(self.dut, self.dut.get_nichot_threshold(hysteresis_direction="up"))
+        if not self.assert_nichot_assertion(self.dut):
+            self.append_iteration_fail_reason("NICHOT is not asserted")
+        self.set_temperature(self.dut, self.dut.get_nichot_threshold(hysteresis_direction="down"))
+        if not self.assert_nichot_deassertion(self.dut):
+            self.append_iteration_fail_reason("NICHOT is asserted")
 
     def run(self):
         self.log.info("NICHOT Test")
