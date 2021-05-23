@@ -1,10 +1,10 @@
 <TestFlow>
-    <!--TestCase>
+	<TestCase>
 		<Test name='TemperatureSweepTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
-			<Parameter name='ftdi_index' value='1'/>
-			<Parameter name='num_of_iter' value='2'/>
+			<Parameter name='ftdi_index' value='3'/>
+			<Parameter name='num_of_iter' value='3'/>
 			<Parameter name='log_level' value='DEBUG'/>
 		</Input>
 		<Setup>
@@ -12,19 +12,19 @@
 				<Instrument name='intec' type="IntecH" index="0" ID="intec_0"/>
 			</Instruments>
 			<Devices>
-				<Device name='mev' hostname='' number='0'>
-					<Port ID='mev0:0' number='0'/>
+				<Device name='mev1' hostname='' number='0'>
+					<PF ID='mev0:0' number='0' driver="idpf"/>
 				</Device>
 			</Devices>
-			<Links>
+			<!--Links>
 				<Link>
 					<Port ID='mev0:0' role='dut'/>
 					<Port ID='mev1:0' role='lp'/>
 				</Link>
-			</Links>
+			</Links-->
 		</Setup>
-    </TestCase-->
-	<!--TestCase>
+	</TestCase>
+	<TestCase>
 		<Test name='NichotTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
@@ -41,22 +41,47 @@
 					<PF ID='mev0:0' number='0' driver="idpf"/>
 				</Device>
 			</Devices>
-			<Links>
+			<!--Links>
 				<Link>
 					<Port ID='mev0:0' role='dut'/>
 					<Port ID='mev1:0' role='lp'/>
 				</Link>
-			</Links>
+			</Links-->
 		</Setup>
-    </TestCase-->
+	</TestCase>
 	<TestCase>
 
 		<Test name='ThermalThrottlingTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
 			<Parameter name='ftdi_index' value='3'/>
-			<Parameter name='num_of_iter' value='2'/>
-			<Parameter name='log_level' value='DEBUG'/>
+			<Parameter name='num_of_iter' value='3'/>
+			<Parameter name='log_level' value='INFO'/>
+		</Input>
+		<Setup>
+			<Instruments>
+				<Instrument name='intec' type="IntecH" index="0" ID="intec_0"/>
+			</Instruments>
+			<Devices>
+				<Device name='mev1' hostname='' number='0'>
+					<PF ID='mev0:0' number='0' driver="idpf"/>
+				</Device>
+			</Devices>
+			<!--Links>
+				<Link>
+					<Port ID='mev0:0' role='dut'/>
+					<Port ID='mev1:0' role='lp'/>
+				</Link>
+			</Links-->
+		</Setup>
+	</TestCase>
+	<TestCase>
+		<Test name='ThermtirpTest'/>
+		<Input>
+			<Parameter name='run_time' value='10'/>
+			<Parameter name='ftdi_index' value='3'/>
+			<Parameter name='num_of_iter' value='1'/>
+			<Parameter name='log_level' value='INFO'/>
 		</Input>
 		<Setup>
 			<Instruments>

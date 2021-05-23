@@ -1,6 +1,12 @@
 
 from data.common.commonData import commonData
 
+def get_address_by_byte(byte):
+    number_of_words = int(byte/4)
+    address = 0x4c00000 + 0x100 + (number_of_words*4)
+    offset = byte%4
+    return (address, offset)
+
 class mevData(commonData):
 
     mev_default_itd_lut = { "_comment": "ITD lookup table (max_temp values are in Celsius, resolution of *_delta in mv)",
@@ -56,6 +62,55 @@ class mevData(commonData):
     class pvt_1:
         base_address = 0xfe00000
         
+    class syscon:
+        base_address = 0x2800000
+        int_en = base_address + 0x2224
+        
+
     class otp:
         base_address = 0x4c00000
+        otp_efuse_data00 = base_address + 0x100 # 0-3
+        otp_efuse_data01 = base_address + 0x104 # 4-7
+        otp_efuse_data02 = base_address + 0x108 # 8-11
+        otp_efuse_data03 = base_address + 0x10c # 12-15
+        otp_efuse_data04 = base_address + 0x110
+        otp_efuse_data05 = base_address + 0x114
+        otp_efuse_data06 = base_address + 0x118
+        otp_efuse_data07 = base_address + 0x11c
+        otp_efuse_data08 = base_address + 0x120
+        otp_efuse_data09 = base_address + 0x124
+        otp_efuse_data0a = base_address + 0x128
+        otp_efuse_data0b = base_address + 0x12c
+        otp_efuse_data0c = base_address + 0x130
+        otp_efuse_data0d = base_address + 0x134
+        otp_efuse_data0e = base_address + 0x138
+        otp_efuse_data0f = base_address + 0x13c
+        otp_efuse_data10 = base_address + 0x140
+        otp_efuse_data11 = base_address + 0x144
+        otp_efuse_data12 = base_address + 0x148
+        otp_efuse_data13 = base_address + 0x14c
+        otp_efuse_data14 = base_address + 0x150
+        otp_efuse_data15 = base_address + 0x154
+        otp_efuse_data16 = base_address + 0x158
+        otp_efuse_data17 = base_address + 0x15c
+        otp_efuse_data18 = base_address + 0x160
+        otp_efuse_data19 = base_address + 0x164
+        otp_efuse_data1a = base_address + 0x168
+        otp_efuse_data1b = base_address + 0x16c
+        otp_efuse_data1c = base_address + 0x170
+        otp_efuse_data1d = base_address + 0x174
+        otp_efuse_data1e = base_address + 0x178
+        otp_efuse_data1f = base_address + 0x17c 
+        
+        pvt_use_uncalibrated_ts_byte = get_address_by_byte(63) + (0x1,)
+        pvt_ts_cattrip = get_address_by_byte(63) + (0xf,) 
+        pvt_ts_catrrip_disable = get_address_by_byte(63) + (0x1,)
+        
+        pvt_vid_vcc_sm = get_address_by_byte(66) + (0xff,)
+        pvt_vid_vcc_pm = get_address_by_byte(99) + (0xff,)
+        pvt_vid_vnn = get_address_by_byte(100) + (0xff,)
+        pvt_vnn_itd_disable = get_address_by_byte(101) + (0x1,)
+        pvt_vcc_itd_disable = get_address_by_byte(101) + (0x1,)
+        pvt_ares_max_frequency = get_address_by_byte(101) + (0x1f,)
+        
 

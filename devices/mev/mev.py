@@ -68,41 +68,54 @@ class mev(mevBase):
             return self.data.mev_default_thermtrip_b_threshold_hysteresis
 
     def get_pvt_vid_vcc_pm(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_vid_vcc_pm
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
 
     def get_pvt_vid_vcc_sm(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_vid_vcc_sm
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
 
     def get_pvt_vid_vnn(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_vid_vnn
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
 
     def get_pvt_vnn_itd_disable(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_vnn_itd_disable
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
         
     def get_pvt_vcc_itd_disable(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_vcc_itd_disable
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
     
     def get_pvt_ts_cattrip_disable(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_ts_catrrip_disable
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
     
     def get_pvt_use_uncalibrated_ts(self):
-        #TODO return fuse value via sv driver
-        pass
+        address, offset, mask = self.data.otp.pvt_use_uncalibrated_ts_byte
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & mask
     
-    def get_PVT_TS_CATTRIP_6_0(self):
-        #TODO return fuse value via sv driver
-        pass
+    def get_pvt_ts_cattrip(self):
+        address, offset, mask = self.data.otp.pvt_ts_cattrip
+        fuse = self.driver.read_csr(address)
+        print(bin(fuse+2**32))
+        return (fuse >> (8*offset)) & mask
     
     def get_all_tm_fuses(self):
         #TODO finish this method by calling the other mehtods
         fuse_dict = dict()
         return fuse_dict
+    
+    def dump_otp_efuse(self):
+        for word in range(32):
+            print(hex(self.driver.read_csr(self.data.otp.base_address + 0x100 + (word*4)) + 2**32))
  
     def get_acc_ss_cpu_clk_status(self):
         if self.driver is not None:
@@ -152,3 +165,7 @@ class mev(mevBase):
             
             return pll_cfg_dict
 
+    def read_all_otp_data(self):
+        for key, val in self.data.otp.__dict__.items():
+            if "efuse" in key:
+                print(self.driver.read_csr(val))
