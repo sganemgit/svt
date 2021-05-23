@@ -90,23 +90,22 @@ class mev(mevBase):
     def get_pvt_vcc_itd_disable(self):
         address, offset, mask = self.data.otp.pvt_vcc_itd_disable
         fuse = self.driver.read_csr(address)
-        return (fuse >> (8*offset)) & mask
+        return (fuse >> (8*offset)>>1) & mask
     
     def get_pvt_ts_cattrip_disable(self):
         address, offset, mask = self.data.otp.pvt_ts_catrrip_disable
         fuse = self.driver.read_csr(address)
-        return (fuse >> (8*offset)) & mask
+        return ((fuse >> (8*offset))>>8) & mask
     
     def get_pvt_use_uncalibrated_ts(self):
-        address, offset, mask = self.data.otp.pvt_use_uncalibrated_ts_byte
+        address, offset, mask = self.data.otp.pvt_use_uncalibrated_ts
         fuse = self.driver.read_csr(address)
-        return (fuse >> (8*offset)) & mask
+        return ((fuse >> (8*offset))>> 3) & mask
     
     def get_pvt_ts_cattrip(self):
         address, offset, mask = self.data.otp.pvt_ts_cattrip
         fuse = self.driver.read_csr(address)
-        print(bin(fuse+2**32))
-        return (fuse >> (8*offset)) & mask
+        return ((fuse >> (8*offset))>> 4) & mask
     
     def get_all_tm_fuses(self):
         #TODO finish this method by calling the other mehtods
@@ -115,7 +114,7 @@ class mev(mevBase):
     
     def dump_otp_efuse(self):
         for word in range(32):
-            print(hex(self.driver.read_csr(self.data.otp.base_address + 0x100 + (word*4)) + 2**32))
+            print(hex(self.driver.read_csr(self.data.otp.base_address + 0x100 + (word*4))))
  
     def get_acc_ss_cpu_clk_status(self):
         if self.driver is not None:

@@ -102,7 +102,7 @@ class mevData(commonData):
         otp_efuse_data1e = base_address + 0x178
         otp_efuse_data1f = base_address + 0x17c 
         
-        pvt_use_uncalibrated_ts_byte = get_address_by_byte(63) + (0x1,)
+        pvt_use_uncalibrated_ts = get_address_by_byte(63) + (0x1,)
         pvt_ts_cattrip = get_address_by_byte(63) + (0xf,) 
         pvt_ts_catrrip_disable = get_address_by_byte(63) + (0x1,)
         
