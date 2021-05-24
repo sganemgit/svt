@@ -116,6 +116,7 @@ class ThermalManagementBase(testBase):
             raise FatalTestError("could not identify the device name")
 
     def reset_temperature(self):
+        self.log.info("reseting temperature to 25", 'o')
         self.set_t_case(25)
 
     def set_temperature(self, device, temp):

@@ -41,6 +41,23 @@ class mevData(commonData):
     mev_pvt_config_file_path = "/etc/hwconf/active/pvt"
 
     mev_pvt_log_file_path = "/var/dts_log.txt"
+    
+    mev_cattrip_fuse_temperature_setting  = {0b0000: 125,
+                                             0b0001: 124.5,
+                                             0b0010: 124.0,
+                                             0b0011: 123.5,
+                                             0b0100: 123.0,
+                                             0b0101: 122.5,
+                                             0b0110: 122.0,
+                                             0b0111: 121.5,
+                                             0b1000: 121.0,
+                                             0b1001: 120.5,
+                                             0b1010: 120.0,
+                                             0b1011: 119.5,
+                                             0b1100: 119.0,
+                                             0b1101: 118.5,
+                                             0b1110: 118.0,
+                                             0b1111: 117.5}
    
     class clk_cpu:
         base_address = 0x3e00000
@@ -104,7 +121,7 @@ class mevData(commonData):
         
         pvt_use_uncalibrated_ts = get_address_by_byte(63) + (0x1,)
         pvt_ts_cattrip = get_address_by_byte(63) + (0xf,) 
-        pvt_ts_catrrip_disable = get_address_by_byte(63) + (0x1,)
+        pvt_ts_cattrip_disable = get_address_by_byte(63) + (0x1,)
         
         pvt_vid_vcc_sm = get_address_by_byte(66) + (0xff,)
         pvt_vid_vcc_pm = get_address_by_byte(99) + (0xff,)
