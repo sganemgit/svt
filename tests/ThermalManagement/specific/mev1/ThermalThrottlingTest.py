@@ -1,5 +1,5 @@
 
-# @author Sivan Yehuda <sivan.yehuda@intel.com>
+# @author Shady Ganem <shady.ganem@intel.com>
 
 TEST = True
 
@@ -12,6 +12,9 @@ class ThermalThrottlingTest(ThermalManagementBase):
     def assert_acc_clk_reduction(self, device):
         acc_clk_cfg = device.get_acc_ss_cpu_clk_status()
         vco = acc_clk_cfg["pll_vco"]
+        if not vco:
+            self.log.error("VCO value is not valid")
+            raise Exception("VCO vlaue is not valid")
         reduced_clk = int(vco/4)
         clk_ok = True
         #checking cores 0,1,2,3
@@ -35,6 +38,9 @@ class ThermalThrottlingTest(ThermalManagementBase):
     def assert_acc_clk_boost(self, device):
         acc_clk_cfg = device.get_acc_ss_cpu_clk_status()
         vco = acc_clk_cfg["pll_vco"]
+        if not vco:
+            self.log.error("VCO value is not valid")
+            raise Exception("VCO vlaue is not valid")
         boosted_clk = int(vco/2)
         clk_ok = True
         #checking cores 0,1,2,3
@@ -66,7 +72,7 @@ class ThermalThrottlingTest(ThermalManagementBase):
         timer.start()
         while True:
             if timer.expired():
-                self.append_iteration_fail_reason("10 sec timer expired. Nichot signal not asserted")
+                self.append_iteration_fail_reason("10 sec timer expired. acc clk is not redued")
                 break
             if self.assert_acc_clk_reduction(self.dut):
                 self.log.info("acc clk is redued", 'g')
@@ -98,6 +104,9 @@ class ThermalThrottlingTest(ThermalManagementBase):
                     self.append_fail_reason("Fatal Test Error: " + str(e))
                     break
                 except Exception as e:
+                    if self.args.get("log_level", "INFO") == "debug":
+                        import traceback
+                        self.log.debug(traceback.format_exc())
                     self.append_fail_reason(str(e))
                 finally:
                     self.reset_temperature()

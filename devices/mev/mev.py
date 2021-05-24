@@ -159,15 +159,16 @@ class mev(mevBase):
             postdiv_5a = (cfg_2 >> 8) & 0x7 
             postdiv_5b = (cfg_2 >> 11) & 0x7 
             
-            pll_cfg_dict["reference_clock"] = refdiv_to_clk_map.get(refclkdiv, "N/A")
+            pll_cfg_dict["reference_clock"] = refdiv_to_clk_map.get(refclkdiv, None)
             pll_cfg_dict["pll_enable"] = pll_en 
-            pll_cfg_dict["pll_vco"] = vco_clk = fbdiv_to_int_clk_map.get(fbdiv, "N/A") # in MHz
+            pll_cfg_dict["pll_vco"] = vco_clk = fbdiv_to_int_clk_map.get(fbdiv, None) # in MHz
             pll_cfg_dict["fanout_enable"] = fout_en
 
-            pll_cfg_dict["cores_0_1_2_3"] = int(vco_clk/((postdiv_2a+1)*(postdiv_2b+1)))
-            pll_cfg_dict["cores_6_7_8_9"] =  int(vco_clk/((postdiv_3a+1)*(postdiv_3b+1)))
-            pll_cfg_dict["cores_10_11_12_13"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
-            pll_cfg_dict["cores_3_4_14_15"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
+            if vco_clk:
+                pll_cfg_dict["cores_0_1_2_3"] = int(vco_clk/((postdiv_2a+1)*(postdiv_2b+1)))
+                pll_cfg_dict["cores_6_7_8_9"] =  int(vco_clk/((postdiv_3a+1)*(postdiv_3b+1)))
+                pll_cfg_dict["cores_10_11_12_13"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
+                pll_cfg_dict["cores_3_4_14_15"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
             
             return pll_cfg_dict
 
