@@ -5,6 +5,16 @@ import time
 
 class ThermalManagementBase(testBase):
 
+    def prepare_test(self):
+        try:
+            self.init_test_data()
+            self.prepare_instruments()
+            self.prepare_devices()
+            return True
+        except Exception as e:
+            self.append_fail_reason(str(e))
+            return False
+
     def prepare_instruments(self):
         for inst_name, inst in self.instruments.items():
             if inst is not None:
@@ -18,22 +28,16 @@ class ThermalManagementBase(testBase):
             self.log.error(msg)
             raise FatalTestError(msg)
 
-    def prepare_test(self):
-        try:
-            self.init_test_data()
-            self.prepare_instruments()
-            self.prepare_devices()
-            return True
-        except Exception as e:
-            self.append_fail_reason(str(e))
-            return False
-
     def prepare_devices(self):
-        #TODO prepare deivce should be generic. not mev specific or device number specific
-        #TODO need to intialize the driver object as for mev
-        self.dut = self.devices['mev0:0']
-        self.dut.init_fpga(self.ftdi_index)
-        self.log.info("Devices ready", 'g')
+        for device_id, device in self.devices.items():
+            if "mev" in device.name:
+                self.dut = device
+                self.dut.init_fpga(self.ftdi_index)
+                break
+        if self.dut:
+            self.log.info("Devices ready", 'g')
+        else:
+            raise FatalTestError("could not find a mev device")
     
     def log_input_args(self):
         self.log.info("-"*80)

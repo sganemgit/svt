@@ -23,7 +23,7 @@
 			</Links-->
 		</Setup>
 	</TestCase>
-	<!--TestCase>
+	<TestCase>
 		<Test name='NichotTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
@@ -40,12 +40,6 @@
 					<PF ID='mev0:0' number='0' driver="idpf"/>
 				</Device>
 			</Devices>
-			<Links>
-				<Link>
-					<Port ID='mev0:0' role='dut'/>
-					<Port ID='mev1:0' role='lp'/>
-				</Link>
-			</Links>
 		</Setup>
 	</TestCase>
 	<TestCase>
@@ -66,12 +60,6 @@
 					<PF ID='mev0:0' number='0' driver="idpf"/>
 				</Device>
 			</Devices>
-			<Links>
-				<Link>
-					<Port ID='mev0:0' role='dut'/>
-					<Port ID='mev1:0' role='lp'/>
-				</Link>
-			</Links>
 		</Setup>
 	</TestCase>
 	<TestCase>
@@ -91,12 +79,6 @@
 					<PF ID='mev0:0' number='0' driver="idpf"/>
 				</Device>
 			</Devices>
-			<Links>
-				<Link>
-					<Port ID='mev0:0' role='dut'/>
-					<Port ID='mev1:0' role='lp'/>
-				</Link>
-			</Links>
 		</Setup>
-	</TestCase-->
+	</TestCase>
 </TestFlow>

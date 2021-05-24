@@ -118,8 +118,10 @@ class mev(mevBase):
         return fuse_dict
     
     def dump_otp_efuse(self):
+        fuse_list = list()
         for word in range(32):
-            print(hex(self.driver.read_csr(self.data.otp.base_address + 0x100 + (word*4))))
+            fuse_list.append(self.driver.read_csr(self.data.otp.base_address + 0x100 + (word*4)) + 2**32)
+        return fuse_list
  
     def get_acc_ss_cpu_clk_status(self):
         if self.driver is not None:
@@ -169,7 +171,3 @@ class mev(mevBase):
             
             return pll_cfg_dict
 
-    def read_all_otp_data(self):
-        for key, val in self.data.otp.__dict__.items():
-            if "efuse" in key:
-                print(self.driver.read_csr(val))
