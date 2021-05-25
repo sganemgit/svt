@@ -10,9 +10,6 @@ from core.utilities.Timer import Timer
 class NichotTest(ThermalManagementBase):
 
     def assert_nichot_assertion(self, device):
-        """
-            This function return True if nichot siganl is asserted
-        """
         status = device.get_nichot_status()
         if status == 0 :
             return True
@@ -20,9 +17,6 @@ class NichotTest(ThermalManagementBase):
             return False
 
     def assert_nichot_deassertion(self, device):
-        """
-            This function returns True if nichot interrupt is deasserted
-        """
         status = device.get_nichot_status()
         if status != 0:
             return True
@@ -32,6 +26,7 @@ class NichotTest(ThermalManagementBase):
     def execute_iteration(self):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
+        
         #testing for nichot assertion above threshold
         temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
         self.log.info("setting temperature to {}".format(temp))

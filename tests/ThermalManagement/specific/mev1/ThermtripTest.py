@@ -24,8 +24,13 @@ class ThermtripTest(ThermalManagementBase):
     def execute_iteration(self):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
+        
+        if self.dut.get_pvt_ts_cattrip_disable() == 1:
+            raise FatalTestError("CATTRIP is disabled in fuse")
+    
         self.log.info("Setting silicon temperature to Thermtrip Threshold")
-        self.set_temperature(self.dut, self.dut.get_thermtrip_thershold())
+        temp = self.dut.get_thermtrip_threshold()
+        self.set_temperature(self.dut, temp)
         timer = Timer(10)
         timer.start()
         while True:

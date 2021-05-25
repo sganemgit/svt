@@ -50,24 +50,14 @@ class mev(mevBase):
             return None
 
     def get_thermtrip_threshold(self):
-        pvt_ts_cattrip_disable = self.get_pvt_ts_cattrip_disable()
-        if pvt_ts_cattrip_disable:
-            return self.data.mev_default_thermtrip_b_threshold
-        else:
-            pvt_ts_cattrip_fuse = self.get_pvt_ts_cattrip()
-            return self.data.mev_cattrip_fuse_temperature_setting[pvt_ts_cattrip_fuse]
+        pvt_ts_cattrip_fuse = self.get_pvt_ts_cattrip()
+        return self.data.mev_cattrip_fuse_temperature_setting[pvt_ts_cattrip_fuse]
 
     def get_nichot_threshold(self, hysteresis_direction="up"):
         if hysteresis_direction == "up":
             return self.data.mev_default_nichot_b_threshold
         elif hysteresis_direction == "down":
             return self.data.mev_default_nichot_b_thershold_hysteresis
-
-    def get_thermtrip_thershold(self, hysteresis_dircetion="up"):
-        if hysteresis_dircetion == "up":
-            return self.data.mev_default_thermtrip_b_threshold
-        elif hysteresis_dircetion == "down":
-            return self.data.mev_default_thermtrip_b_threshold_hysteresis
 
     def get_pvt_vid_vcc_pm(self):
         address, offset, mask = self.data.otp.pvt_vid_vcc_pm
