@@ -125,7 +125,7 @@ class ThermalManagementBase(testBase):
 
     def set_temperature(self, device, temp):
         '''
-            This method sets the temperature on the silicon and uses the t_diode as a loopback refrence
+            This method sets the temperature on the silicon and uses the t_diode as a loopback reference
         '''
         done = False
         stability_counter = 0
@@ -146,22 +146,12 @@ class ThermalManagementBase(testBase):
         self.log.info("T diode = {}".format(self.get_t_diode(device)))
         self.log.info("T case is set to {}".format(self.get_t_case()))
     
-    def assert_vnn(self, device, delta):
-        vnn_voltage = device.get_voltage(device.data.mev_vnn_rail_name)
-        self.log.debug("{} = {}".format(vnn_voltage, device.data.mev_vnn_rail_name))
-        if vnn_voltage == device.data.mev_default_vnn + delta:
-            self.log.info("{} is set according to ITD LUT".format(device.data.mev_vnn_rail_name))
-        else:
-            msg = "{} is not set according to ITD LUT".format(device.data.mev_vnn_rail_name)
-            self.log.error(msg)
-            self.append_fail_reason(msg)
     
-    def assert_vcc(self, device, delta):
-        vnn_voltage = device.get_voltage(device.data.mev_vcc_rail_name)
-        self.log.debug("{} = {}".format(vnn_voltage, device.data.mev_vcc_rail_name))
-        if vnn_voltage == device.data.mev_default_vnn + delta:
-            self.log.info("{} is set according to ITD LUT".format(device.data.mev_vcc_rail_name))
+    def assert_ts_calibration(self, device):
+        ts_not_calibrated_fuse = device.get_pvt_use_uncalibrated_ts()
+        return True if ts_not_calibrated_fuse == 0 else False
+        if ts_not_calibrated_fuse == 0:
+            return True
         else:
-            msg = "{} is not set according to ITD LUT".format(device.data.mev_vcc_rail_name)
-            self.log.error(msg)
-            self.append_fail_reason(msg)
+            return False 
+            
