@@ -53,6 +53,10 @@ class TemperatureSweepTest(ThermalManagementBase):
     def execute_iteration(self):
         self.log.info("-"*80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
+
+        self.log.info("PVT OTP efuses")
+        self.log_pvt_fuses()
+
         if self.assert_ts_calibration(self.dut):
             self.log.info("TS Calibrated")
         else:

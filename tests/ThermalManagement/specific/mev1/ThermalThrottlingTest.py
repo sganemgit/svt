@@ -96,6 +96,9 @@ class ThermalThrottlingTest(ThermalManagementBase):
         self.log.info("Thermal Throttling Test")
         self.log_input_args()
 
+        self.log.info("PVT OTP efuses")
+        self.log_pvt_fuses()
+
         if self.prepare_test():
             for self.test_iteration in range(self.num_of_iterations):
                 try:

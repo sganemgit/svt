@@ -27,6 +27,9 @@ class NichotTest(ThermalManagementBase):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
         
+        self.log.info("PVT OTP efuses")
+        self.log_pvt_fuses()
+        
         #testing for nichot assertion above threshold
         temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
         self.log.info("setting temperature to {}".format(temp))
@@ -35,6 +38,7 @@ class NichotTest(ThermalManagementBase):
         timer.start()
         while True:
             if timer.expired():
+                self.log.error("10 sec timer expired. Nichot not asserted")
                 self.append_iteration_fail_reason("10 sec timer expired. Nichot signal not asserted")
                 break
             if self.assert_nichot_assertion(self.dut):
@@ -48,10 +52,11 @@ class NichotTest(ThermalManagementBase):
         timer.start()
         while True:
             if timer.expired():
+                self.log.error("10 sec timer expired. Nichot siganl not de-asserted")
                 self.append_iteration_fail_reason("{} sec timer expired. Nichot signal not asserted")
                 break
             if self.assert_nichot_deassertion(self.dut):
-                self.log.info("NICHOT siganl is asserted", 'g')
+                self.log.info("NICHOT siganl is de-asserted", 'g')
                 break
 
     def run(self):

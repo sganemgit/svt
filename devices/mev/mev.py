@@ -102,6 +102,15 @@ class mev(mevBase):
     def get_all_tm_fuses(self):
         #TODO finish this method by calling the other mehtods
         fuse_dict = dict()
+        fuse_dict['pvt_ts_cattrip'] = self.get_pvt_ts_cattrip()
+        fuse_dict['pvt_ts_cattrip_disabled'] = self.get_pvt_ts_cattrip_disable()
+        fuse_dict['pvt_vnn_itd_disable'] = self.get_pvt_vnn_itd_disable()
+        fuse_dict['pvt_vnn_itd_disable'] = self.get_pvt_vnn_itd_disable()
+        fuse_dict['pvt_vcc_itd_disable'] = self.get_pvt_vcc_itd_disable()
+        fuse_dict['pvt_use_uncalibrated_ts'] = self.get_pvt_use_uncalibrated_ts()
+        fuse_dict['pvt_vid_vcc_pm'] = self.get_pvt_vid_vcc_pm()
+        fuse_dict['pvt_vid_vcc_sm'] = self.get_pvt_vid_vcc_sm()
+        fuse_dict['pvt_vid_vnn'] = self.get_pvt_vid_vnn()
         return fuse_dict
     
     def dump_otp_efuse(self):

@@ -114,7 +114,7 @@ class mevData(commonData):
         otp_efuse_data1e = base_address + 0x178
         otp_efuse_data1f = base_address + 0x17c 
         
-        get_address_by_byte = lambda byte: (base_address + 0x100 + (int(byte/4)*4), byte%4)
+        get_address_by_byte = lambda byte: (0x4c00000 + 0x100 + (int(byte/4)*4), byte%4)
         # tuples (address, byte_offset, mask, bit_offset)
         pvt_use_uncalibrated_ts = get_address_by_byte(63) + (0x1, 3)
         pvt_ts_cattrip = get_address_by_byte(63) + (0xf, 4) 

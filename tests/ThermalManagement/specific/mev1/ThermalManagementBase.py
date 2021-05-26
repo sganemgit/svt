@@ -93,7 +93,7 @@ class ThermalManagementBase(testBase):
 
     def set_t_case(self, temp_val):
         if self.intec is not None:
-            self.log.info("setting T case to {}".format(temp_val))
+            self.log.debug("setting T case to {}".format(temp_val))
             self.intec.SetTemperature(temp_val)
             temperature = self.intec.GetTemperature()
             stability_couter = False
@@ -155,3 +155,7 @@ class ThermalManagementBase(testBase):
         else:
             return False 
             
+    def log_pvt_fuses(self, device):
+        pvt_fuses = device.get_all_tm_fuses()
+        for key, val in pvt_fuses.items():
+            self.log.info("{} : {}".format(key, hex(val))
