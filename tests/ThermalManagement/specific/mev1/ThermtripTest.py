@@ -26,7 +26,7 @@ class ThermtripTest(ThermalManagementBase):
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
         
         self.log.info("PVT OTP efuses")
-        self.log_pvt_fuses()
+        self.log_pvt_fuses(self.dut)
 
         if self.dut.get_pvt_ts_cattrip_disable() == 1:
             raise FatalTestError("CATTRIP is disabled in fuse")

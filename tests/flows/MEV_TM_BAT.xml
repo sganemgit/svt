@@ -1,5 +1,5 @@
 <TestFlow>
-	<TestCase>
+	<!--TestCase>
 		<Test name='TemperatureSweepTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
@@ -15,19 +15,13 @@
 					<PF ID='mev0:0' number='0' driver="idpf"/>
 				</Device>
 			</Devices>
-			<!--Links>
-				<Link>
-					<Port ID='mev0:0' role='dut'/>
-					<Port ID='mev1:0' role='lp'/>
-				</Link>
-			</Links-->
 		</Setup>
-	</TestCase>
+	</TestCase--> 
 	<TestCase>
 		<Test name='NichotTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
-			<Parameter name='ftdi_index' value='3'/>
+			<Parameter name='ftdi_index' value='1'/>
 			<Parameter name='num_of_iter' value='2'/>
 			<Parameter name='log_level' value='INFO'/>
 		</Input>
@@ -47,7 +41,7 @@
 		<Test name='ThermalThrottlingTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
-			<Parameter name='ftdi_index' value='3'/>
+			<Parameter name='ftdi_index' value='1'/>
 			<Parameter name='num_of_iter' value='3'/>
 			<Parameter name='log_level' value='INFO'/>
 		</Input>

@@ -64,6 +64,8 @@ class ThermalThrottlingTest(ThermalManagementBase):
     def execute_iteration(self):
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
+        self.log.info("PVT OTP efuses")
+        self.log_pvt_fuses(self.dut)
         #testing for clk reduction above threshold
         temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
         self.log.info("Setting temperature to {}".format(temp))
@@ -96,8 +98,6 @@ class ThermalThrottlingTest(ThermalManagementBase):
         self.log.info("Thermal Throttling Test")
         self.log_input_args()
 
-        self.log.info("PVT OTP efuses")
-        self.log_pvt_fuses()
 
         if self.prepare_test():
             for self.test_iteration in range(self.num_of_iterations):

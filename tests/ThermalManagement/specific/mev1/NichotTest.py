@@ -28,7 +28,7 @@ class NichotTest(ThermalManagementBase):
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
         
         self.log.info("PVT OTP efuses")
-        self.log_pvt_fuses()
+        self.log_pvt_fuses(self.dut)
         
         #testing for nichot assertion above threshold
         temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1

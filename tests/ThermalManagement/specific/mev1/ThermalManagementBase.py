@@ -158,4 +158,4 @@ class ThermalManagementBase(testBase):
     def log_pvt_fuses(self, device):
         pvt_fuses = device.get_all_tm_fuses()
         for key, val in pvt_fuses.items():
-            self.log.info("{} : {}".format(key, hex(val))
+            self.log.info("{} : {}".format(key, hex(val)))

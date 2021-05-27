@@ -69,7 +69,6 @@ class mevData(commonData):
     class pvt_0:
         base_address = 0xfc00000
         pvt_comp_id = base_address + 0
-        
     
     class pvt_1:
         base_address = 0xfe00000
@@ -78,7 +77,6 @@ class mevData(commonData):
         base_address = 0x2800000
         int_en = base_address + 0x2224
         
-
     class otp:
         base_address = 0x4c00000
         otp_efuse_data00 = base_address + 0x100 # 0-3

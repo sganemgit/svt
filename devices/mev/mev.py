@@ -113,6 +113,19 @@ class mev(mevBase):
         fuse_dict['pvt_vid_vnn'] = self.get_pvt_vid_vnn()
         return fuse_dict
     
+    def read_otp_fuse_byte(self, byte):
+        get_address_by_byte = lambda byte: (0x4c00000 + 0x100 + (int(byte/4)*4), byte%4)
+        address, offset = get_address_by_byte(byte)
+        fuse = self.driver.read_csr(address)
+        return (fuse >> (8*offset)) & 0xff
+    
+    def get_otp_revesion(self):
+        otp_revision = self.driver.read_csr(0x4c00000)
+        return  ((otp_revision >> 8) & 0xff, otp_revision & 0xff)
+    
+    def get_otp_status(self):
+        return self.driver.read_csr(0x4c00000 + 0x8)
+    
     def dump_otp_efuse(self):
         fuse_list = list()
         for word in range(32):
