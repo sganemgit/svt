@@ -4,6 +4,7 @@
 import os, sys
 from datetime import datetime
 from core.log.log import log
+from core.log.dataframe import dataframe
 import argparse
 from core.devices.DeviceFactory import DeviceFactory
 from core.exceptions.Exceptions import *
@@ -34,6 +35,7 @@ class testBase():
         self.testname = (str(self.__class__).split("'")[1]).split(".")[-1]
         self.logname = "{}_{}".format(datetime.now().strftime('%Y-%m-%d_%H_%M_%S'), self.testname)
         self.log = log(self.logname, log_level)
+        self.table = dataframe(self.logname)
         self.log.info(self.testname)
         self._test_status = "Pass"
         self._fail_reason_list = list()
@@ -45,6 +47,7 @@ class testBase():
         self.dut_lp_pairs = list()
 
     def __del__(self):
+        self.table.flush()
         self.summarise_test()
 
     def __call__(self):

@@ -187,7 +187,7 @@ class mev(mevBase):
             pll_cfg_dict["cores_0_1_2_3"] = int(vco_clk/((postdiv_2a+1)*(postdiv_2b+1)))
             pll_cfg_dict["cores_6_7_8_9"] =  int(vco_clk/((postdiv_3a+1)*(postdiv_3b+1)))
             pll_cfg_dict["cores_10_11_12_13"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
-            pll_cfg_dict["cores_3_4_14_15"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
+            pll_cfg_dict["cores_4_5_14_15"] = int(vco_clk/((postdiv_4a+1)*(postdiv_4b+1)))
         
         return pll_cfg_dict
 

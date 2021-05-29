@@ -93,6 +93,8 @@ class ThermalManagementBase(testBase):
 
     def set_t_case(self, temp_val):
         if self.intec is not None:
+            if temp_val > 135:
+                raise FatalTestError("Trying to set temperature higher than the max allowed temperature (135C)")
             self.log.debug("setting T case to {}".format(temp_val))
             self.intec.SetTemperature(temp_val)
             temperature = self.intec.GetTemperature()
