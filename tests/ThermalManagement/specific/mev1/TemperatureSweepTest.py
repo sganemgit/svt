@@ -35,6 +35,7 @@ class TemperatureSweepTest(ThermalManagementBase):
 
     def assert_vnn(self, device, mv_delta):
         vnn_voltage = device.get_voltage(device.data.mev_vnn_rail_name)
+        self.table["VNN [V]"] = round(vnn_voltage, 3)
         self.log.debug("{} = {}".format(vnn_voltage, device.data.mev_vnn_rail_name))
         if round(vnn_voltage, 3) == device.get_hvm_vnn_volatge() - mv_delta*0.001:
             return True
@@ -43,6 +44,7 @@ class TemperatureSweepTest(ThermalManagementBase):
     
     def assert_vcc(self, device, mv_delta):
         vcc_voltage = device.get_voltage(device.data.mev_vcc_rail_name)
+        self.table["VCC [V]"] = round(vcc_voltage, 3)
         vcc_mode = device.get_vcc_operational_mode()
         self.log.debug("{} = {}".format(vnn_voltage, device.data.mev_vcc_rail_name))
         if round(vcc_voltage, 3) == device.get_hvm_vcc_voltage(vcc_mode) - mv_delta*0.001:
@@ -87,6 +89,9 @@ class TemperatureSweepTest(ThermalManagementBase):
         self.log.info("Iterating over ITD Lookup Talbe")
         self.log.info(self.dut.get_voltage(self.dut.data.mev_vnn_rail_name))
         for temp, vnn_delta, vcc_delta in zip(mid_range_temps, itd_lut["vnn_delta"], itd_lut["vcc_delta"]):
+            self.table["Temperature"] = temp
+            self.table["VNN Delta"] = vnn_delta
+            self.table["VCC Delta"] = vcc_delta
             self.log.info("setting silicon temperature to {}".format(temp))
             self.set_temperature(self.dut, temp)
             if check_vnn_itd:

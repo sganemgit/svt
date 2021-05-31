@@ -157,6 +157,10 @@ class mev(mevBase):
         cfg_0 = self.driver.read_csr(self.data.clk_cpu.cpu_pll_cfg_0_inst)
         cfg_1 = self.driver.read_csr(self.data.clk_cpu.cpu_pll_cfg_1_inst)
         cfg_2 = self.driver.read_csr(self.data.clk_cpu.cpu_pll_cfg_2_inst)
+        pll_cfg_dict["CPU_PLL_CFG_0_inst"] = cfg_0
+        pll_cfg_dict["CPU_PLL_CFG_1_inst"] = cfg_1
+        pll_cfg_dict["CPU_PLL_CFG_2_inst"] = cfg_2
+
         
         pll_en = cfg_0 & 0x1
         fout_en = (cfg_0 >> 1) & 0xf

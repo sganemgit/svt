@@ -6,6 +6,7 @@ TEST = True
 from tests.ThermalManagement.specific.mev1.ThermalManagementBase import ThermalManagementBase
 from core.exceptions.Exceptions import *
 from core.utilities.Timer import Timer
+import time
 
 class ThermalThrottlingTest(ThermalManagementBase):
     
@@ -13,10 +14,24 @@ class ThermalThrottlingTest(ThermalManagementBase):
         acc_clk_cfg = device.get_acc_ss_cpu_clk_status()
         vco = acc_clk_cfg["pll_vco"]
         if not vco:
-            self.log.error("VCO value is not valid")
+            self.log.error("invalid cpu clk pll VCO value")
             raise Exception("VCO vlaue is not valid")
         reduced_clk = int(vco/4)
         clk_ok = True
+        self.table["CPU_PLL_CFG_0_inst"] = hex(acc_clk_cfg["CPU_PLL_CFG_0_inst"])
+        self.table["CPU_PLL_CFG_1_inst"] = hex(acc_clk_cfg["CPU_PLL_CFG_1_inst"])
+        self.table["CPU_PLL_CFG_2_inst"] = hex(acc_clk_cfg["CPU_PLL_CFG_2_inst"])
+
+        self.table["cores_0_1_2_3"] = acc_clk_cfg["cores_0_1_2_3"]
+        self.table["cores_6_7_8_9"] = acc_clk_cfg["cores_6_7_8_9"]
+        self.table["cores_10_11_12_13"] = acc_clk_cfg["cores_10_11_12_13"]
+        self.table["cores_4_5_14_15"] = acc_clk_cfg["cores_4_5_14_15"]
+
+        self.log.info("ACC CLK cores 0, 1, 2, 3    : {}MHz".format(acc_clk_cfg["cores_0_1_2_3"]))
+        self.log.info("ACC CLK cores 6, 7, 8, 9    : {}MHz".format(acc_clk_cfg["cores_6_7_8_9"]))
+        self.log.info("ACC CLK cores 10, 11, 12, 13: {}MHz".format(acc_clk_cfg["cores_10_11_12_13"]))
+        self.log.info("ACC CLK cores 4, 5, 14, 15  : {}MHz".format(acc_clk_cfg["cores_4_5_14_15"]))
+
         #checking cores 0,1,2,3
         if acc_clk_cfg["cores_0_1_2_3"] != reduced_clk:
             self.log.debug("cores 0 1 2 3 = {} clk not reduced".format(acc_clk_cfg['cores_0_1_2_3']))
@@ -29,9 +44,9 @@ class ThermalThrottlingTest(ThermalManagementBase):
         if acc_clk_cfg["cores_10_11_12_13"] != reduced_clk:
             self.log.debug("cores 10 11 12 13 = {} clk not reduced".format(acc_clk_cfg['cores_10_11_12_13']))
             clk_ok = False
-        #checking cores 3,4,14,15
-        if acc_clk_cfg["cores_3_4_14_15"] != reduced_clk:
-            self.log.debug("cores 3 4 14 15 = {} clk not reduced".format(acc_clk_cfg['cores_3_4_14_15']))
+        #checking cores 4,5,14,15
+        if acc_clk_cfg["cores_4_5_14_15"] != reduced_clk:
+            self.log.debug("cores 4 5 14 15 = {} clk not reduced".format(acc_clk_cfg['cores_4_5_14_15']))
             clk_ok = False
         return clk_ok
     
@@ -39,10 +54,24 @@ class ThermalThrottlingTest(ThermalManagementBase):
         acc_clk_cfg = device.get_acc_ss_cpu_clk_status()
         vco = acc_clk_cfg["pll_vco"]
         if not vco:
-            self.log.error("VCO value is not valid")
+            self.log.error("invalid cpu clk pll VCO value")
             raise Exception("VCO vlaue is not valid")
         boosted_clk = int(vco/2)
         clk_ok = True
+        self.table["CPU_PLL_CFG_0_inst"] = hex(acc_clk_cfg["CPU_PLL_CFG_0_inst"])
+        self.table["CPU_PLL_CFG_1_inst"] = hex(acc_clk_cfg["CPU_PLL_CFG_1_inst"])
+        self.table["CPU_PLL_CFG_2_inst"] = hex(acc_clk_cfg["CPU_PLL_CFG_2_inst"])
+
+        self.table["cores_0_1_2_3"] = acc_clk_cfg["cores_0_1_2_3"]
+        self.table["cores_6_7_8_9"] = acc_clk_cfg["cores_6_7_8_9"]
+        self.table["cores_10_11_12_13"] = acc_clk_cfg["cores_10_11_12_13"]
+        self.table["cores_4_5_14_15"] = acc_clk_cfg["cores_4_5_14_15"]
+
+        self.log.info("ACC CLK cores 0, 1, 2, 3    : {}MHz".format(acc_clk_cfg["cores_0_1_2_3"]))
+        self.log.info("ACC CLK cores 6, 7, 8, 9    : {}MHz".format(acc_clk_cfg["cores_6_7_8_9"]))
+        self.log.info("ACC CLK cores 10, 11, 12, 13: {}MHz".format(acc_clk_cfg["cores_10_11_12_13"]))
+        self.log.info("ACC CLK cores 4, 5, 14, 15  : {}MHz".format(acc_clk_cfg["cores_4_5_14_15"]))
+
         #checking cores 0,1,2,3
         if acc_clk_cfg["cores_0_1_2_3"] != boosted_clk:
             self.log.debug("cores 0 1 2 3 = {} clk not boosted".format(acc_clk_cfg['cores_0_1_2_3']))
@@ -55,44 +84,58 @@ class ThermalThrottlingTest(ThermalManagementBase):
         if acc_clk_cfg["cores_10_11_12_13"] != boosted_clk:
             self.log.debug("cores 10 11 12 13 = {} clk not boosted".format(acc_clk_cfg['cores_10_11_12_13']))
             clk_ok = False
-        #checking cores 3,4,14,15
-        if acc_clk_cfg["cores_3_4_14_15"] != boosted_clk:
-            self.log.debug("cores 3 4 14 15 = {} clk not boosted".format(acc_clk_cfg['cores_3_4_14_15']))
+        #checking cores 4,5,14,15
+        if acc_clk_cfg["cores_4_5_14_15"] != boosted_clk:
+            self.log.debug("cores 3 4 14 15 = {} clk not boosted".format(acc_clk_cfg['cores_4_5_14_15']))
             clk_ok = False
         return clk_ok
 
     def execute_iteration(self):
+        self.table["test iteration_number"] = self.test_iteration
         self.log.info("-" * 80)
         self.log.info("Iteration {}".format(self.test_iteration), 'g')
         self.log.info("PVT OTP efuses")
         self.log_pvt_fuses(self.dut)
         #testing for clk reduction above threshold
-        temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
-        self.log.info("Setting temperature to {}".format(temp))
-        self.set_temperature(self.dut, temp)
+        nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") 
+        self.set_t_case(80)
+        self.table["NICHOT Threshold"] = nichot_temp
+        self.log.info("Setting temperature to {}".format(nichot_temp))
+        self.set_temperature(self.dut, nichot_temp)
+        max_temp = 130 
+           
+        throttling_flag = False
+        # sweeping through nichot temp and max temp of 130 
+        for current_temp in range(nichot_temp, max_temp):
+            self.log.info("setting Temperature case to {}".format(current_temp))
+            self.set_temperature(self.dut, current_temp)
+            self.table["T case [C]"] = self.get_t_case()
+            self.table["T diode [C]"] = self.get_t_diode(self.dut)
+            if self.assert_acc_clk_reduction(self.dut):
+                throttling_flag = True
+                self.log.info("acc clk is redued", 'g')
+                self.table.end_row()
+                break
+            self.table.end_row()
+        if not throttling_flag:
+            self.append_iteration_fail_reason("cpu throttling did not occure within temperature range of {}-{}".format(nichot_temp, max_temp))
+                
+        #testing for clk boost below hysteresis value
+        nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="down") - 1
+        self.table["NICHOT Threshold hysteresis down"] = nichot_temp
+        self.log.info("Setting temperature to {}".format(nichot_temp))
+        self.set_temperature(self.dut, nichot_temp)
         timer = Timer(10)
         timer.start()
         while True:
             if timer.expired():
-                self.append_iteration_fail_reason("10 sec timer expired. acc clk is not redued")
-                break
-            if self.assert_acc_clk_reduction(self.dut):
-                self.log.info("acc clk is redued", 'g')
-                break
-                
-        #testing for clk boost below hysteresis value
-        temp = self.dut.get_nichot_threshold(hysteresis_direction="down") - 1
-        self.log.info("Setting temperature to {}".format(temp))
-        self.set_temperature(self.dut, temp)
-        timer.reset()
-        timer.start()
-        while True:
-            if timer.expired():
+                self.log.error("10 sec timer expired. acc clk is not boosted")
                 self.append_iteration_fail_reason("10 sec timer expired. acc clk is not boosted ")
                 break
             if self.assert_acc_clk_boost(self.dut):
                 self.log.info("acc clk is boosted", 'g')
                 break
+            self.table.end_row()
 
     def run(self):
         self.log.info("Thermal Throttling Test")

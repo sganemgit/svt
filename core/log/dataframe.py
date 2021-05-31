@@ -33,6 +33,6 @@ class dataframe:
         
     def end_row(self):
         now = datetime.now()
-        self._row["Time"] = str(now.time())
+        self._row["Time"] = str(now)
         self._df = self._df.append(self._row, ignore_index=True)
 

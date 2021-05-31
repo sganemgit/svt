@@ -152,12 +152,11 @@ class ThermalManagementBase(testBase):
     def assert_ts_calibration(self, device):
         ts_not_calibrated_fuse = device.get_pvt_use_uncalibrated_ts()
         return True if ts_not_calibrated_fuse == 0 else False
-        if ts_not_calibrated_fuse == 0:
-            return True
-        else:
-            return False 
             
     def log_pvt_fuses(self, device):
         pvt_fuses = device.get_all_tm_fuses()
         for key, val in pvt_fuses.items():
             self.log.info("{} : {}".format(key, hex(val)))
+            self.table[key] = hex(val)
+
+
