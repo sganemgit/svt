@@ -107,6 +107,7 @@ class ThermalThrottlingTest(ThermalManagementBase):
         throttling_flag = False
         # sweeping through nichot temp and max temp of 130 
         for current_temp in range(nichot_temp, max_temp):
+            self.log_pvt_registers()
             self.log.info("setting Temperature case to {}".format(current_temp))
             self.set_temperature(self.dut, current_temp)
             self.table["T case [C]"] = self.get_t_case()
@@ -128,12 +129,14 @@ class ThermalThrottlingTest(ThermalManagementBase):
         timer = Timer(10)
         timer.start()
         while True:
+            self.log_pvt_registers()
             if timer.expired():
                 self.log.error("10 sec timer expired. acc clk is not boosted")
                 self.append_iteration_fail_reason("10 sec timer expired. acc clk is not boosted ")
                 break
             if self.assert_acc_clk_boost(self.dut):
                 self.log.info("acc clk is boosted", 'g')
+                self.table.end_row()
                 break
             self.table.end_row()
 

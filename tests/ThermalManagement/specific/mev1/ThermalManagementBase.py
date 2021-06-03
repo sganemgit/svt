@@ -158,5 +158,10 @@ class ThermalManagementBase(testBase):
         for key, val in pvt_fuses.items():
             self.log.info("{} : {}".format(key, hex(val)))
             self.table[key] = hex(val)
+    
+    def log_pvt_registers(self, device):
+        reg_dict = device.get_pvt_registers()
+        for key, val in reg_dict.items():
+            self.talbe[key] = hex(val)
 
 

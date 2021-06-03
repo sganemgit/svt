@@ -201,3 +201,10 @@ class mev(mevBase):
             return "pm"
         else:
             return "sm"
+    
+    def get_pvt_registers(self):
+        reg_dict = dict()
+
+        reg_dict["pvt_0_irq_ts_status"] = self.driver.read_csr(self.data.pvt_0.irq_ts_status)
+        reg_dict["pvt_1_irq_ts_status"] = self.driver.read_csr(self.data.pvt_1.irq_ts_status)
+

@@ -69,9 +69,12 @@ class mevData(commonData):
     class pvt_0:
         base_address = 0xfc00000
         pvt_comp_id = base_address + 0
+        irq_ts_status = base_address + 0x64
     
     class pvt_1:
         base_address = 0xfe00000
+        pvt_comp_id = base_address + 0
+        irq_ts_status = base_address + 0x64
         
     class syscon:
         base_address = 0x2800000
