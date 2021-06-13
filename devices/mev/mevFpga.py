@@ -455,6 +455,11 @@ class mevFpga:
     
     def read_thermal_diode(self, remote=1):
         return self.read_adt7473(remote)
+    
+    def reset_power(self):
+        self.write_register(0x30, 0)
+        time.sleep(0.3)
+        self.write_register(0x30, 1)
         
 if __name__=="__main__":
     fpga = mevFpga(1)

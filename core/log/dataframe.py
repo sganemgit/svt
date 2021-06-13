@@ -35,4 +35,5 @@ class dataframe:
         now = datetime.now()
         self._row["Time"] = str(now)
         self._df = self._df.append(self._row, ignore_index=True)
+        self._row.clear()
 

@@ -31,6 +31,8 @@ class ThermalThrottlingTest(ThermalManagementBase):
         self.log.info("ACC CLK cores 6, 7, 8, 9    : {}MHz".format(acc_clk_cfg["cores_6_7_8_9"]))
         self.log.info("ACC CLK cores 10, 11, 12, 13: {}MHz".format(acc_clk_cfg["cores_10_11_12_13"]))
         self.log.info("ACC CLK cores 4, 5, 14, 15  : {}MHz".format(acc_clk_cfg["cores_4_5_14_15"]))
+        self.log.info("NICHOT signal status   : {}".format(hex(device.get_nichot_status())))
+        self.log.info("THERMTRIP signal status: {}".format(hex(device.get_thermtrip_status())))
 
         #checking cores 0,1,2,3
         if acc_clk_cfg["cores_0_1_2_3"] != reduced_clk:
@@ -71,6 +73,8 @@ class ThermalThrottlingTest(ThermalManagementBase):
         self.log.info("ACC CLK cores 6, 7, 8, 9    : {}MHz".format(acc_clk_cfg["cores_6_7_8_9"]))
         self.log.info("ACC CLK cores 10, 11, 12, 13: {}MHz".format(acc_clk_cfg["cores_10_11_12_13"]))
         self.log.info("ACC CLK cores 4, 5, 14, 15  : {}MHz".format(acc_clk_cfg["cores_4_5_14_15"]))
+        self.log.info("NICHOT signal status   : {}".format(hex(device.get_nichot_status())))
+        self.log.info("THERMTRIP signal status: {}".format(hex(device.get_thermtrip_status())))
 
         #checking cores 0,1,2,3
         if acc_clk_cfg["cores_0_1_2_3"] != boosted_clk:
@@ -98,11 +102,14 @@ class ThermalThrottlingTest(ThermalManagementBase):
         self.log_pvt_fuses(self.dut)
         #testing for clk reduction above threshold
         nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") 
-        self.set_t_case(80)
+        if self.last_interrupt_temp is not None:
+            nichot_temp = self.last_interrupt_temp - 2
+        self.log.info("preheating the SoC")
+        self.set_t_case(nichot_temp - 20)
         self.table["NICHOT Threshold"] = nichot_temp
         self.log.info("Setting temperature to {}".format(nichot_temp))
         self.set_temperature(self.dut, nichot_temp)
-        max_temp = 130 
+        max_temp = 125 
            
         throttling_flag = False
         # sweeping through nichot temp and max temp of 130 
@@ -113,9 +120,11 @@ class ThermalThrottlingTest(ThermalManagementBase):
             self.table["T case [C]"] = self.get_t_case()
             self.table["T diode [C]"] = self.get_t_diode(self.dut)
             if self.assert_acc_clk_reduction(self.dut):
+                self.last_interrupt_temp = current_temp
                 throttling_flag = True
                 self.log.info("acc clk is redued", 'g')
                 self.table.end_row()
+                self.log.line()
                 break
             self.table.end_row()
         if not throttling_flag:
@@ -139,6 +148,7 @@ class ThermalThrottlingTest(ThermalManagementBase):
                 self.table.end_row()
                 break
             self.table.end_row()
+            self.log.line()
 
     def run(self):
         self.log.info("Thermal Throttling Test")

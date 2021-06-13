@@ -49,6 +49,7 @@ class ThermalManagementBase(testBase):
     def init_test_data(self):
         self.intec = None
         self.iteration_fail_reasons = list()
+        self.last_interrupt_temp = None
         self.ftdi_index = int(self.args.get("ftdi_index", "1"))
         self.num_of_iterations = int(self.args.get("num_of_iter", "1"))
         self.log.info("Test data ready", 'g')

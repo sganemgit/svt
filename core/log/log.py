@@ -76,6 +76,9 @@ class log:
             with self.lock:
                 print(colors.Red(msg))
                 self.logger.critical(msg)
+    
+    def line(self):
+        self.info(80*"-")
 
 if __name__ == "__main__":
     log = log("testlog")
