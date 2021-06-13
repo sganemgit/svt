@@ -204,7 +204,9 @@ class mev(mevBase):
     
     def get_pvt_registers(self):
         reg_dict = dict()
-
         reg_dict["pvt_0_irq_ts_status"] = self.driver.read_csr(self.data.pvt_0.irq_ts_status)
         reg_dict["pvt_1_irq_ts_status"] = self.driver.read_csr(self.data.pvt_1.irq_ts_status)
+        reg_dict["syscon_int_stat"] = self.driver.read_csr(self.data.syscon.int_stat)
+        reg_dict["syscon_int_en"] = self.driver.read_csr(self.data.syscon.int_en)
+        return reg_dict
 
