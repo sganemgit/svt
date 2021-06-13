@@ -123,7 +123,7 @@ class mevData(commonData):
         pvt_ts_cattrip = get_address_by_byte(63) + (0xf, 4) 
         pvt_ts_cattrip_disable = get_address_by_byte(63) + (0x1, 8)
         pvt_vid_vcc_sm = get_address_by_byte(66) + (0xff,)
-       pvt_1_irq_ts_status pvt_vid_vcc_pm = get_address_by_byte(99) + (0xff,)
+        pvt_vid_vcc_pm = get_address_by_byte(99) + (0xff,)
         pvt_vid_vnn = get_address_by_byte(100) + (0xff,)
         pvt_vnn_itd_disable = get_address_by_byte(101) + (0x1,)
         pvt_vcc_itd_disable = get_address_by_byte(101) + (0x1, 1)
