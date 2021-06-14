@@ -50,6 +50,7 @@ class ThermalManagementBase(testBase):
         self.intec = None
         self.iteration_fail_reasons = list()
         self.last_interrupt_temp = None
+        self.int_timeout = int(self.args.get("int_timeout" , "15"))
         self.ftdi_index = int(self.args.get("ftdi_index", "1"))
         self.num_of_iterations = int(self.args.get("num_of_iter", "1"))
         self.log.info("Test data ready", 'g')
@@ -163,6 +164,6 @@ class ThermalManagementBase(testBase):
     def log_pvt_registers(self, device):
         reg_dict = device.get_pvt_registers()
         for key, val in reg_dict.items():
-            self.talbe[key] = hex(val)
+            self.table[key] = hex(val)
 
 

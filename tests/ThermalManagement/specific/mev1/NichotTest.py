@@ -27,13 +27,17 @@ class NichotTest(ThermalManagementBase):
         self.log.info("PVT OTP efuses")
         self.log_pvt_fuses(self.dut)
         #testing for NICHOT siganl assertion above threshold
-        nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 10
+        if self.last_interrupt_temp is not None:
+            nichot_temp = self.last_interrupt_temp - 3
+        else: 
+            nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
+            
         self.log.info("preheating SoC")
-        self.set_t_case(80)
+        self.set_t_case(nichot_temp - 20)
         self.table["NICHOT Threshold"] = nichot_temp
         self.log.info("Setting temperature to {}".format(nichot_temp))
         self.set_temperature(self.dut, nichot_temp)
-        max_temp = 130 
+        max_temp = 125 
            
         nichot_flag = False
         # sweeping through nichot temp and max temp of 130 
@@ -43,11 +47,13 @@ class NichotTest(ThermalManagementBase):
             self.table["T case [C]"] = self.get_t_case()
             self.table["T diode [C]"] = self.get_t_diode(self.dut)
             if self.assert_nichot_assertion(self.dut):
+                self.last_interrupt_temp = current_temp
                 nichot_flag = True
                 self.log.info("NICHOT signal asserted", 'g')
                 self.table.end_row()
                 break
             self.table.end_row()
+            self.log.line()
         if not nichot_flag:
             self.append_iteration_fail_reason("NICHOT signal was not asserted within temperature range of {}C-{}C".format(nichot_temp, max_temp))
                 
@@ -56,7 +62,7 @@ class NichotTest(ThermalManagementBase):
         self.table["NICHOT Threshold hysteresis down"] = nichot_temp
         self.log.info("Setting temperature to {}".format(nichot_temp))
         self.set_temperature(self.dut, nichot_temp)
-        timer = Timer(10)
+        timer = Timer(self.int_timeout)
         timer.start()
         while True:
             if timer.expired():
@@ -67,6 +73,7 @@ class NichotTest(ThermalManagementBase):
                 self.log.info("NICHOT siganl is de-asserted", 'g')
                 break
             self.table.end_row()
+            self.log.line()
 
     def run(self):
         self.log_input_args()
