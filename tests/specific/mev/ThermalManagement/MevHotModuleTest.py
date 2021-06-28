@@ -12,7 +12,7 @@ class MevHotModuleTest(ThermalManagementBase):
 
     def run(self):
         self.log.info("Hot Module Test")
-        self.print_input_args()
+        self.log_input_args()
         self.init_test_args()
         
         for iteration in range(self.num_of_iterations):

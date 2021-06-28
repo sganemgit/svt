@@ -8,11 +8,15 @@ from tests.specific.mev.ThermalManagement.ThermalManagementBase import ThermalMa
 class MevThermalSensorCalibrationTest(ThermalManagementBase):
     
     def execute_iteration(self):
-        pass
+        self.table["test iteration_number"] = self.test_iteration
+        self.log.info("-" * 80)
+        self.log.info("iteration {}".format(self.test_iteration), 'g')
+        self.log.info("pvt otp efuses")
+        self.log_pvt_fuses(self.dut)
 
     def run(self):
         self.log.info("Thermal Sensor Calibration Test")
-        self.print_input_args()
+        self.log_input_args()
         self.init_test_args()
         
         for iteration in range(self.num_of_iterations):
