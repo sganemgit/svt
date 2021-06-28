@@ -42,12 +42,15 @@ class NichotTest(ThermalManagementBase):
         nichot_flag = False
         # sweeping through nichot temp and max temp of 130 
         for current_temp in range(nichot_temp, max_temp):
-            self.log.info("setting Temperature case to {}".format(current_temp))
+            self.log.info("setting Temperature to {}".format(current_temp))
             self.set_temperature(self.dut, current_temp)
             self.table["T case [C]"] = self.get_t_case()
+            self.log.info("T case = {}C".format(self.get_t_case()))
             self.table["T diode [C]"] = self.get_t_diode(self.dut)
+            self.log.info("T Diode = {}C".format(self.get_t_diode(self.dut)))
+            
             if self.assert_nichot_assertion(self.dut):
-                self.last_interrupt_temp = current_temp
+                self.last_interrupt_temp = self.get_t_case() 
                 nichot_flag = True
                 self.log.info("NICHOT signal asserted", 'g')
                 self.table.end_row()

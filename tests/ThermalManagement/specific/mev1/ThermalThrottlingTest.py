@@ -101,9 +101,11 @@ class ThermalThrottlingTest(ThermalManagementBase):
         self.log.info("PVT OTP efuses")
         self.log_pvt_fuses(self.dut)
         #testing for clk reduction above threshold
-        nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") 
         if self.last_interrupt_temp is not None:
-            nichot_temp = self.last_interrupt_temp - 2
+            nichot_temp = int(self.last_interrupt_temp) - 2
+        else:
+            nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") 
+            
         self.log.info("preheating the SoC")
         self.set_t_case(nichot_temp - 20)
         self.table["NICHOT Threshold"] = nichot_temp
@@ -115,12 +117,12 @@ class ThermalThrottlingTest(ThermalManagementBase):
         # sweeping through nichot temp and max temp of 130 
         for current_temp in range(nichot_temp, max_temp):
             self.log_pvt_registers(self.dut)
-            self.log.info("setting Temperature case to {}".format(current_temp))
+            self.log.info("setting Temperature to {}".format(current_temp))
             self.set_temperature(self.dut, current_temp)
             self.table["T case [C]"] = self.get_t_case()
             self.table["T diode [C]"] = self.get_t_diode(self.dut)
             if self.assert_acc_clk_reduction(self.dut):
-                self.last_interrupt_temp = current_temp
+                self.last_interrupt_temp = self.get_t_case() 
                 throttling_flag = True
                 self.log.info("acc clk is redued", 'g')
                 self.table.end_row()

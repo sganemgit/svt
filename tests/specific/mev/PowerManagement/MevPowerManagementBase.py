@@ -3,8 +3,8 @@ from core.tests.testBase import testBase
 from core.exceptions.Exceptions import *
 import time
 
-class ThermalManagementBase(testBase):
-
+class MevPowerManagementBase(testBase):
+    
     def prepare_test(self):
         try:
             self.init_test_data()
@@ -93,6 +93,7 @@ class ThermalManagementBase(testBase):
         else:
             raise FatalTestError("could not find an instance of an intec device")
 
+    
     def set_t_case(self, temp_val):
         if self.intec is not None:
             if temp_val > 125:
@@ -151,19 +152,3 @@ class ThermalManagementBase(testBase):
         self.log.info("T case is set to {}".format(self.get_t_case()))
     
     
-    def assert_ts_calibration(self, device):
-        ts_not_calibrated_fuse = device.get_pvt_use_uncalibrated_ts()
-        return True if ts_not_calibrated_fuse == 0 else False
-            
-    def log_pvt_fuses(self, device):
-        pvt_fuses = device.get_all_tm_fuses()
-        for key, val in pvt_fuses.items():
-            self.log.info("{} : {}".format(key, hex(val)))
-            self.table[key] = hex(val)
-    
-    def log_pvt_registers(self, device):
-        reg_dict = device.get_pvt_registers()
-        for key, val in reg_dict.items():
-            self.table[key] = hex(val)
-
-
