@@ -28,7 +28,7 @@ class NichotTest(ThermalManagementBase):
         self.log_pvt_fuses(self.dut)
         #testing for NICHOT siganl assertion above threshold
         if self.last_interrupt_temp is not None:
-            nichot_temp = self.last_interrupt_temp - 3
+            nichot_temp = int(self.last_interrupt_temp) - 3
         else: 
             nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
             
@@ -60,7 +60,6 @@ class NichotTest(ThermalManagementBase):
         if not nichot_flag:
             self.append_iteration_fail_reason("NICHOT signal was not asserted within temperature range of {}C-{}C".format(nichot_temp, max_temp))
                 
-        #testing for clk boost below hysteresis value
         nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="down") - 1
         self.table["NICHOT Threshold hysteresis down"] = nichot_temp
         self.log.info("Setting temperature to {}".format(nichot_temp))
