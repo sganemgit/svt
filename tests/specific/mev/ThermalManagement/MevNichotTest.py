@@ -3,12 +3,12 @@
 
 TEST = True
 
-from tests.ThermalManagement.specific.mev1.ThermalManagementBase import ThermalManagementBase
+from tests.specific.mev.ThermalManagement.ThermalManagementBase import ThermalManagementBase
 from core.exceptions.Exceptions import *
 from core.utilities.Timer import Timer
 import time 
 
-class NichotTest(ThermalManagementBase):
+class MevNichotTest(ThermalManagementBase):
 
     def assert_nichot_assertion(self, device):
         status = device.get_nichot_status()
@@ -30,7 +30,7 @@ class NichotTest(ThermalManagementBase):
         self.log_pvt_fuses(self.dut)
         #testing for NICHOT siganl assertion above threshold
         if self.last_interrupt_temp is not None:
-            nichot_temp = int(self.last_interrupt_temp) - 3
+            nichot_temp = self.last_interrupt_temp - 3
         else: 
             nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
             
@@ -50,7 +50,7 @@ class NichotTest(ThermalManagementBase):
             self.table["T diode [C]"] = self.get_t_diode(self.dut)
             
             if self.assert_nichot_assertion(self.dut):
-                self.last_interrupt_temp = self.get_t_case() 
+                self.last_interrupt_temp = int(self.get_t_case())
                 nichot_flag = True
                 self.log.info("NICHOT signal asserted", 'g')
                 self.table.end_row()
@@ -75,7 +75,7 @@ class NichotTest(ThermalManagementBase):
                 self.log.info("NICHOT siganl is de-asserted", 'g')
                 break
             self.table.end_row()
-            self.log.line()
+        self.log.line()
 
     def run(self):
         self.log_input_args()

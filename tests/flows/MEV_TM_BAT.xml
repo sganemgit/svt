@@ -1,6 +1,24 @@
 <TestFlow>
 	<!--TestCase>
-		<Test name='TemperatureSweepTest'/>
+		<Test name='MevTemperatureSweepTest'/>
+		<Input>
+			<Parameter name='run_time' value='10'/>
+			<Parameter name='ftdi_index' value='3'/>
+			<Parameter name='num_of_iter' value='3'/>
+		</Input>
+		<Setup>
+			<Instruments>
+				<Instrument name='intec' type="IntecH" index="0" ID="intec_0"/>
+			</Instruments>
+			<Devices>
+				<Device name='mev1' hostname='' number='0'>
+					<PF ID='mev0:0' number='0' driver="idpf"/>
+				</Device>
+			</Devices>
+		</Setup>
+	</TestCase--> 
+	<!--TestCase>
+		<Test name='MevSensorCalibrationTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
 			<Parameter name='ftdi_index' value='3'/>
@@ -18,9 +36,10 @@
 		</Setup>
 	</TestCase--> 
 	<TestCase>
-		<Test name='NichotTest'/>
+		<Test name='MevNichotTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
+			<Parameter name='CI' value='3393'/>
 			<Parameter name='ftdi_index' value='1'/>
 			<Parameter name='num_of_iter' value='2'/>
 			<Parameter name='log_level' value='INFO'/>
@@ -38,9 +57,10 @@
 	</TestCase>
 	<TestCase>
 
-		<Test name='ThermalThrottlingTest'/>
+		<Test name='MevThermalThrottlingTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
+			<Parameter name='CI' value='3393'/>
 			<Parameter name='ftdi_index' value='1'/>
 			<Parameter name='num_of_iter' value='3'/>
 			<Parameter name='log_level' value='INFO'/>
@@ -56,8 +76,8 @@
 			</Devices>
 		</Setup>
 	</TestCase>
-	<TestCase>
-		<Test name='ThermtirpTest'/>
+	<!--TestCase>
+		<Test name='MevThermtirpTest'/>
 		<Input>
 			<Parameter name='run_time' value='10'/>
 			<Parameter name='ftdi_index' value='3'/>
@@ -74,5 +94,5 @@
 				</Device>
 			</Devices>
 		</Setup>
-	</TestCase>
+	</TestCase-->
 </TestFlow>
