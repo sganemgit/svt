@@ -102,12 +102,14 @@ class MevThermalThrottlingTest(ThermalManagementBase):
         self.log_pvt_fuses(self.dut)
         #testing for clk reduction above threshold
         if self.last_interrupt_temp is not None:
-            nichot_temp = int(self.last_interrupt_temp) - 2
+            nichot_temp = self.last_interrupt_temp_diode - 3
+            pre_heat_temp = self.last_interrupt_temp - 20
         else:
             nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") 
+            pre_heat_temp = nichot_temp - 20
             
-        self.log.info("preheating the SoC")
-        self.set_t_case(nichot_temp - 20)
+        self.log.info("preheating the SoC to {}C".format(pre_heat_temp))
+        self.set_t_case(pre_heat_temp)
         self.table["NICHOT Threshold"] = nichot_temp
         self.log.info("Setting temperature to {}".format(nichot_temp))
         self.set_temperature(self.dut, nichot_temp)
@@ -122,7 +124,8 @@ class MevThermalThrottlingTest(ThermalManagementBase):
             self.table["T case [C]"] = self.get_t_case()
             self.table["T diode [C]"] = self.get_t_diode(self.dut)
             if self.assert_acc_clk_reduction(self.dut):
-                self.last_interrupt_temp = self.get_t_case() 
+                self.last_interrupt_temp = int(self.get_t_case())
+                self.last_interrupt_temp_diode = current_temp 
                 throttling_flag = True
                 self.log.info("acc clk is redued", 'g')
                 self.table.end_row()

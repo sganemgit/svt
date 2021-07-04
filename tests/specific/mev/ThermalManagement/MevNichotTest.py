@@ -30,17 +30,20 @@ class MevNichotTest(ThermalManagementBase):
         self.log_pvt_fuses(self.dut)
         #testing for NICHOT siganl assertion above threshold
         if self.last_interrupt_temp is not None:
-            nichot_temp = self.last_interrupt_temp - 3
+            nichot_temp = self.last_interrupt_temp_diode - 3
+            pre_heat_temp = int(self.last_interrupt_temp - 20)
         else: 
             nichot_temp = self.dut.get_nichot_threshold(hysteresis_direction="up") + 1
+            pre_heat_temp = nichot_temp - 20
             
-        self.log.info("preheating SoC")
-        self.set_t_case(nichot_temp - 20)
+        self.log.info("preheating SoC to {}".format(pre_heat_temp))
+        self.set_t_case(pre_heat_temp)
         self.table["NICHOT Threshold"] = nichot_temp
         self.log.info("Setting temperature to {}".format(nichot_temp))
         self.set_temperature(self.dut, nichot_temp)
         max_temp = 125 
            
+        self.log.line()
         nichot_flag = False
         # sweeping through nichot temp and max temp of 130 
         for current_temp in range(nichot_temp, max_temp):
@@ -51,6 +54,7 @@ class MevNichotTest(ThermalManagementBase):
             
             if self.assert_nichot_assertion(self.dut):
                 self.last_interrupt_temp = int(self.get_t_case())
+                self.last_interrupt_temp_diode = current_temp
                 nichot_flag = True
                 self.log.info("NICHOT signal asserted", 'g')
                 self.table.end_row()
@@ -75,6 +79,7 @@ class MevNichotTest(ThermalManagementBase):
                 self.log.info("NICHOT siganl is de-asserted", 'g')
                 break
             self.table.end_row()
+            time.sleep(0.5)
         self.log.line()
 
     def run(self):
