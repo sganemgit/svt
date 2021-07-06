@@ -38,6 +38,8 @@ class cvl(cvlBase):
         ret_string += "Port Number : {}\n".format(self.driver.port_number())
         ret_string += "Current MAC link status : {}\n".format(self.GetCurrentLinkStatus())
         ret_string += "Current MAC link Speed : {}\n".format(self.GetCurrentLinkSpeed())
+        ret_string += "Current PCS link Status: {}\n".format(self.GetCurrentPcsLinkStatus())
+        ret_string += "Current PHY link speed: {}\n".format(self.GetPhyLinkSpeed())
         ret_string += "Current Phy Type : {}\n".format(self.GetCurrentPhyType())
         ret_string += "Current FEC Type : {}\n".format(self.GetCurrentFECStatus())
         ret_string += "Current PCIe link speed : {}\n".format(self.GetCurrentPcieLinkSpeed())
@@ -745,7 +747,7 @@ class cvl(cvlBase):
         '''
         raise RuntimeError("_GetPhyLinkSpeedAq need to be done")
 
-    def GetPhyLinkStatus(self, Location = "AQ"):
+    def GetCurrentPcsLinkStatus(self, Location = "AQ"):
         '''
             This function return Phy Link status.
             argument:
@@ -760,7 +762,8 @@ class cvl(cvlBase):
         else:
             raise RuntimeError("Err GetPhyLinkStatus: Error Location, please insert location REG/AQ")   
             
-        return LinkStatus   
+        status = "DOWN" if LinkStatus == 0 else "UP"
+        return status 
 
     def _GetPhyLinkStatusReg(self):
         '''This function return PCS Link Status
@@ -2013,7 +2016,7 @@ class cvl(cvlBase):
         self.aq.NeighborDeviceWrite(0x2,1,1, address,data)
         pass
 
-    def ReadMTIPRegister(self, offset,address,debug = False):
+    def ReadMTIPRegister(self, offset, address, debug = False):
         '''
             this function read from MTIP in ethw.
             supporting read/write via SBiosf to neighbor device.
@@ -2031,7 +2034,7 @@ class cvl(cvlBase):
             print("return value: ", ret_val)
         return ret_val
 
-    def NeighborDeviceRead(self, dest,opcode,addrlen, address):
+    def NeighborDeviceRead(self, dest, opcode, addrlen, address):
         '''
             this function support Neighbor Device Request via AQ (CVL spec B.2.1.2)
             supporting read/write via SBiosf to neighbor device.
@@ -2368,18 +2371,18 @@ class cvl(cvlBase):
             quad = 0
             pmd_num = 0
         if number_of_ports == 2:        
-            quad = self.quad_for_2_ports_dict[port_num]        
-            pmd_num = self.pmd_num_for_2_ports_dict[port_num]
+            quad = self.data.quad_for_2_ports_dict[port_num]        
+            pmd_num = self.data.pmd_num_for_2_ports_dict[port_num]
         elif number_of_ports == 4:     
             if self.GetMuxStatus():
-                quad = self.quad_for_4_ports_mux_dict[port_num]
-                pmd_num = self.pmd_num_for_4_ports_mux_dict[port_num]
+                quad = self.data.quad_for_4_ports_mux_dict[port_num]
+                pmd_num = self.data.pmd_num_for_4_ports_mux_dict[port_num]
             else:
-                quad = self.quad_for_4_ports_dict[port_num]        
-                pmd_num = self.pmd_num_for_4_ports_dict[port_num]
+                quad = self.data.quad_for_4_ports_dict[port_num]        
+                pmd_num = self.data.pmd_num_for_4_ports_dict[port_num]
         elif number_of_ports == 8:        
-            quad = self.quad_for_8_ports_dict[port_num]
-            pmd_num = self.pmd_num_for_8_ports_dict[port_num]
+            quad = self.data.quad_for_8_ports_dict[port_num]
+            pmd_num = self.data.pmd_num_for_8_ports_dict[port_num]
 
         #print("quad: ", quad)
         #print("port_num: ", port_num)
@@ -2387,34 +2390,44 @@ class cvl(cvlBase):
 
         return quad,pmd_num
 
-    def _GetPcsOffset(self):
+    def _GetPcsOffset(self, link_speed):
         '''this func return the pcs num according the pf number.
             input: None
             Return: pcs offset
         '''
         quad,pmd_num = self._GetQuadAndPmdNumAccordingToPf()
             
-        #print("quad:",quad)
-        #print("pmd_num:",pmd_num)
-
-        link_speed = self.GetMacLinkSpeed()
-        #print("link_speed: ",link_speed)
-
         if link_speed == "100G":
-            pcs_offset = self.MTIP_100_PCS_Addr_Dict[quad]
+            pcs_offset = self.data.MTIP_100_PCS_Addr_Dict[quad]
 
         elif (link_speed == "10G" or link_speed == "25G" or link_speed == "40G" or link_speed == "50G"):
             if quad == 0:
-                pcs_offset = self.MTIP_10_25_40_50_PCS_Quad_0_Addr_Dict[pmd_num]
+                pcs_offset = self.data.MTIP_10_25_40_50_PCS_Quad_0_Addr_Dict[pmd_num]
             elif quad == 1:
-                pcs_offset = self.MTIP_10_25_40_50_PCS_Quad_1_Addr_Dict[pmd_num]
+                pcs_offset = self.data.MTIP_10_25_40_50_PCS_Quad_1_Addr_Dict[pmd_num]
             
-        elif link_speed == "1G":
+        else:
             pcs_offset = None
-        #print("PCS offset ", hex(pcs_offset))
         return pcs_offset
+    
+    def PrintAllPcsAdvancedInfo(self):
+        ret = self.GetPcsAllAdvancedInfo()
+        for key, val in ret.items():
+            print(80*"-")
+            print("{}".format(key))
+            print(80*"-")
+            if isinstance(val, list):
+                for item in val:
+                    print(item)
 
-    def GetPcsAdvencedInfo(self,debug = 0):
+    def GetPcsAllAdvancedInfo(self, debug=False):
+        speeds = ["100G", "50G", "40G", "25G", "10G", "1G" , "100M"]
+        return_dict = dict()
+        for speed in speeds:
+            return_dict[speed] = self.GetPcsAdvencedInfo(speed, debug)
+        return return_dict
+
+    def GetPcsAdvencedInfo(self, link_speed=None, debug=False):
         '''This function print(PCS Advenced info 
             input: debug -- if true, print(the return list
             return: list -- 
@@ -2423,8 +2436,16 @@ class cvl(cvlBase):
                         for PCS BaseR status 2: Latched block lock. (LL), Latched high BER. (LH)
         '''
         return_list = []
-        # get the real PCS address according to pf number
-        pcs_offset = self._GetPcsOffset()
+        return_dict = dict()
+
+        if link_speed == None:
+            speed = self.GetCurrentLinkSpeed()
+            pcs_offset = self._GetPcsOffset(speed)
+        else:
+            pcs_offset = self._GetPcsOffset(link_speed)
+
+        if pcs_offset == None:
+            return None
 
         #pcs_link_status_1 = ReadMTIPRegister(pcs_offset,1)#PCS link status 1
         return_list.append("")
@@ -2433,7 +2454,7 @@ class cvl(cvlBase):
         for i in range(6):
             pcs_link_status_2_run_bit = (pcs_link_status_2 >> i) & 1
             if  pcs_link_status_2_run_bit == 1:
-                return_list.append(self.pcs_link_status_2_dict[i])
+                return_list.append(self.data.pcs_link_status_2_dict[i])
         return_list.append("Receive fault: " + str(get_bit_value(pcs_link_status_2,10)))
         return_list.append("Transmit fault: " + str(get_bit_value(pcs_link_status_2,11)))
 
