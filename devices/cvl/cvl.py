@@ -2856,7 +2856,6 @@ class cvl(cvlBase):
             node_handler_dict[P] = data['node_handle']
             P += 1
 
-        print(node_handler_dict
         #cable_type_to_topology_hanlder_dict = {'sfp' : {0:7,2:8,4:9,6:10,1:11,3:12,5:13,7:14}, 'qsfp' : {0:2,1:3}}
         #handlers_dict = cable_type_to_topology_hanlder_dict.get(cable_type,'cable type unknown')
         eeprom_dict = dict()
