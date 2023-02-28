@@ -1031,7 +1031,7 @@ class cvlAq:
             data['port_options'] = buffer[0:6*data['port_options_count']]
             return (False, data)
 
-    def SetPortOptioins(self, config, debug=False):
+    def SetPortOptions(self, config, debug=False):
         '''
              input : config -- type(dict):
             
@@ -1045,12 +1045,12 @@ class cvlAq:
 
         aq_desc = AqDescriptor()
         aq_desc.opcode = 0x06EB
-        aq_desc.flags = 0
+        aq_desc.flags = 0x00 
         aq_desc.param0 = (byte_18 << 16 | byte_17 << 8 | byte_16)
         buffer = []
         status = self.driver.send_aq_command(aq_desc, buffer, debug)
         if status != 0 or aq_desc.retval != 0:
-            print("Failed to send Read Write SffEeprom Command, status: {}, FW ret value: {}".format(status,aq_desc.retval))
+            print("Failed to send Set Port Option AQ, status: {}, FW ret value: {}".format(status,aq_desc.retval))
         return [status, aq_desc.retval]
 
     def testReadWriteSffEeprom(self):

@@ -3248,6 +3248,29 @@ class cvl(cvlBase):
             if stuts1:
                 raise RuntimeError('Release Resource Ownership Amdin command fails stuts1: {} retval: {}'.format(stuts1, data1))
 
+    def SetPortOption(self, port_option: int):
+        '''
+
+            Set Port Option allows the user to choose a port option out of the available port options. To veiw the available port option use the method PrintPortOptions()
+            input: port_option : int
+            output: True/False
+        '''
+        
+        config = {"selected_port_option": port_option}
+        self.aq.SetPortOptions(config)
+        
+        config["resource_id"] = 1
+        config["access_type"] = 2
+
+        self.aq.RequestResourceOwnership(config)
+
+        config2 = {"": 0}
+        self.aq.NvmWriteActivate(config2)
+
+        self.aq.ReleaseResourceOwnership(config)
+        
+        
+            
     def SetDefaultOverrideMask(self, config):
         port = config['port']
         phy_types = config['phy_types'] # int[16 bytes] 
